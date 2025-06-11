@@ -1,35 +1,47 @@
 import React from 'react';
-import ConnectWallet from '../components/ConnectWallet';
 import { useNavigate } from 'react-router-dom';
-import { useWeb3React } from '@web3-react/core';
+import { useAccount } from 'wagmi';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 function Login() {
-  const { account } = useWeb3React();
+  const { address } = useAccount();
   const navigate = useNavigate();
 
   const handleLogin = () => {
-    if (account) {
+    if (address) {
       navigate('/dashboard');
     } else {
       alert('Please connect your wallet first!');
     }
   };
 
-  if (account) {
-    navigate('/dashboard');
-  } else {
-    alert('Please connect your wallet first!');
-  }
-      <button className="px-6 py-2 mt-6 bg-blue-600 text-white rounded hover:bg-blue-700" onClick={handleLogin}>Login</button>
   return (
-    <div className="text-center p-10 bg-gray-50 min-h-screen">
-      <img src="/leaf-icon.png" alt="GreenLedger Logo" className="mx-auto mb-4 w-24" />
-      <h1 className="text-3xl font-bold mb-2">Bringing Trust to Agriculture with Blockchain</h1>
-      <p className="mb-6">Learn more about us.</p>
-      <ConnectWallet />
-      <button className="px-4 py-2 border border-gray-300 rounded ml-2 mt-4 hover:bg-gray-100" onClick={() => alert('Learn more clicked!')}>Learn More</button>
-      <button className="px-6 py-2 mt-6 bg-blue-600 text-white rounded hover:bg-blue-700" onClick={handleLogin}>Login</button>
+    <div className="text-center p-10 mt-10">
+      <h1 className="text-4xl font-bold mb-8 text-green-800">
+        🌿 GreenLedger DApp
+      </h1>
+      <h2 className="text-2xl font-semibold mb-6">Bringing Trust to Agriculture with Blockchain</h2>
+      
+      <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg">
+        <p className="mb-6 text-gray-600">Connect your wallet to access the platform</p>
+        
+        <div className="flex justify-center mb-6">
+          <ConnectButton />
+        </div>
+        
+        <button 
+          className="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          onClick={handleLogin}
+        >
+          Enter Dashboard
+        </button>
+        
+        <p className="mt-6 text-sm text-gray-500">
+          New to blockchain? <a href="#" className="text-green-600 hover:underline">Learn how it works</a>
+        </p>
+      </div>
     </div>
   );
 }
+
 export default Login;
