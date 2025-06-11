@@ -61,7 +61,102 @@ function Login() {
           </div>
         </div>
 
-       
+        {/* Feature Highlights */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12">
+          <FeatureCard
+            icon="🔗"
+            title="Blockchain Traceability"
+            description="Every step of your produce journey is recorded immutably on the blockchain"
+          />
+          <FeatureCard
+            icon="👥"
+            title="Multi-Role Platform"
+            description="Farmers, Distributors, Retailers, and Consumers all connected in one ecosystem"
+          />
+          <FeatureCard
+            icon="🛡️"
+            title="Trust & Transparency"
+            description="Build consumer confidence with verifiable supply chain data"
+          />
+        </div>
+
+        {/* How It Works Section */}
+        <div className="bg-gray-50 p-6 md:p-8 rounded-2xl mb-8">
+          <h3 className="text-2xl font-bold text-center mb-8 text-gray-800">How GreenLedger Works</h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <HowItWorksStep
+              step="1"
+              title="Register"
+              desc="Connect wallet & choose your role"
+              icon="👤"
+            />
+            <HowItWorksStep
+              step="2"
+              title="Tokenize"
+              desc="Create NFTs for your produce batches"
+              icon="🏷️"
+            />
+            <HowItWorksStep
+              step="3"
+              title="Transfer"
+              desc="Pass ownership through supply chain"
+              icon="🔄"
+            />
+            <HowItWorksStep
+              step="4"
+              title="Track"
+              desc="Full transparency from farm to table"
+              icon="📍"
+            />
+          </div>
+        </div>
+
+        {/* Enhanced Wallet Connection Section */}
+        <div className="max-w-lg mx-auto bg-white p-8 rounded-2xl shadow-xl border border-gray-100 mb-8">
+          <div className="text-center mb-6">
+            <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl">🔐</span>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">Connect Your Wallet</h3>
+            <p className="text-gray-600">
+              Secure access to the GreenLedger ecosystem
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex justify-center">
+              <ConnectButton />
+            </div>
+
+            {/* Supported Wallets Info */}
+            <div className="flex justify-center space-x-4 text-sm text-gray-500">
+              <span className="flex items-center">
+                <span className="w-2 h-2 bg-orange-400 rounded-full mr-2"></span>
+                MetaMask
+              </span>
+              <span className="flex items-center">
+                <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                WalletConnect
+              </span>
+            </div>
+
+            {/* Enhanced CTA */}
+            <div className="mt-6">
+              {address ? (
+                <button
+                  className="w-full px-6 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 transition-all transform hover:scale-105 font-semibold text-lg shadow-lg"
+                  onClick={handleLogin}
+                >
+                  🚀 Enter GreenLedger Dashboard
+                </button>
+              ) : (
+                <div className="w-full px-6 py-4 bg-gray-100 text-gray-500 rounded-xl text-center font-semibold">
+                  Connect wallet to continue
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
         {/* Footer Section */}
         <div className="text-center mt-12 pt-8 border-t border-gray-200">
