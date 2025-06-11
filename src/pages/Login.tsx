@@ -37,3 +37,50 @@ function Login() {
       alert('Please connect your wallet first!');
     }
   };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100">
+      <div className="container mx-auto px-4 py-8">
+
+        {/* Hero Section */}
+        <div className="hero-section bg-gradient-to-r from-green-600 to-green-800 text-white py-12 md:py-16 px-6 md:px-8 rounded-2xl mb-12">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="flex items-center justify-center mb-6">
+              <div className="bg-white/20 p-4 rounded-full mr-4">
+                <span className="text-3xl md:text-4xl">🌱</span>
+              </div>
+              <h1 className="text-4xl md:text-5xl font-bold">GreenLedger</h1>
+            </div>
+            <p className="text-lg md:text-xl mb-6 md:mb-8 opacity-90">
+              Bringing Trust to Agriculture with Blockchain Technology
+            </p>
+            <p className="text-base md:text-lg opacity-80 max-w-2xl mx-auto">
+              Track your produce from farm to table with transparent,
+              immutable records powered by Web3 technology
+            </p>
+          </div>
+        </div>
+
+       
+
+        {/* Footer Section */}
+        <div className="text-center mt-12 pt-8 border-t border-gray-200">
+          <p className="text-gray-600 mb-4">
+            New to blockchain agriculture?
+            <button className="text-green-600 hover:text-green-700 font-semibold ml-2">
+              Learn More →
+            </button>
+          </p>
+          <div className="flex justify-center space-x-6 text-sm text-gray-500">
+            <a href="#" className="hover:text-green-600">About</a>
+            <a href="#" className="hover:text-green-600">Documentation</a>
+            <a href="#" className="hover:text-green-600">Support</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+export default Login;
