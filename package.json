@@ -7,18 +7,21 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@rainbow-me/rainbowkit": "^2.2.6",
     "@tanstack/react-query": "^5.80.6",
     "@wagmi/core": "^2.17.3",
     "buffer": "^6.0.3",
+    "eth-eip712-util": "^2.3.1",
     "ethers": "^6.14.3",
     "lucide-react": "^0.513.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",
+    "valtio": "^2.1.5",
     "viem": "^2.30.6",
     "view": "^0.6.1",
     "wagmi": "^2.15.6"
@@ -37,8 +40,11 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "patch-package": "^8.0.0",
     "postcss": "^8.4.24",
+    "postinstall-postinstall": "^2.1.0",
     "tailwindcss": "^3.3.2",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "vite-plugin-commonjs": "^0.10.4"
   }
 }
