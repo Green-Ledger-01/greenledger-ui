@@ -6,23 +6,24 @@ import commonjs from 'vite-plugin-commonjs';
 export default defineConfig({
   plugins: [
     react(),
-    commonjs(), // Add this to handle CommonJS modules
+    commonjs({
+      include: [/node_modules\/@coinbase\/wallet-sdk\/.*\.cjs$/],
+    }),
     inject({
       Buffer: ['buffer', 'Buffer'],
     }),
   ],
   define: {
-    global: {}, 
+    global: {},
   },
   optimizeDeps: {
-    include: ['buffer'], 
+    include: ['buffer', '@coinbase/wallet-sdk'],
   },
   css: {
     postcss: './postcss.config.js',
   },
   resolve: {
     alias: {
-      // Alias to bypass the problematic CommonJS module
       '@coinbase/wallet-sdk/dist/vendor-js/eth-eip712-util/index.cjs': 'eth-eip712-util',
     },
   },
