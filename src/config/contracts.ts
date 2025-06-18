@@ -1,52 +1,33 @@
-// Contract Configuration
-// Update these addresses with your deployed contract addresses
-
+// Contract Configuration - Deployed on Lisk Sepolia
 export const CONTRACT_CONFIG = {
-  // Replace these with your actual deployed contract addresses
+  // Deployed contract addresses from .env.local
   addresses: {
-    GreenLedgerAccess: '0x...', // Replace with actual deployed address
-    CropBatchToken: '0x...', // Replace with actual deployed address
-    GreenLedgerPaymaster: '0x...', // Replace with actual deployed address
+    UserManagement: import.meta.env.VITE_USER_MANAGEMENT_CONTRACT_ADDRESS || '0x66BCB324f59035aD2B084Fe651ea82398A9fac82',
+    CropBatchToken: import.meta.env.VITE_CROPBATCH_TOKEN_CONTRACT_ADDRESS || '0xA065205364784B3D7e830D0EB2681EB218e3aD27',
+    GreenLedgerAccess: import.meta.env.VITE_GREENLEDGER_ACCESS_CONTRACT_ADDRESS || '0x9DBa889848577778865050e67cd88eD86Cb60db6',
+    GreenLedgerPaymaster: import.meta.env.VITE_GREENLEDGER_PAYMASTER_CONTRACT_ADDRESS || '0xbDc36735342605D1FdcE9A0E2bEcebC3F1A7e044',
   },
   
   // Network configuration
   network: {
-    chainId: 4202, // Lisk Sepolia testnet
-    name: 'Lisk Sepolia',
-    rpcUrl: 'https://rpc.sepolia-api.lisk.com',
-    blockExplorer: 'https://sepolia-blockscout.lisk.com',
+    chainId: parseInt(import.meta.env.VITE_APP_CHAIN_ID) || 4202,
+    name: import.meta.env.VITE_APP_NETWORK_NAME || 'Lisk Sepolia',
+    rpcUrl: import.meta.env.VITE_APP_RPC_URL || 'https://rpc.sepolia-api.lisk.com',
+    blockExplorer: import.meta.env.VITE_APP_EXPLORER_URL || 'https://sepolia-blockscout.lisk.com',
   },
   
-  // Contract deployment instructions
-  deployment: {
-    instructions: `
-      To deploy the contracts and update the addresses:
-      
-      1. Deploy GreenLedgerAccess contract first
-      2. Deploy CropBatchToken with GreenLedgerAccess address
-      3. Deploy GreenLedgerPaymaster with required parameters
-      4. Update the addresses in this file
-      5. Verify contracts on block explorer
-      
-      Example deployment script:
-      
-      // Deploy GreenLedgerAccess
-      const accessControl = await GreenLedgerAccess.deploy(adminAddress);
-      
-      // Deploy CropBatchToken
-      const cropToken = await CropBatchToken.deploy(
-        accessControl.address,
-        "https://api.example.com/metadata/",
-        royaltyRecipient,
-        royaltyBps
-      );
-      
-      // Deploy GreenLedgerPaymaster
-      const paymaster = await GreenLedgerPaymaster.deploy(
-        entryPointAddress,
-        accessControl.address
-      );
-    `,
+  // Contract metadata
+  metadata: {
+    baseUri: import.meta.env.VITE_CROPBATCH_TOKEN_BASE_URI || 'https://your-nft-metadata-base-uri/',
+    royaltyRecipient: import.meta.env.VITE_CROPBATCH_TOKEN_ROYALTY_RECIPIENT || '0xF65781317f8E35891CD2edDa1Db26e56ba53B736',
+    royaltyBps: parseInt(import.meta.env.VITE_CROPBATCH_TOKEN_ROYALTY_BPS) || 250,
+  },
+  
+  // IPFS Configuration
+  ipfs: {
+    endpoint: import.meta.env.VITE_APP_IPFS_ENDPOINT || 'https://api.pinata.cloud/pinning/pinFileToIPFS',
+    apiKey: import.meta.env.VITE_APP_PINATA_API_KEY,
+    secretKey: import.meta.env.VITE_APP_PINATA_SECRET_KEY,
   },
 };
 
