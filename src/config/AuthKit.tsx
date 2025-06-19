@@ -13,9 +13,9 @@ export const ParticleAuthkit = ({ children }: React.PropsWithChildren) => {
   return (
     <AuthCoreContextProvider
       options={{
-        projectId: process.env.NEXT_PUBLIC_PROJECT_ID!,
-        clientKey: process.env.NEXT_PUBLIC_CLIENT_KEY!,
-        appId: process.env.NEXT_PUBLIC_APP_ID!,
+        projectId: import.meta.env.VITE_PARTICLE_PROJECT_ID!,
+        clientKey: import.meta.env.VITE_PARTICLE_CLIENT_KEY!,
+        appId: import.meta.env.VITE_PARTICLE_APP_ID!,
         authTypes: [AuthType.email, AuthType.google, AuthType.twitter, AuthType.github],
         themeType: "dark",
 
