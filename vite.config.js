@@ -31,7 +31,6 @@ export default defineConfig({
     // Increase chunk size warning limit to reduce noise
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
-      external: ['borsh/dist/bundle-entrypoints'],
       output: {
         // Manual chunking for better code splitting
         manualChunks: {
