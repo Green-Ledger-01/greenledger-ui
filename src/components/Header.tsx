@@ -1,9 +1,10 @@
 import React from 'react';
 import { useAccount, useDisconnect, useChainId } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { Wallet, Copy } from 'lucide-react';
+import { Wallet, Copy, UserPlus, Settings } from 'lucide-react';
 import { useWeb3 } from '../contexts/Web3Context';
 import { useToast } from '../contexts/ToastContext';
+import { useRoleManagement } from '../hooks/useRoleManagement';
 import { truncateAddress } from '../utils/errorHandling';
 import { APP_CONFIG } from '../config/constants';
 
@@ -12,6 +13,7 @@ const Header: React.FC = () => {
   const { disconnect } = useDisconnect();
   const { userRoles, isLoadingRoles } = useWeb3();
   const { addToast } = useToast();
+  const { showRoleRegistrationModal, rolesSummary } = useRoleManagement();
   const chainId = useChainId();
 
   const getUserRoleDisplay = () => {
@@ -62,6 +64,25 @@ const Header: React.FC = () => {
                   Chain ID: <span className="font-medium">{chainId}</span>
                 </span>
               </div>
+              
+              {/* Role Management Button */}
+              <button
+                onClick={showRoleRegistrationModal}
+                className="flex items-center px-3 py-2 text-sm bg-blue-50 text-blue-700 border border-blue-200 rounded-full hover:bg-blue-100 transition-colors"
+                title={rolesSummary.hasAnyRole ? "Manage Roles" : "Register Role"}
+              >
+                {rolesSummary.hasAnyRole ? (
+                  <>
+                    <Settings className="h-4 w-4 mr-1" />
+                    Manage
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="h-4 w-4 mr-1" />
+                    Register Role
+                  </>
+                )}
+              </button>
               
               <div className="flex items-center border border-green-300 rounded-full px-3 py-2 bg-green-50 text-green-800">
                 <Wallet className="h-4 w-4 mr-2" />
