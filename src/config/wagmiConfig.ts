@@ -1,6 +1,7 @@
 import { createConfig, http } from 'wagmi'
 import { liskSepolia } from '../chains/liskSepolia'
 import { injected, walletConnect, coinbaseWallet } from 'wagmi/connectors'
+import { WALLETCONNECT_PROJECT_ID, APP_CONFIG } from './constants'
 
 // Ensure this is a readonly tuple
 export const chains = [liskSepolia] as const
@@ -8,8 +9,8 @@ export const chains = [liskSepolia] as const
 export const config = createConfig({
   connectors: [
     injected(),
-    
-    walletConnect({ projectId: '48eb3c0dc304ad679c805fba58632a31' }),
+    coinbaseWallet({ appName: APP_CONFIG.NAME }),
+    walletConnect({ projectId: WALLETCONNECT_PROJECT_ID }),
   ],
   chains,
   transports: {
