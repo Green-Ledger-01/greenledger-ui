@@ -2,10 +2,14 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import inject from '@rollup/plugin-inject';
 import commonjs from 'vite-plugin-commonjs';
+import path from 'path';
 
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      // Ensure React is properly handled
+      jsxRuntime: 'automatic',
+    }),
     commonjs({
       include: [/node_modules\/@coinbase\/wallet-sdk\/.*\.cjs$/],
     }),
@@ -20,16 +24,22 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
       'buffer', 
       'process/browser',
       '@coinbase/wallet-sdk',
       '@particle-network/authkit',
-      '@particle-network/auth-core'
+      '@particle-network/auth-core',
+      'lucide-react',
     ],
     exclude: [
       '@solana/web3.js',
       'borsh'
     ],
+    // Force pre-bundling of problematic packages
+    force: true,
   },
   resolve: {
     alias: {
@@ -37,6 +47,8 @@ export default defineConfig({
       // Force borsh to use the version that Solana expects
       'borsh': '@solana/web3.js/node_modules/borsh/lib/index.js',
     },
+    // Ensure proper module resolution
+    dedupe: ['react', 'react-dom', 'react-router-dom'],
   },
   css: {
     postcss: './postcss.config.js',
