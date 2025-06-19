@@ -1,6 +1,6 @@
 import React from 'react';
-import AppRoutes from './routes/AppRoutes';
+import SimpleAppRoutes from './routes/SimpleAppRoutes';
 
 export default function App() {
-  return <AppRoutes />;
+  return <SimpleAppRoutes />;
 }
