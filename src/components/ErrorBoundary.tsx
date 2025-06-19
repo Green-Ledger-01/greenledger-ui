@@ -1,32 +1,29 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
-interface Props {
+interface ErrorBoundaryProps {
   children: ReactNode;
 }
 
-interface State {
+interface ErrorBoundaryState {
   hasError: boolean;
   error?: Error;
   errorInfo?: ErrorInfo;
 }
 
-class ErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Error caught by boundary:', error, errorInfo);
-    this.setState({
-      error,
-      errorInfo,
-    });
+    this.setState({ error, errorInfo });
   }
 
   handleReload = () => {
@@ -51,14 +48,14 @@ class ErrorBoundary extends Component<Props, State> {
             </p>
             
             <div className="space-y-3 mb-6">
-              <button
-                onClick={this.handleReset}
+              <button 
+                onClick={this.handleReset} 
                 className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
               >
                 Try Again
               </button>
-              <button
-                onClick={this.handleReload}
+              <button 
+                onClick={this.handleReload} 
                 className="w-full bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium flex items-center justify-center"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
