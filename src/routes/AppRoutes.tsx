@@ -1,27 +1,64 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from '../components/NavBar';
-import Login from '../pages/Login';
+import { Menu } from 'lucide-react';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { ParticleAuthkit } from "../config/AuthKit";
+import Header from '../components/Header';
+import Sidebar from '../components/Sidebar';
 import Dashboard from '../pages/Dashboard';
-import Tokenization from '../pages/Tokenization';
-import TransferOwnership from '../pages/TransferOwnership';
-import SupplyChainExplorer from '../pages/SupplyChainExplorer';
+import RegisterUser from '../pages/RegisterUser';
+import MintCropBatch from '../pages/MintCropBatch';
+import Marketplace from '../pages/Marketplace';
+import SupplyChainTracker from '../pages/SupplyChainTracker';
 
 const AppRoutes = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   return (
     <Router>
-      <Navbar />
-      <div className="container mx-auto p-4 pt-20">
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/tokenization" element={<Tokenization />} />
-          <Route path="/transfer-ownership" element={<TransferOwnership />} />
-          <Route path="/supply-chain-explorer" element={<SupplyChainExplorer />} />
-        </Routes>
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-green-50 via-white to-green-100">
+        {/* Mobile Header with Hamburger */}
+        <div className="md:hidden flex items-center justify-between p-4 bg-white shadow-md border-b border-gray-200">
+          <button 
+            onClick={toggleSidebar} 
+            className="text-green-800 focus:outline-none hover:text-green-600 transition-colors"
+          >
+            <Menu className="h-6 w-6" />
+          </button>
+          <h1 className="text-xl font-bold text-green-800">GreenLedger</h1>
+          <ConnectButton showBalance={false} />
+        </div>
+
+        {/* Desktop Header */}
+        <div className="hidden md:block">
+          <Header />
+        </div>
+
+        <div className="flex flex-1 overflow-hidden">
+          {/* Sidebar */}
+          <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+
+          {/* Main Content Area */}
+          <main className="flex-1 overflow-y-auto bg-gray-50 bg-opacity-80">
+            <Routes>
+              <ParticleAuthkit>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/register" element={<RegisterUser />} />
+              <Route path="/mint" element={<MintCropBatch />} />
+              <Route path="/marketplace" element={<Marketplace />} />
+              <Route path="/track" element={<SupplyChainTracker />} />
+              <Route path="/track/:tokenId" element={<SupplyChainTracker />} />
+              </ParticleAuthkit>
+            </Routes>
+          </main>
+        </div>
       </div>
     </Router>
   );
-}
+};
 
 export default AppRoutes;
