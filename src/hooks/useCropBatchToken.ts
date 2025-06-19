@@ -1,20 +1,17 @@
-import { useState, useEffect } from 'react';
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { useReadContracts } from './useContracts';
-import { CONTRACT_CONFIG } from '../config/contracts';
+/**
+ * Crop Batch Token Hook
+ * Handles crop batch minting and token operations
+ */
+
+import { useCallback, useEffect } from 'react';
+import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi';
+import { CONTRACT_ADDRESSES } from '../config/constants';
+import { useToast } from '../contexts/ToastContext';
+import { getErrorMessage } from '../utils/errorHandling';
 import CropBatchTokenABI from '../contracts/CropBatchToken.json';
 
-export interface BatchInfo {
-  cropType: string;
-  quantity: bigint;
-  originFarm: string;
-  harvestDate: bigint;
-  notes: string;
-  metadataUri: string;
-}
-
-export interface MintBatchParams {
-  to: string;
+interface MintBatchParams {
+  to: `0x${string}`;
   cropType: string;
   quantity: number;
   originFarm: string;
@@ -23,136 +20,39 @@ export interface MintBatchParams {
   metadataUri: string;
 }
 
-/**
- * Hook for crop batch token operations
- */
 export const useCropBatchToken = () => {
-  const { address } = useAccount();
-  const { cropBatchToken } = useReadContracts();
-  const { writeContract, data: hash, error, isPending } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
-    hash,
-  });
+  const { addToast } = useToast();
+  const { writeContract, data: hash, isPending, error: writeError } = useWriteContract();
+  const { 
+    isLoading: isConfirming, 
+    isSuccess: isConfirmed, 
+    error: confirmError 
+  } = useWaitForTransactionReceipt({ hash });
 
-  /**
-   * Get the next token ID that will be minted
-   */
-  const { data: nextTokenId, refetch: refetchNextTokenId } = useReadContract({
-    address: CONTRACT_CONFIG.addresses.CropBatchToken as `0x${string}`,
+  // Read nextTokenId for display/form logic
+  const { 
+    data: nextTokenIdBigInt, 
+    isLoading: isLoadingNextTokenId,
+    refetch: refetchNextTokenId
+  } = useReadContract({
+    address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
     abi: CropBatchTokenABI,
     functionName: 'nextTokenId',
+    query: {
+      select: (data: bigint) => Number(data),
+      onError: (err) => {
+        console.error('Failed to fetch next token ID:', err);
+        addToast(`Failed to fetch next token ID: ${getErrorMessage(err)}`, 'error');
+      },
+    },
   });
 
-  /**
-   * Get batch details for a specific token ID
-   */
-  const getBatchDetails = (tokenId: number) => {
-    const { data: batchDetails, isLoading, refetch } = useReadContract({
-      address: CONTRACT_CONFIG.addresses.CropBatchToken as `0x${string}`,
-      abi: CropBatchTokenABI,
-      functionName: 'batchDetails',
-      args: [BigInt(tokenId)],
-      query: {
-        enabled: tokenId > 0,
-      },
-    });
+  const nextTokenId = nextTokenIdBigInt || 1;
 
-    return {
-      batchDetails: batchDetails as BatchInfo | undefined,
-      isLoading,
-      refetch,
-    };
-  };
-
-  /**
-   * Check if a token exists
-   */
-  const checkTokenExists = (tokenId: number) => {
-    const { data: exists, isLoading } = useReadContract({
-      address: CONTRACT_CONFIG.addresses.CropBatchToken as `0x${string}`,
-      abi: CropBatchTokenABI,
-      functionName: 'exists',
-      args: [BigInt(tokenId)],
-      query: {
-        enabled: tokenId > 0,
-      },
-    });
-
-    return { exists: !!exists, isLoading };
-  };
-
-  /**
-   * Get token balance for current user
-   */
-  const getTokenBalance = (tokenId: number) => {
-    const { data: balance, isLoading, refetch } = useReadContract({
-      address: CONTRACT_CONFIG.addresses.CropBatchToken as `0x${string}`,
-      abi: CropBatchTokenABI,
-      functionName: 'balanceOf',
-      args: address && tokenId > 0 ? [address, BigInt(tokenId)] : undefined,
-      query: {
-        enabled: !!address && tokenId > 0,
-      },
-    });
-
-    return {
-      balance: balance ? Number(balance) : 0,
-      isLoading,
-      refetch,
-    };
-  };
-
-  /**
-   * Get token URI for metadata
-   */
-  const getTokenUri = (tokenId: number) => {
-    const { data: uri, isLoading } = useReadContract({
-      address: CONTRACT_CONFIG.addresses.CropBatchToken as `0x${string}`,
-      abi: CropBatchTokenABI,
-      functionName: 'uri',
-      args: [BigInt(tokenId)],
-      query: {
-        enabled: tokenId > 0,
-      },
-    });
-
-    return { uri: uri as string | undefined, isLoading };
-  };
-
-  /**
-   * Check if metadata is frozen for a token
-   */
-  const isMetadataFrozen = (tokenId: number) => {
-    const { data: frozen, isLoading } = useReadContract({
-      address: CONTRACT_CONFIG.addresses.CropBatchToken as `0x${string}`,
-      abi: CropBatchTokenABI,
-      functionName: 'isMetadataFrozen',
-      args: [BigInt(tokenId)],
-      query: {
-        enabled: tokenId > 0,
-      },
-    });
-
-    return { frozen: !!frozen, isLoading };
-  };
-
-  /**
-   * Mint a new crop batch token (farmers only)
-   */
-  const mintNewBatch = async (params: MintBatchParams) => {
+  const mintNewBatch = useCallback(async (params: MintBatchParams) => {
     try {
-      // Validate IPFS URI format
-      if (!params.metadataUri.startsWith('ipfs://')) {
-        throw new Error('Metadata URI must be a valid IPFS URI starting with "ipfs://"');
-      }
-
-      // Validate quantity (max 100 as per contract)
-      if (params.quantity > 100) {
-        throw new Error('Batch quantity cannot exceed 100 kg');
-      }
-
       await writeContract({
-        address: CONTRACT_CONFIG.addresses.CropBatchToken as `0x${string}`,
+        address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
         abi: CropBatchTokenABI,
         functionName: 'mintNewBatch',
         args: [
@@ -165,156 +65,40 @@ export const useCropBatchToken = () => {
           params.metadataUri,
         ],
       });
-    } catch (err) {
-      console.error('Error minting crop batch:', err);
-      throw err;
+    } catch (e) {
+      console.error('Minting error:', e);
+      addToast(getErrorMessage(e), 'error');
     }
-  };
+  }, [writeContract, addToast]);
 
-  /**
-   * Update token URI (admin only)
-   */
-  const updateTokenUri = async (tokenId: number, newUri: string) => {
-    try {
-      if (!newUri.startsWith('ipfs://')) {
-        throw new Error('New URI must be a valid IPFS URI starting with "ipfs://"');
-      }
-
-      await writeContract({
-        address: CONTRACT_CONFIG.addresses.CropBatchToken as `0x${string}`,
-        abi: CropBatchTokenABI,
-        functionName: 'updateTokenUri',
-        args: [BigInt(tokenId), newUri],
-      });
-    } catch (err) {
-      console.error('Error updating token URI:', err);
-      throw err;
-    }
-  };
-
-  /**
-   * Freeze metadata for a token (admin only)
-   */
-  const freezeMetadata = async (tokenId: number) => {
-    try {
-      await writeContract({
-        address: CONTRACT_CONFIG.addresses.CropBatchToken as `0x${string}`,
-        abi: CropBatchTokenABI,
-        functionName: 'freezeMetadata',
-        args: [BigInt(tokenId)],
-      });
-    } catch (err) {
-      console.error('Error freezing metadata:', err);
-      throw err;
-    }
-  };
-
-  /**
-   * Get royalty information for a token
-   */
-  const getRoyaltyInfo = (tokenId: number, salePrice: number) => {
-    const { data: royaltyInfo, isLoading } = useReadContract({
-      address: CONTRACT_CONFIG.addresses.CropBatchToken as `0x${string}`,
-      abi: CropBatchTokenABI,
-      functionName: 'royaltyInfo',
-      args: [BigInt(tokenId), BigInt(salePrice)],
-      query: {
-        enabled: tokenId > 0 && salePrice > 0,
-      },
-    });
-
-    return {
-      royaltyInfo: royaltyInfo as [string, bigint] | undefined,
-      isLoading,
-    };
-  };
-
-  /**
-   * Transfer token to another address
-   */
-  const transferToken = async (to: string, tokenId: number, amount: number = 1) => {
-    try {
-      if (!address) {
-        throw new Error('Wallet not connected');
-      }
-
-      await writeContract({
-        address: CONTRACT_CONFIG.addresses.CropBatchToken as `0x${string}`,
-        abi: CropBatchTokenABI,
-        functionName: 'safeTransferFrom',
-        args: [address, to, BigInt(tokenId), BigInt(amount), '0x'],
-      });
-    } catch (err) {
-      console.error('Error transferring token:', err);
-      throw err;
-    }
-  };
-
-  return {
-    // Token information
-    nextTokenId: nextTokenId ? Number(nextTokenId) : 1,
-    refetchNextTokenId,
-    
-    // Query functions
-    getBatchDetails,
-    checkTokenExists,
-    getTokenBalance,
-    getTokenUri,
-    isMetadataFrozen,
-    getRoyaltyInfo,
-    
-    // Actions
-    mintNewBatch,
-    updateTokenUri,
-    freezeMetadata,
-    transferToken,
-    
-    // Transaction status
-    isMinting: isPending,
-    isConfirming,
-    isConfirmed,
-    error,
-    hash,
-  };
-};
-
-/**
- * Hook to get user's owned tokens
- */
-export const useUserTokens = (userAddress?: string) => {
-  const { address } = useAccount();
-  const targetAddress = userAddress || address;
-  const [ownedTokens, setOwnedTokens] = useState<number[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  
-  const { nextTokenId } = useCropBatchToken();
-
+  // Handle write errors
   useEffect(() => {
-    if (!targetAddress || !nextTokenId) return;
+    if (writeError) {
+      addToast(`Minting failed: ${getErrorMessage(writeError)}`, 'error');
+    }
+  }, [writeError, addToast]);
 
-    const fetchOwnedTokens = async () => {
-      setIsLoading(true);
-      const tokens: number[] = [];
-      
-      try {
-        // Check each token ID to see if user owns it
-        for (let tokenId = 1; tokenId < nextTokenId; tokenId++) {
-          // This would need to be implemented with proper batch reading
-          // For now, we'll use individual calls (not optimal for production)
-          // TODO: Implement batch reading or use events/indexing
-        }
-      } catch (error) {
-        console.error('Error fetching owned tokens:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchOwnedTokens();
-  }, [targetAddress, nextTokenId]);
+  // Handle confirmation
+  useEffect(() => {
+    if (isConfirmed) {
+      addToast('Crop batch minted successfully!', 'success');
+      // Refetch next token ID after successful mint
+      refetchNextTokenId();
+    }
+    if (confirmError) {
+      addToast(`Minting confirmation failed: ${getErrorMessage(confirmError)}`, 'error');
+    }
+  }, [isConfirmed, confirmError, addToast, refetchNextTokenId]);
 
   return {
-    ownedTokens,
-    isLoading,
+    mintNewBatch,
+    isMinting: isPending,
+    isConfirming: isConfirming,
+    isConfirmed: isConfirmed,
+    error: writeError || confirmError,
+    hash,
+    nextTokenId,
+    isLoadingNextTokenId,
+    refetchNextTokenId,
   };
 };
