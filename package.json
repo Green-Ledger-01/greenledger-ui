@@ -10,6 +10,9 @@
     "preview": "vite preview",
     "postinstall": "patch-package"
   },
+  "resolutions": {
+    "@aws-sdk/client-cognito-identity": "3.830.0"
+  },
   "dependencies": {
     "@particle-network/auth-core": "2.0.6",  
     "@particle-network/authkit": "2.0.1",   

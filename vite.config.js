@@ -2,10 +2,14 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import inject from '@rollup/plugin-inject';
 import commonjs from 'vite-plugin-commonjs';
+import path from 'path'; // Add path module for resolution
 
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      // Add this to handle React 19 JSX transforms
+      jsxRuntime: 'classic',
+    }),
     commonjs({
       include: [/node_modules\/@coinbase\/wallet-sdk\/.*\.cjs$/],
     }),
@@ -24,7 +28,12 @@ export default defineConfig({
       'process/browser',
       '@coinbase/wallet-sdk',
       '@particle-network/authkit',
-      '@particle-network/auth-core'
+      '@particle-network/auth-core',
+      '@aws-sdk/client-cognito-identity',
+      'react',
+      'react-dom',
+      'react-router',
+      'react-router-dom'
     ],
     exclude: [
       '@solana/web3.js',
@@ -34,56 +43,50 @@ export default defineConfig({
   resolve: {
     alias: {
       '@coinbase/wallet-sdk/dist/vendor-js/eth-eip712-util/index.cjs': 'eth-eip712-util',
-      // Force borsh to use the version that Solana expects
-      'borsh': '@solana/web3.js/node_modules/borsh/lib/index.js',
+      'react': path.resolve(__dirname, './node_modules/react'),
+      'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
+      'react-router': path.resolve(__dirname, './node_modules/react-router'),
+      'react-router-dom': path.resolve(__dirname, './node_modules/react-router-dom'),
     },
   },
   css: {
     postcss: './postcss.config.js',
   },
   build: {
-    // Increase chunk size warning limit to reduce noise
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       external: (id) => {
-        // Mark Solana dependencies as external to avoid build issues
         if (id.includes('@solana/web3.js') || id.includes('borsh')) {
-          return false; // Don't externalize, but handle differently
+          return false;
         }
         return false;
       },
       output: {
-        // Manual chunking for better code splitting
         manualChunks: {
-          // Vendor chunk for large dependencies
           vendor: ['react', 'react-dom', 'react-router-dom'],
-          // Web3 libraries chunk
           web3: ['ethers', 'wagmi', 'viem', '@wagmi/core'],
-          // RainbowKit and related UI
           rainbowkit: ['@rainbow-me/rainbowkit'],
-          // Particle Network chunk
           particle: ['@particle-network/authkit', '@particle-network/auth-core'],
-          // Query libraries
           query: ['@tanstack/react-query'],
-          // Icons and utilities
           utils: ['lucide-react', 'valtio', 'buffer'],
         },
       },
-      // Suppress specific warnings we can't fix (external dependencies)
       onwarn(warning, warn) {
-        // Suppress PURE comment warnings from ox library
         if (warning.code === 'INVALID_ANNOTATION' && warning.message.includes('__PURE__')) {
           return;
         }
-        // Suppress missing export warnings from Coinbase SDK
         if (warning.code === 'MISSING_EXPORT' && warning.id?.includes('@coinbase/wallet-sdk')) {
           return;
         }
-        // Suppress Solana-related warnings and errors
         if (warning.message?.includes('@solana') || warning.message?.includes('borsh') || warning.message?.includes('serialize')) {
           return;
         }
-        // Show other warnings
+        // Suppress React 19 warnings
+        if (warning.message?.includes('createContext') || 
+            warning.message?.includes('forwardRef') ||
+            warning.message?.includes('useContext')) {
+          return;
+        }
         warn(warning);
       },
     },
