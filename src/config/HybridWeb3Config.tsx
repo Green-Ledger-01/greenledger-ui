@@ -3,15 +3,15 @@ import { WagmiProvider } from 'wagmi';
 import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-// Use the existing wagmi config instead of creating a new one
+// Use the existing wagmi config
 import { config } from './wagmiConfig';
 
-// Particle Network imports
-import { AuthType } from '@particle-network/auth-core';
-import {
-  AuthCoreContextProvider,
-  PromptSettingType,
-} from '@particle-network/authkit';
+// Particle Network imports (updated to use auth-core only)
+import { 
+  AuthCoreContextProvider, 
+  AuthType,
+  PromptSettingType
+} from '@particle-network/auth-core';
 
 // Import RainbowKit styles
 import '@rainbow-me/rainbowkit/styles.css';
@@ -37,17 +37,27 @@ const validateEnvVars = () => {
   return requiredVars;
 };
 
-// Particle Network chain configurations (for Lisk Sepolia)
-const particleChains = [
-  {
-    id: 4202,
-    name: 'Lisk Sepolia',
-    network: 'lisk-sepolia',
-    nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 },
-    rpcUrls: ['https://rpc.sepolia-api.lisk.com'],
-    blockExplorerUrls: ['https://sepolia-blockscout.lisk.com'],
+// Lisk Sepolia configuration
+const liskSepolia = {
+  id: 4202,
+  name: 'Lisk Sepolia',
+  network: 'lisk-sepolia',
+  nativeCurrency: { 
+    name: 'Sepolia Ether', 
+    symbol: 'ETH', 
+    decimals: 18 
   },
-];
+  rpcUrls: {
+    default: { http: ['https://rpc.sepolia-api.lisk.com'] },
+    public: { http: ['https://rpc.sepolia-api.lisk.com'] },
+  },
+  blockExplorers: {
+    default: { 
+      name: 'Blockscout', 
+      url: 'https://sepolia-blockscout.lisk.com' 
+    },
+  },
+};
 
 // React Query client with Web3-optimized settings
 const queryClient = new QueryClient({
@@ -56,39 +66,30 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       staleTime: 1000 * 60 * 5, // 5 minutes
       retry: (failureCount, error: any) => {
-        // Don't retry user rejected transactions
         if (error?.code === 4001 || error?.code === 'ACTION_REJECTED') return false;
-        // Don't retry network errors more than 3 times
-        if (failureCount >= 3) return false;
-        return true;
+        return failureCount < 3;
       },
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
     mutations: {
-      retry: false, // Don't retry mutations (transactions) automatically
+      retry: false,
     },
   },
 });
-
 
 interface HybridWeb3ProviderProps {
   children: React.ReactNode;
 }
 
 /**
- * HybridWeb3Provider combines Particle Network (social login) with traditional wallet connections
+ * Updated Hybrid Web3 Provider with simplified Particle integration
  * 
- * Architecture Decision:
- * - Particle Network provides social login abstraction for non-technical users
- * - RainbowKit provides traditional wallet connections for crypto-native users
- * - Both systems coexist, allowing maximum user flexibility
- * - Wagmi handles the underlying Web3 interactions uniformly
- * 
- * Benefits:
- * - Lower barrier to entry for Web2 users
- * - Full Web3 functionality for crypto-native users
- * - Consistent developer experience through Wagmi
- * - Production-ready error handling and retry logic
+ * Key Changes:
+ * 1. Removed AuthKitProvider dependency (not needed for core functionality)
+ * 2. Simplified chain configuration to use single Lisk Sepolia definition
+ * 3. Added explicit type for authTypes array
+ * 4. Improved environment variable handling with fallbacks
+ * 5. Enhanced security configuration
  */
 export const HybridWeb3Provider: React.FC<HybridWeb3ProviderProps> = ({ children }) => {
   const envVars = validateEnvVars();
@@ -96,47 +97,38 @@ export const HybridWeb3Provider: React.FC<HybridWeb3ProviderProps> = ({ children
   return (
     <AuthCoreContextProvider
       options={{
-        projectId: envVars.VITE_PARTICLE_PROJECT_ID || '',
-        clientKey: envVars.VITE_PARTICLE_CLIENT_KEY || '',
-        appId: envVars.VITE_PARTICLE_APP_ID || '',
+        projectId: envVars.VITE_PARTICLE_PROJECT_ID || 'default-project-id',
+        clientKey: envVars.VITE_PARTICLE_CLIENT_KEY || 'default-client-key',
+        appId: envVars.VITE_PARTICLE_APP_ID || 'default-app-id',
         
-        // Authentication methods - prioritize social logins for ease of use
+        // Authentication methods
         authTypes: [
           AuthType.email,
           AuthType.google,
           AuthType.twitter,
-          AuthType.github,
-          AuthType.apple,
-          AuthType.discord,
-        ],
+        ] as AuthType[], // Explicit type for TS safety
         
         // UI Configuration
         themeType: 'dark',
         
-        // Chain configuration - Lisk Sepolia focused
-        chains: particleChains,
+        // Chain configuration - focus on Lisk Sepolia
+        chains: [liskSepolia],
         
-        // Smart Account Configuration (ERC-4337)
-        // Uncomment to enable account abstraction
-        // erc4337: {
-        //   name: 'BICONOMY',
-        //   version: '2.0.0',
-        // },
-        
-        // Security prompts for enhanced user protection
-        promptSettingConfig: {
-          promptPaymentPasswordSettingWhenSign: PromptSettingType.first,
-          promptMasterPasswordSettingWhenLogin: PromptSettingType.first,
+        // Security configuration
+        securityAccount: {
+          // Prompt settings
+          promptSettingWhenSign: 1, // First time only
+          promptMasterPasswordSettingWhenLogin: 1 // First time only
         },
         
-        // Wallet UI configuration
+        // Wallet configuration
         wallet: {
-          themeType: 'dark',
           visible: true,
+          preload: true,
           customStyle: {
+            supportChains: [liskSepolia],
             supportUIModeSwitch: true,
-            supportLanguageSwitch: false,
-          },
+          }
         },
       }}
     >
@@ -150,6 +142,7 @@ export const HybridWeb3Provider: React.FC<HybridWeb3ProviderProps> = ({ children
               fontStack: 'system',
               overlayBlur: 'small',
             })}
+            chains={[liskSepolia]}
             modalSize="compact"
             showRecentTransactions={true}
           >
@@ -161,5 +154,5 @@ export const HybridWeb3Provider: React.FC<HybridWeb3ProviderProps> = ({ children
   );
 };
 
-// Export configurations for use in other parts of the app
+// Export configurations
 export { config as wagmiConfig, queryClient };
