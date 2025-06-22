@@ -9,9 +9,10 @@ import { config } from './wagmiConfig';
 // Particle Network imports (updated to use auth-core only)
 import { 
   AuthCoreContextProvider, 
-  AuthType,
   PromptSettingType
-} from '@particle-network/auth-core';
+} from '@particle-network/authkit';
+
+import { AuthType } from '@particle-network/auth-core';
 
 // Import RainbowKit styles
 import '@rainbow-me/rainbowkit/styles.css';
