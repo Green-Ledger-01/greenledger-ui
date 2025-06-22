@@ -1,5 +1,5 @@
 import { Chain } from 'wagmi';
-import { liskSepolia, chains } from '../chains/liskSepolia';
+// import { liskSepolia, chains } from '../chains/liskSepolia';
 
 export const liskSepolia: Chain = {
   id: 4202,

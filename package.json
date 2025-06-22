@@ -10,17 +10,13 @@
     "preview": "vite preview",
     "postinstall": "patch-package"
   },
-  "resolutions": {
-    "@aws-sdk/client-cognito-identity": "3.830.0"
-  },
   "dependencies": {
-    "@particle-network/auth-core": "2.0.6",  
-    "@particle-network/authkit": "2.0.1",   
+    "@particle-network/auth-core": "2.0.6",
+    "@particle-network/authkit": "^2.1.1",
     "@rainbow-me/rainbowkit": "^2.2.6",
     "@tanstack/react-query": "^5.80.6",
     "@wagmi/core": "^2.17.3",
     "borsh": "^2.0.0",
-    "buffer": "^6.0.3",
     "clsx": "^2.1.1",
     "ethers": "^6.14.3",
     "lucide-react": "^0.513.0",
@@ -28,20 +24,20 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0",
+    "util": "^0.12.5",
     "valtio": "^2.1.5",
     "viem": "^2.31.3",
     "view": "^0.6.1",
     "wagmi": "^2.15.6"
-},
+  },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
-    "@rollup/plugin-inject": "^5.0.5",
     "@tailwindcss/postcss": "^4.1.10",
     "@types/node": "^22.15.30",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/react-router-dom": "^5.3.3",
-    "@vitejs/plugin-react": "^4.4.1",
+    "@vitejs/plugin-react": "^4.5.2",
     "autoprefixer": "^10.4.14",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",
@@ -53,6 +49,6 @@
     "postinstall-postinstall": "^2.1.0",
     "tailwindcss": "^3.3.2",
     "vite": "^6.3.5",
-    "vite-plugin-commonjs": "^0.10.4"
+    "vite-plugin-node-polyfills": "^0.23.0"
   }
 }

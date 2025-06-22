@@ -1,21 +1,16 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import inject from '@rollup/plugin-inject';
-import commonjs from 'vite-plugin-commonjs';
-import path from 'path'; // Add path module for resolution
+import path from 'path';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 export default defineConfig({
   plugins: [
-    react({
-      // Add this to handle React 19 JSX transforms
-      jsxRuntime: 'classic',
-    }),
-    commonjs({
-      include: [/node_modules\/@coinbase\/wallet-sdk\/.*\.cjs$/],
-    }),
-    inject({
-      Buffer: ['buffer', 'Buffer'],
-      process: 'process/browser',
+    react(),
+    nodePolyfills({
+      globals: true, // Polyfills global Node.js objects like `Buffer` and `process`
+      include: ['buffer', 'stream', 'util'], // Only include necessary polyfills
+      exclude: [], 
+      protocolImports: true, // Support `node:` protocol imports if required
     }),
   ],
   define: {
@@ -24,26 +19,21 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: [
-      'buffer', 
-      'process/browser',
       '@coinbase/wallet-sdk',
       '@particle-network/authkit',
       '@particle-network/auth-core',
-      '@aws-sdk/client-cognito-identity',
       'react',
       'react-dom',
       'react-router',
-      'react-router-dom'
+      'react-router-dom',
     ],
-    exclude: [
-      '@solana/web3.js',
-      'borsh'
-    ],
+    exclude: ['@solana/web3.js', 'borsh'],
   },
   resolve: {
     alias: {
       '@coinbase/wallet-sdk/dist/vendor-js/eth-eip712-util/index.cjs': 'eth-eip712-util',
       'react': path.resolve(__dirname, './node_modules/react'),
+      'util': path.resolve(__dirname, 'src/shims/util.js'),
       'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
       'react-router': path.resolve(__dirname, './node_modules/react-router'),
       'react-router-dom': path.resolve(__dirname, './node_modules/react-router-dom'),
@@ -68,7 +58,7 @@ export default defineConfig({
           rainbowkit: ['@rainbow-me/rainbowkit'],
           particle: ['@particle-network/authkit', '@particle-network/auth-core'],
           query: ['@tanstack/react-query'],
-          utils: ['lucide-react', 'valtio', 'buffer'],
+          utils: ['lucide-react', 'valtio'],
         },
       },
       onwarn(warning, warn) {
@@ -78,13 +68,18 @@ export default defineConfig({
         if (warning.code === 'MISSING_EXPORT' && warning.id?.includes('@coinbase/wallet-sdk')) {
           return;
         }
-        if (warning.message?.includes('@solana') || warning.message?.includes('borsh') || warning.message?.includes('serialize')) {
+        if (
+          warning.message?.includes('@solana') ||
+          warning.message?.includes('borsh') ||
+          warning.message?.includes('serialize')
+        ) {
           return;
         }
-        // Suppress React 19 warnings
-        if (warning.message?.includes('createContext') || 
-            warning.message?.includes('forwardRef') ||
-            warning.message?.includes('useContext')) {
+        if (
+          warning.message?.includes('createContext') ||
+          warning.message?.includes('forwardRef') ||
+          warning.message?.includes('useContext')
+        ) {
           return;
         }
         warn(warning);
