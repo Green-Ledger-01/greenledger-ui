@@ -1,16 +1,16 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import inject from '@rollup/plugin-inject';
 import path from 'path';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 export default defineConfig({
   plugins: [
-    react({
-      jsxRuntime: 'automatic',
-    }),
-    inject({
-      Buffer: ['buffer', 'Buffer'],
-      process: 'process/browser',
+    react(),
+    nodePolyfills({
+      globals: true, // Polyfills global Node.js objects like `Buffer` and `process`
+      include: ['buffer', 'stream', 'util'], // Only include necessary polyfills
+      exclude: [], 
+      protocolImports: true, // Support `node:` protocol imports if required
     }),
   ],
   define: {
@@ -19,18 +19,24 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: [
+      '@coinbase/wallet-sdk',
+      '@particle-network/authkit',
+      '@particle-network/auth-core',
       'react',
       'react-dom',
+      'react-router',
       'react-router-dom',
-      'buffer',
-      'process/browser',
-      'lucide-react',
     ],
+    exclude: ['@solana/web3.js', 'borsh'],
   },
   resolve: {
     alias: {
-      'react': path.resolve('./node_modules/react'),
-      'react-dom': path.resolve('./node_modules/react-dom'),
+      '@coinbase/wallet-sdk/dist/vendor-js/eth-eip712-util/index.cjs': 'eth-eip712-util',
+      'react': path.resolve(__dirname, './node_modules/react'),
+      'util': path.resolve(__dirname, 'src/shims/util.js'),
+      'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
+      'react-router': path.resolve(__dirname, './node_modules/react-router'),
+      'react-router-dom': path.resolve(__dirname, './node_modules/react-router-dom'),
     },
     dedupe: ['react', 'react-dom'],
   },
@@ -40,30 +46,43 @@ export default defineConfig({
   build: {
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
+      external: (id) => {
+        if (id.includes('@solana/web3.js') || id.includes('borsh')) {
+          return false;
+        }
+        return false;
+      },
       output: {
-        // Manual chunking for better code splitting
         manualChunks: {
-          // Vendor chunk for large dependencies
           vendor: ['react', 'react-dom', 'react-router-dom'],
-          // Icons and utilities
-          utils: ['lucide-react', 'buffer'],
+          web3: ['ethers', 'wagmi', 'viem', '@wagmi/core'],
+          rainbowkit: ['@rainbow-me/rainbowkit'],
+          particle: ['@particle-network/authkit', '@particle-network/auth-core'],
+          query: ['@tanstack/react-query'],
+          utils: ['lucide-react', 'valtio'],
         },
       },
-      // Suppress specific warnings we can't fix (external dependencies)
       onwarn(warning, warn) {
-        // Suppress PURE comment warnings from ox library
         if (warning.code === 'INVALID_ANNOTATION' && warning.message.includes('__PURE__')) {
           return;
         }
-        // Suppress missing export warnings from Coinbase SDK
         if (warning.code === 'MISSING_EXPORT' && warning.id?.includes('@coinbase/wallet-sdk')) {
           return;
         }
-        // Suppress Solana-related warnings and errors
-        if (warning.message?.includes('@solana') || warning.message?.includes('borsh') || warning.message?.includes('serialize')) {
+        if (
+          warning.message?.includes('@solana') ||
+          warning.message?.includes('borsh') ||
+          warning.message?.includes('serialize')
+        ) {
           return;
         }
-        // Show other warnings
+        if (
+          warning.message?.includes('createContext') ||
+          warning.message?.includes('forwardRef') ||
+          warning.message?.includes('useContext')
+        ) {
+          return;
+        }
         warn(warning);
       },
     },
