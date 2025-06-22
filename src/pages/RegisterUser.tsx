@@ -1,19 +1,23 @@
 import React, { useState } from 'react';
 import { AlertTriangle, UserPlus, Users, Shield } from 'lucide-react';
-import { useUserManagement } from '../hooks/useUserManagement';
+// import { useUserManagement } from '../hooks/useUserManagement';
 import { useToast } from '../contexts/ToastContext';
-import { useWeb3, useRequireRole } from '../contexts/Web3Context';
+import { useSimpleWeb3 } from '../contexts/SimpleWeb3Context';
 import { USER_ROLES } from '../config/constants';
 
 const RegisterUser: React.FC = () => {
   const [addressToRegister, setAddressToRegister] = useState('');
   const [selectedRole, setSelectedRole] = useState<number | ''>('');
   const [isValidAddress, setIsValidAddress] = useState(true);
-  
-  const { registerUser, isRegistering, isConfirmingRegistration } = useUserManagement();
+
+  // Simplified implementation for SimpleAppRoutes
+  const isRegistering = false;
+  const isConfirmingRegistration = false;
   const { addToast } = useToast();
-  const { refetchRoles } = useWeb3();
-  const { canPerformAction, needsRole, isLoadingRoles } = useRequireRole('admin');
+  const { canPerformAction, refetchRoles } = useSimpleWeb3();
+  const canPerformActionAdmin = canPerformAction('admin');
+  const needsRole = !canPerformActionAdmin;
+  const isLoadingRoles = false;
 
   const roleOptions = [
     { value: USER_ROLES.FARMER, label: 'Farmer', description: 'Can mint crop batch NFTs', icon: '🌱' },
@@ -38,6 +42,10 @@ const RegisterUser: React.FC = () => {
     }
   };
 
+  const registerUser = async (address: string, role: number) => {
+    addToast('User registration is available in the full version', 'info');
+  };
+
   const handleRegister = async () => {
     if (!addressToRegister || selectedRole === '') {
       addToast('Please enter an address and select a role.', 'warning');
@@ -53,7 +61,7 @@ const RegisterUser: React.FC = () => {
       await registerUser(addressToRegister as `0x${string}`, selectedRole as number);
       // Refetch user roles after registration attempt
       refetchRoles();
-      
+
       // Clear form on successful submission
       setAddressToRegister('');
       setSelectedRole('');

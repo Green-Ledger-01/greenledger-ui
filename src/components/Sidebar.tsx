@@ -2,7 +2,7 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { XCircle, Home, Plus, Store, UserPlus, BarChart3, Truck } from 'lucide-react';
 import clsx from 'clsx';
-import { useWeb3 } from '../contexts/Web3Context';
+import { useSimpleWeb3 } from '../contexts/SimpleWeb3Context';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -18,7 +18,7 @@ interface NavItem {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
-  const { userRoles } = useWeb3();
+  const { userRoles } = useSimpleWeb3();
   const location = useLocation();
   const navigate = useNavigate();
 

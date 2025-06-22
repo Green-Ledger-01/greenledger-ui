@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import { SimpleWeb3Provider } from '../contexts/SimpleWeb3Context';
 import { ToastProvider } from '../contexts/ToastContext';
-import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import SelfServiceRoleRegistration from '../components/SelfServiceRoleRegistration';
 import Dashboard from '../pages/Dashboard';

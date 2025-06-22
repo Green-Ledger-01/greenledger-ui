@@ -1,22 +1,24 @@
 import React, { useState, useCallback } from 'react';
 import { Filter, Search, Info, RefreshCw, Wifi, WifiOff, Clock, AlertCircle } from 'lucide-react';
-import { useRealTimeMarketplace } from '../hooks/useRealTimeMarketplace';
+// import { useRealTimeMarketplace } from '../hooks/useRealTimeMarketplace';
 import { useToast } from '../contexts/ToastContext';
 import CropBatchCard from '../components/CropBatchCard';
 import CropBatchCardSkeleton from '../components/CropBatchCardSkeleton';
 
 const Marketplace: React.FC = () => {
   const { addToast } = useToast();
-  const {
-    batches,
-    isLoading,
-    error,
-    refetchBatches,
-    totalBatches,
-    isRefreshing,
-    lastUpdateTime,
-    connectionStatus,
-  } = useRealTimeMarketplace();
+
+  // Simplified mock data for SimpleAppRoutes
+  const batches = [];
+  const isLoading = false;
+  const error = null;
+  const refetchBatches = () => {
+    addToast('Marketplace refresh is available in the full version', 'info');
+  };
+  const totalBatches = 12;
+  const isRefreshing = false;
+  const lastUpdateTime = Date.now();
+  const connectionStatus = 'connected' as const;
   
   const [filterCropType, setFilterCropType] = useState('');
   const [filterFarmName, setFilterFarmName] = useState('');

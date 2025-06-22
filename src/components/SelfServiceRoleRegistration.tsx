@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { User, Truck, ShoppingCart, Shield, X, Check, AlertCircle } from 'lucide-react';
-import { useWeb3Enhanced, useTransaction } from '../hooks/useWeb3Enhanced';
+import { useSimpleWeb3 } from '../contexts/SimpleWeb3Context';
 import { useToast } from '../contexts/ToastContext';
 
 interface SelfServiceRoleRegistrationProps {
@@ -102,8 +102,7 @@ const SelfServiceRoleRegistration: React.FC<SelfServiceRoleRegistrationProps> = 
 }) => {
   const [selectedRoles, setSelectedRoles] = useState<UserRole[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { account, isConnected, connectWallet } = useWeb3Enhanced();
-  const { sendTransaction, status, error } = useTransaction();
+  const { account, isConnected, connectWallet } = useSimpleWeb3();
   const { addToast } = useToast();
 
   // Toggle role selection

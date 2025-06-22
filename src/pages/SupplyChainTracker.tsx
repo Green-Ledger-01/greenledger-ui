@@ -15,9 +15,9 @@ import {
   RefreshCw,
   ExternalLink
 } from 'lucide-react';
-import { useSupplyChainFlow } from '../hooks/useSupplyChainFlow';
+// import { useSupplyChainFlow } from '../hooks/useSupplyChainFlow';
 import { useToast } from '../contexts/ToastContext';
-import { useWeb3 } from '../contexts/Web3Context';
+import { useSimpleWeb3 } from '../contexts/SimpleWeb3Context';
 
 interface SupplyChainTrackerProps {
   tokenId?: number;
@@ -27,22 +27,32 @@ const SupplyChainTracker: React.FC<SupplyChainTrackerProps> = ({ tokenId: propTo
   const { tokenId: paramTokenId } = useParams<{ tokenId: string }>();
   const navigate = useNavigate();
   const { addToast } = useToast();
-  const { userRoles, canPerformAction } = useWeb3();
-  
+  const { userRoles, canPerformAction } = useSimpleWeb3();
+
   const tokenId = propTokenId || (paramTokenId ? parseInt(paramTokenId) : null);
-  
-  const {
-    getSupplyChainHistory,
-    trackingHistory,
-    isLoadingHistory,
-    transferToTransporter,
-    transferToBuyer,
-    isTransferring,
-    isConfirming,
-    canTransferTo,
-    validateTransferRecipient,
-    lastTransferUpdate,
-  } = useSupplyChainFlow();
+
+  // Simplified mock implementation for SimpleAppRoutes
+  const trackingHistory = new Map();
+  const isLoadingHistory = false;
+  const isTransferring = false;
+  const isConfirming = false;
+  const lastTransferUpdate = Date.now();
+
+  const getSupplyChainHistory = async (tokenId: number) => {
+    addToast('Supply chain tracking is available in the full version', 'info');
+  };
+
+  const transferToTransporter = async (params: any) => {
+    addToast('Transfer functionality is available in the full version', 'info');
+  };
+
+  const transferToBuyer = async (params: any) => {
+    addToast('Transfer functionality is available in the full version', 'info');
+  };
+
+  const canTransferTo = (role: string) => false;
+
+  const validateTransferRecipient = async (address: string, role: string) => false;
 
   const [selectedTokenId, setSelectedTokenId] = useState<number>(tokenId || 1);
   const [transferAddress, setTransferAddress] = useState('');

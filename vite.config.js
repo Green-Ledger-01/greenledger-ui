@@ -1,17 +1,12 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import inject from '@rollup/plugin-inject';
-import commonjs from 'vite-plugin-commonjs';
 import path from 'path';
 
 export default defineConfig({
   plugins: [
     react({
-      // Ensure React is properly handled
       jsxRuntime: 'automatic',
-    }),
-    commonjs({
-      include: [/node_modules\/@coinbase\/wallet-sdk\/.*\.cjs$/],
     }),
     inject({
       Buffer: ['buffer', 'Buffer'],
@@ -27,58 +22,31 @@ export default defineConfig({
       'react',
       'react-dom',
       'react-router-dom',
-      'buffer', 
+      'buffer',
       'process/browser',
-      '@coinbase/wallet-sdk',
-      '@particle-network/authkit',
-      '@particle-network/auth-core',
       'lucide-react',
     ],
-    exclude: [
-      '@solana/web3.js',
-      'borsh'
-    ],
-    // Force pre-bundling of problematic packages
-    force: true,
   },
   resolve: {
     alias: {
-      '@coinbase/wallet-sdk/dist/vendor-js/eth-eip712-util/index.cjs': 'eth-eip712-util',
-      // Force borsh to use the version that Solana expects
-      'borsh': '@solana/web3.js/node_modules/borsh/lib/index.js',
+      'react': path.resolve('./node_modules/react'),
+      'react-dom': path.resolve('./node_modules/react-dom'),
     },
-    // Ensure proper module resolution
-    dedupe: ['react', 'react-dom', 'react-router-dom'],
+    dedupe: ['react', 'react-dom'],
   },
   css: {
     postcss: './postcss.config.js',
   },
   build: {
-    // Increase chunk size warning limit to reduce noise
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
-      external: (id) => {
-        // Mark Solana dependencies as external to avoid build issues
-        if (id.includes('@solana/web3.js') || id.includes('borsh')) {
-          return false; // Don't externalize, but handle differently
-        }
-        return false;
-      },
       output: {
         // Manual chunking for better code splitting
         manualChunks: {
           // Vendor chunk for large dependencies
           vendor: ['react', 'react-dom', 'react-router-dom'],
-          // Web3 libraries chunk
-          web3: ['ethers', 'wagmi', 'viem', '@wagmi/core'],
-          // RainbowKit and related UI
-          rainbowkit: ['@rainbow-me/rainbowkit'],
-          // Particle Network chunk
-          particle: ['@particle-network/authkit', '@particle-network/auth-core'],
-          // Query libraries
-          query: ['@tanstack/react-query'],
           // Icons and utilities
-          utils: ['lucide-react', 'valtio', 'buffer'],
+          utils: ['lucide-react', 'buffer'],
         },
       },
       // Suppress specific warnings we can't fix (external dependencies)

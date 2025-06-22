@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useAccount } from 'wagmi';
+// import { useAccount } from 'wagmi';
 import { AlertTriangle, Info, Upload, Calendar, MapPin, Scale, FileText } from 'lucide-react';
-import { useCropBatchToken } from '../hooks/useCropBatchToken';
-import { useRequireRole } from '../contexts/Web3Context';
+// import { useCropBatchToken } from '../hooks/useCropBatchToken';
+import { useSimpleWeb3 } from '../contexts/SimpleWeb3Context';
 import { useToast } from '../contexts/ToastContext';
 import { uploadCropBatch } from '../utils/ipfs';
 import { getErrorMessage, formatTxHash, getBlockExplorerUrl } from '../utils/errorHandling';
@@ -13,9 +13,19 @@ interface MintCropBatchProps {
 }
 
 const MintCropBatch: React.FC<MintCropBatchProps> = ({ onSuccess }) => {
-  const { address } = useAccount();
-  const { mintNewBatch, isMinting, isConfirming, isConfirmed, error, hash, nextTokenId, isLoadingNextTokenId } = useCropBatchToken();
-  const { canPerformAction, needsRole, isLoadingRoles } = useRequireRole('farmer');
+  const { account: address, canPerformAction } = useSimpleWeb3();
+
+  // Simplified implementation for SimpleAppRoutes
+  const isMinting = false;
+  const isConfirming = false;
+  const isConfirmed = false;
+  const error = null;
+  const hash = null;
+  const nextTokenId = 13;
+  const isLoadingNextTokenId = false;
+  const canPerformActionFarmer = canPerformAction('farmer');
+  const needsRole = !canPerformActionFarmer;
+  const isLoadingRoles = false;
   const { addToast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -92,6 +102,10 @@ const MintCropBatch: React.FC<MintCropBatchProps> = ({ onSuccess }) => {
     }
     setFormErrors(errors);
     return !Object.values(errors).some(error => error !== null);
+  };
+
+  const mintNewBatch = async (params: any) => {
+    addToast('Crop batch minting is available in the full version', 'info');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

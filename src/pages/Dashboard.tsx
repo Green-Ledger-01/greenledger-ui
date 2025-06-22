@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Activity, MapPin, Zap, TrendingUp, Users, Package, Wifi, WifiOff, RefreshCw } from 'lucide-react';
-import { useWeb3 } from '../contexts/Web3Context';
-import { useRealTimeMarketplace } from '../hooks/useRealTimeMarketplace';
-import { useCropBatchToken } from '../hooks/useCropBatchToken';
+import { useSimpleWeb3 } from '../contexts/SimpleWeb3Context';
+// import { useRealTimeMarketplace } from '../hooks/useRealTimeMarketplace';
+// import { useCropBatchToken } from '../hooks/useCropBatchToken';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { userRoles, canPerformAction } = useWeb3();
-  const { 
-    batches, 
-    totalBatches, 
-    connectionStatus, 
-    lastUpdateTime,
-    refetchBatches,
-    isRefreshing 
-  } = useRealTimeMarketplace();
-  const { nextTokenId } = useCropBatchToken();
+  const { userRoles, canPerformAction } = useSimpleWeb3();
+
+  // Simplified mock data for SimpleAppRoutes
+  const batches = [];
+  const totalBatches = 12; // Mock data
+  const connectionStatus = 'connected' as const;
+  const lastUpdateTime = Date.now();
+  const refetchBatches = () => Promise.resolve();
+  const isRefreshing = false;
+  const nextTokenId = 13;
   
   const [liveStats, setLiveStats] = useState({
     totalBatches: 0,
