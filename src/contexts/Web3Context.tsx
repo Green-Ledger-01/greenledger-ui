@@ -2,7 +2,7 @@ import React, { createContext, useContext, useCallback } from 'react';
 import { useAccount, useReadContract } from 'wagmi';
 import { CONTRACT_ADDRESSES, DEFAULT_ADMIN_ROLE } from '../config/constants';
 import { useToast } from './ToastContext';
-import { getErrorMessage } from '../utils/errorHandling';
+import { getErrorMessage } from '../utils';
 import UserManagementABI from '../contracts/UserManagement.json';
 
 // Types

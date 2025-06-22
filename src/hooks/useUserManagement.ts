@@ -7,7 +7,7 @@ import { useCallback, useEffect } from 'react';
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { CONTRACT_ADDRESSES } from '../config/constants';
 import { useToast } from '../contexts/ToastContext';
-import { getErrorMessage } from '../utils/errorHandling';
+import { getErrorMessage } from '../utils';
 import UserManagementABI from '../contracts/UserManagement.json';
 
 export const useUserManagement = () => {

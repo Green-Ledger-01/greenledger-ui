@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Menu } from 'lucide-react';
-import { SimpleWeb3Provider } from '../contexts/SimpleWeb3Context';
+import { SimpleWeb3Provider, useSimpleWeb3 } from '../contexts/SimpleWeb3ContextClean';
 import { ToastProvider } from '../contexts/ToastContext';
-import Sidebar from '../components/Sidebar';
-import SelfServiceRoleRegistration from '../components/SelfServiceRoleRegistration';
+import SelfServiceRoleRegistrationSimple from '../components/SelfServiceRoleRegistrationSimple';
+import SidebarSimple from '../components/SidebarSimple';
 import Dashboard from '../pages/Dashboard';
-import RegisterUser from '../pages/RegisterUser';
-import MintCropBatch from '../pages/MintCropBatch';
+import RegisterUserSimple from '../pages/RegisterUserSimple';
+import MintCropBatchSimple from '../pages/MintCropBatchSimple';
 import Marketplace from '../pages/Marketplace';
 import SupplyChainTracker from '../pages/SupplyChainTracker';
 import { useSimpleRoleManagement } from '../hooks/useSimpleRoleManagement';
-import { useSimpleWeb3 } from '../contexts/SimpleWeb3Context';
 
 // Simple Connect Button Component
 const SimpleConnectButton: React.FC = () => {
@@ -70,10 +69,11 @@ const AppContent = () => {
   // Show role registration overlay if needed
   if (showRoleRegistration) {
     return (
-      <SelfServiceRoleRegistration
+      <SelfServiceRoleRegistrationSimple
         onRegistrationComplete={handleRegistrationComplete}
         onSkip={handleSkipRoleSelection}
         showSkipOption={true}
+        isModal={true}
       />
     );
   }
@@ -109,14 +109,14 @@ const AppContent = () => {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+        <SidebarSimple isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto bg-gray-50 bg-opacity-80">
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/register" element={<RegisterUser />} />
-            <Route path="/mint" element={<MintCropBatch />} />
+            <Route path="/register" element={<RegisterUserSimple />} />
+            <Route path="/mint" element={<MintCropBatchSimple />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/track" element={<SupplyChainTracker />} />
             <Route path="/track/:tokenId" element={<SupplyChainTracker />} />

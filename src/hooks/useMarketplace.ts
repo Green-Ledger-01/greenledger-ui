@@ -8,7 +8,7 @@ import { useReadContract, useWatchContractEvent } from 'wagmi';
 import { CONTRACT_ADDRESSES } from '../config/constants';
 import { useToast } from '../contexts/ToastContext';
 import { fetchMetadataFromIPFS, CropMetadata } from '../utils/ipfs';
-import { getErrorMessage } from '../utils/errorHandling';
+import { getErrorMessage } from '../utils';
 import CropBatchTokenABI from '../contracts/CropBatchToken.json';
 
 export interface MarketplaceBatch extends CropMetadata {
