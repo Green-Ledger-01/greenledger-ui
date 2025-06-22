@@ -10,7 +10,7 @@ import { useAccount } from 'wagmi';
 import { CONTRACT_ADDRESSES } from '../config/constants';
 import { useToast } from '../contexts/ToastContext';
 import { useWeb3 } from '../contexts/Web3Context';
-import { getErrorMessage } from '../utils/errorHandling';
+import { getErrorMessage } from '../utils';
 import CropBatchTokenABI from '../contracts/CropBatchToken.json';
 import UserManagementABI from '../contracts/UserManagement.json';
 

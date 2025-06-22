@@ -5,7 +5,7 @@ import { Wallet, Copy, UserPlus, Settings } from 'lucide-react';
 import { useWeb3 } from '../contexts/Web3Context';
 import { useToast } from '../contexts/ToastContext';
 import { useRoleManagement } from '../hooks/useRoleManagement';
-import { truncateAddress } from '../utils/errorHandling';
+import { formatAddress } from '../utils';
 import { APP_CONFIG } from '../config/constants';
 
 const Header: React.FC = () => {
@@ -86,7 +86,7 @@ const Header: React.FC = () => {
               
               <div className="flex items-center border border-green-300 rounded-full px-3 py-2 bg-green-50 text-green-800">
                 <Wallet className="h-4 w-4 mr-2" />
-                <span className="font-mono text-sm">{truncateAddress(address)}</span>
+                <span className="font-mono text-sm">{formatAddress(address)}</span>
                 <button 
                   onClick={handleCopyAddress}
                   className="ml-2 text-green-600 hover:text-green-800 transition-colors p-1 rounded hover:bg-green-100" 

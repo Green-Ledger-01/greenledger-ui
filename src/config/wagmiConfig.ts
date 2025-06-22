@@ -9,11 +9,23 @@ export const chains = [liskSepolia] as const
 export const config = createConfig({
   connectors: [
     injected(),
-    coinbaseWallet({ appName: APP_CONFIG.NAME }),
-    walletConnect({ projectId: WALLETCONNECT_PROJECT_ID }),
+    coinbaseWallet({ 
+      appName: APP_CONFIG.NAME,
+      appLogoUrl: undefined,
+    }),
+    walletConnect({ 
+      projectId: WALLETCONNECT_PROJECT_ID,
+      metadata: {
+        name: APP_CONFIG.NAME,
+        description: 'Blockchain-based Agricultural Supply Chain Tracker',
+        url: typeof window !== 'undefined' ? window.location.origin : 'https://greenledger.app',
+        icons: []
+      }
+    }),
   ],
   chains,
   transports: {
-    [liskSepolia.id]: http(),
+    [liskSepolia.id]: http(import.meta.env.VITE_APP_RPC_URL || 'https://rpc.sepolia-api.lisk.com'),
   },
+  ssr: false,
 })
