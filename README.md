@@ -98,6 +98,8 @@ src/
 
 ## 🚀 Getting Started
 
+> **Note**: Fixed import.meta.env undefined error in production builds.
+
 ### Prerequisites
 - Node.js 18+ 
 - npm or yarn
