@@ -1,61 +1,75 @@
+import { useCallback } from 'react';
+import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
+
 /**
- * User Management Hook
- * Handles user registration and role management
+ * Hook for user role management functionality
+ * Provides access to user roles and role-based permissions
  */
+export const useUserRole = (address?: string) => {
+  const { userRoles, hasRole, isAdmin, account } = useWeb3Enhanced();
 
-import { useCallback, useEffect } from 'react';
-import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { CONTRACT_ADDRESSES } from '../config/constants';
-import { useToast } from '../contexts/ToastContext';
-import { getErrorMessage } from '../utils';
-import UserManagementABI from '../contracts/UserManagement.json';
-
-export const useUserManagement = () => {
-  const { addToast } = useToast();
-  const { writeContract, data: hash, isPending, error: writeError } = useWriteContract();
-  const { 
-    isLoading: isConfirming, 
-    isSuccess: isConfirmed, 
-    error: confirmError 
-  } = useWaitForTransactionReceipt({ hash });
-
-  const registerUser = useCallback(async (userAddress: `0x${string}`, role: number) => {
-    try {
-      await writeContract({
-        address: CONTRACT_ADDRESSES.UserManagement as `0x${string}`,
-        abi: UserManagementABI,
-        functionName: 'registerUser',
-        args: [userAddress, role],
-      });
-    } catch (e) {
-      console.error('Registration error:', e);
-      addToast(getErrorMessage(e), 'error');
+  // Get the primary role number for compatibility with existing code
+  const getPrimaryRoleNumber = useCallback((): number => {
+    // If checking for a different address than the connected account, return 0 (farmer) as default
+    if (address && address !== account) {
+      return 0;
     }
-  }, [writeContract, addToast]);
 
-  // Handle write errors
-  useEffect(() => {
-    if (writeError) {
-      addToast(`Registration failed: ${getErrorMessage(writeError)}`, 'error');
-    }
-  }, [writeError, addToast]);
+    // Check roles in priority order: admin > buyer > transporter > farmer
+    if (hasRole('admin')) return 3;
+    if (hasRole('buyer')) return 2;
+    if (hasRole('transporter')) return 1;
+    if (hasRole('farmer')) return 0;
+    
+    // Default to farmer role if no roles found
+    return 0;
+  }, [userRoles, hasRole, address, account]);
 
-  // Handle confirmation
-  useEffect(() => {
-    if (isConfirmed) {
-      addToast('User registered successfully!', 'success');
+  // Get all role numbers for the user
+  const getAllRoleNumbers = useCallback((): number[] => {
+    if (address && address !== account) {
+      return [0]; // Default to farmer for other addresses
     }
-    if (confirmError) {
-      addToast(`Registration confirmation failed: ${getErrorMessage(confirmError)}`, 'error');
-    }
-  }, [isConfirmed, confirmError, addToast]);
+
+    const roleNumbers: number[] = [];
+    if (hasRole('farmer')) roleNumbers.push(0);
+    if (hasRole('transporter')) roleNumbers.push(1);
+    if (hasRole('buyer')) roleNumbers.push(2);
+    if (hasRole('admin')) roleNumbers.push(3);
+    
+    return roleNumbers.length > 0 ? roleNumbers : [0];
+  }, [userRoles, hasRole, address, account]);
 
   return {
-    registerUser,
-    isRegistering: isPending,
-    isConfirmingRegistration: isConfirming,
-    isRegistrationConfirmed: isConfirmed,
-    registrationError: writeError || confirmError,
-    registrationTxHash: hash,
+    data: getPrimaryRoleNumber(),
+    roles: getAllRoleNumbers(),
+    userRoles,
+    hasRole,
+    isAdmin,
+    isLoading: false,
+    error: null,
+  };
+};
+
+/**
+ * Hook to check if a user has a specific role
+ */
+export const useHasRole = (roleId: string) => {
+  const { hasRole } = useWeb3Enhanced();
+  return hasRole(roleId);
+};
+
+/**
+ * Hook to get user role information
+ */
+export const useUserRoleInfo = () => {
+  const { userRoles, hasRole, isAdmin, needsRoleRegistration } = useWeb3Enhanced();
+  
+  return {
+    userRoles,
+    hasRole,
+    isAdmin,
+    needsRoleRegistration,
+    isLoading: false,
   };
 };

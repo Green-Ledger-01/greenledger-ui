@@ -5,9 +5,11 @@
 
 // Contract Addresses - loaded from environment variables
 export const CONTRACT_ADDRESSES = {
-  UserManagement: import.meta.env.VITE_GREENLEDGER_ACCESS_CONTRACT_ADDRESS || '0x66BCB324f59035aD2B084Fe651ea82398A9fac82',
+  UserManagement: import.meta.env.VITE_GREENLEDGER_USER_MANAGEMENT_CONTRACT_ADDRESS || '0x66BCB324f59035aD2B084Fe651ea82398A9fac82',
+  GreenLedgerAccess: import.meta.env.VITE_GREENLEDGER_ACCESS_CONTRACT_ADDRESS || '0x9DBa889848577778865050e67cd88eD86Cb60db6',
   CropBatchToken: import.meta.env.VITE_CROPBATCH_TOKEN_CONTRACT_ADDRESS || '0xA065205364784B3D7e830D0EB2681EB218e3aD27',
   GreenLedgerPaymaster: import.meta.env.VITE_GREENLEDGER_PAYMASTER_CONTRACT_ADDRESS,
+  SupplyChainManager: import.meta.env.VITE_SUPPLY_CHAIN_MANAGER_CONTRACT_ADDRESS || '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9',
 } as const;
 
 // WalletConnect Configuration
@@ -33,6 +35,21 @@ export const USER_ROLES = {
   TRANSPORTER: 1,
   BUYER: 2,
   ADMIN: 3,
+} as const;
+
+// Supply Chain State Constants
+export const SUPPLY_CHAIN_STATES = {
+  PRODUCED: 0,
+  IN_TRANSIT: 1,
+  DELIVERED: 2,
+  CONSUMED: 3,
+} as const;
+
+export const SUPPLY_CHAIN_STATE_LABELS = {
+  [SUPPLY_CHAIN_STATES.PRODUCED]: 'Produced',
+  [SUPPLY_CHAIN_STATES.IN_TRANSIT]: 'In Transit',
+  [SUPPLY_CHAIN_STATES.DELIVERED]: 'Delivered',
+  [SUPPLY_CHAIN_STATES.CONSUMED]: 'Consumed',
 } as const;
 
 // Default Admin Role Hash for AccessControl

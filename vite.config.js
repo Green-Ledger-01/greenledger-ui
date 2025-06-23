@@ -7,9 +7,13 @@ export default defineConfig({
   plugins: [
     react(),
     nodePolyfills({
-      globals: true, // Polyfills global Node.js objects like `Buffer` and `process`
-      include: ['buffer', 'stream', 'util'], // Only include necessary polyfills
-      exclude: [], 
+      globals: {
+        Buffer: true,
+        global: true,
+        process: true,
+      },
+      include: ['buffer', 'stream'], // Remove 'util' since we're using custom shim
+      exclude: ['util'], // Explicitly exclude util to avoid conflicts
       protocolImports: true, // Support `node:` protocol imports if required
     }),
   ],
@@ -27,13 +31,13 @@ export default defineConfig({
       'react-router',
       'react-router-dom',
     ],
-    exclude: ['@solana/web3.js', 'borsh'],
+    exclude: ['@solana/web3.js'],
   },
   resolve: {
     alias: {
       '@coinbase/wallet-sdk/dist/vendor-js/eth-eip712-util/index.cjs': 'eth-eip712-util',
       'react': path.resolve(__dirname, './node_modules/react'),
-      'util': path.resolve(__dirname, 'src/shims/util.js'),
+      'util': path.resolve(__dirname, 'src/shims/utils.js'),
       'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
       'react-router': path.resolve(__dirname, './node_modules/react-router'),
       'react-router-dom': path.resolve(__dirname, './node_modules/react-router-dom'),
@@ -47,7 +51,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       external: (id) => {
-        if (id.includes('@solana/web3.js') || id.includes('borsh')) {
+        if (id.includes('@solana/web3.js')) {
           return false;
         }
         return false;
@@ -55,7 +59,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
-          web3: ['ethers', 'wagmi', 'viem', '@wagmi/core'],
+          web3: ['wagmi', 'viem'],
           rainbowkit: ['@rainbow-me/rainbowkit'],
           particle: ['@particle-network/authkit', '@particle-network/auth-core'],
           query: ['@tanstack/react-query'],
@@ -71,7 +75,6 @@ export default defineConfig({
         }
         if (
           warning.message?.includes('@solana') ||
-          warning.message?.includes('borsh') ||
           warning.message?.includes('serialize')
         ) {
           return;

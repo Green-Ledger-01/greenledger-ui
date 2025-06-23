@@ -19,14 +19,14 @@ export const config = createConfig({
   connectors: [
     // 1. Injected connector (MetaMask, etc.)
     injected(),
-    coinbaseWallet({ 
-      appName: APP_CONFIG.NAME,
+    coinbaseWallet({
+      appName: APP_NAME,
       appLogoUrl: undefined,
     }),
-    walletConnect({ 
+    walletConnect({
       projectId: WALLETCONNECT_PROJECT_ID,
       metadata: {
-        name: APP_CONFIG.NAME,
+        name: APP_NAME,
         description: 'Blockchain-based Agricultural Supply Chain Tracker',
         url: typeof window !== 'undefined' ? window.location.origin : 'https://greenledger.app',
         icons: []

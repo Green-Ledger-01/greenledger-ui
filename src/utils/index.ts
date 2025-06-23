@@ -207,3 +207,36 @@ export const camelToTitle = (text: string): string => {
     .replace(/^./, str => str.toUpperCase())
     .trim();
 };
+
+/**
+ * Format transaction hash for display
+ */
+export const formatTxHash = (hash: string): string => {
+  if (!hash) return '';
+  return `${hash.slice(0, 10)}...${hash.slice(-8)}`;
+};
+
+/**
+ * Get block explorer URL for transaction
+ */
+export const getBlockExplorerUrl = (hash: string): string => {
+  // Default to Lisk Sepolia testnet explorer
+  const baseUrl = import.meta.env.VITE_BLOCK_EXPLORER_URL || 'https://sepolia-blockscout.lisk.com';
+  return `${baseUrl}/tx/${hash}`;
+};
+
+/**
+ * Get block explorer URL for address
+ */
+export const getAddressExplorerUrl = (address: string): string => {
+  const baseUrl = import.meta.env.VITE_BLOCK_EXPLORER_URL || 'https://sepolia-blockscout.lisk.com';
+  return `${baseUrl}/address/${address}`;
+};
+
+/**
+ * Get block explorer URL for token
+ */
+export const getTokenExplorerUrl = (contractAddress: string, tokenId: string): string => {
+  const baseUrl = import.meta.env.VITE_BLOCK_EXPLORER_URL || 'https://sepolia-blockscout.lisk.com';
+  return `${baseUrl}/token/${contractAddress}/instance/${tokenId}`;
+};

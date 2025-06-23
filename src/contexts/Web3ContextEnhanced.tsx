@@ -69,14 +69,18 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
     address: CONTRACT_ADDRESSES.UserManagement as `0x${string}`,
     abi: [
       {
-        inputs: [{ name: "user", type: "address" }],
-        name: "getUserRoles",
-        outputs: [{ name: "", type: "uint8[]" }],
+        inputs: [{ name: "_user", type: "address" }],
+        name: "getUserRolesStatus",
+        outputs: [
+          { name: "isFarmer", type: "bool" },
+          { name: "isTransporter", type: "bool" },
+          { name: "isBuyer", type: "bool" }
+        ],
         stateMutability: "view",
         type: "function",
       },
     ],
-    functionName: "getUserRoles",
+    functionName: "getUserRolesStatus",
     args: account ? [account as `0x${string}`] : undefined,
     query: {
       enabled: !!account && isConnected,
@@ -119,18 +123,36 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
 
   // Handle contract role data
   useEffect(() => {
-    if (contractRoles && Array.isArray(contractRoles)) {
-      const onChainRoles: UserRole[] = contractRoles.map((roleNum: number) => {
-        const roleEntry = Object.entries(ROLE_MAPPING).find(([, num]) => num === roleNum);
-        const roleId = roleEntry ? roleEntry[0] as UserRole['id'] : 'farmer';
-        
-        return {
-          id: roleId,
-          title: roleId.charAt(0).toUpperCase() + roleId.slice(1),
+    if (contractRoles && Array.isArray(contractRoles) && contractRoles.length === 3) {
+      const [isFarmer, isTransporter, isBuyer] = contractRoles;
+      const onChainRoles: UserRole[] = [];
+
+      if (isFarmer) {
+        onChainRoles.push({
+          id: 'farmer',
+          title: 'Farmer',
           onChain: true,
           timestamp: Date.now(),
-        };
-      });
+        });
+      }
+
+      if (isTransporter) {
+        onChainRoles.push({
+          id: 'transporter',
+          title: 'Transporter',
+          onChain: true,
+          timestamp: Date.now(),
+        });
+      }
+
+      if (isBuyer) {
+        onChainRoles.push({
+          id: 'buyer',
+          title: 'Buyer',
+          onChain: true,
+          timestamp: Date.now(),
+        });
+      }
 
       // Merge with local roles
       const localRoles = getLocalRoles();
@@ -260,28 +282,34 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
       );
 
       // Try to register on-chain (optional, can fail gracefully)
+      // Note: UserManagement contract only supports single role registration
       try {
-        const contractRoleIds = roleIds.map(roleId => ROLE_MAPPING[roleId as keyof typeof ROLE_MAPPING]);
-        
+        // Register the first role on-chain (UserManagement limitation)
+        const primaryRoleId = roleIds[0];
+        const contractRoleId = ROLE_MAPPING[primaryRoleId as keyof typeof ROLE_MAPPING];
+
         await writeContract({
           address: CONTRACT_ADDRESSES.UserManagement as `0x${string}`,
           abi: [
             {
               inputs: [
-                { name: "user", type: "address" },
-                { name: "roles", type: "uint8[]" }
+                { name: "_user", type: "address" },
+                { name: "_role", type: "uint8" }
               ],
-              name: "assignMultipleRoles",
+              name: "registerUser",
               outputs: [],
               stateMutability: "nonpayable",
               type: "function",
             },
           ],
-          functionName: "assignMultipleRoles",
-          args: [account as `0x${string}`, contractRoleIds],
+          functionName: "registerUser",
+          args: [account as `0x${string}`, contractRoleId],
         });
 
-        addToast('Submitting role registration to blockchain...', 'info');
+        addToast(`Submitting ${primaryRoleId} role registration to blockchain...`, 'info');
+        if (roleIds.length > 1) {
+          addToast('Note: Only primary role registered on-chain. Additional roles stored locally.', 'warning');
+        }
       } catch (contractError) {
         console.warn('On-chain registration failed, but local registration succeeded:', contractError);
         addToast('Roles registered locally. Blockchain registration will be attempted later.', 'warning');

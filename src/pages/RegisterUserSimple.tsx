@@ -1,6 +1,6 @@
 import React from 'react';
 import { Info, UserPlus, Users, Shield, CheckCircle } from 'lucide-react';
-import { useSimpleWeb3 } from '../contexts/SimpleWeb3Context';
+import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
 
 /**
  * Simple Register User Component
@@ -10,7 +10,7 @@ import { useSimpleWeb3 } from '../contexts/SimpleWeb3Context';
  * roles, this eliminates the need for complex admin-based user management.
  */
 const RegisterUserSimple: React.FC = () => {
-  const { account, isConnected } = useSimpleWeb3();
+  const { account, isConnected } = useWeb3Enhanced();
 
   // Get user roles from local storage
   const getUserRoles = () => {

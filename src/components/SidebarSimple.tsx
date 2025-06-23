@@ -1,13 +1,17 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { 
-  Home, 
-  ShoppingCart, 
-  Package, 
-  Truck, 
-  UserPlus, 
+import {
+  Home,
+  ShoppingCart,
+  Package,
+  Truck,
+  UserPlus,
   X,
-  Leaf
+  Leaf,
+  Shield,
+  Coins,
+  Send,
+  Search
 } from 'lucide-react';
 
 interface SidebarSimpleProps {
@@ -31,16 +35,28 @@ const SidebarSimple: React.FC<SidebarSimpleProps> = ({ isOpen, toggleSidebar }) 
       description: 'Overview and statistics'
     },
     {
+      name: 'Tokenize Crop',
+      href: '/tokenize',
+      icon: Coins,
+      description: 'Create NFT with provenance'
+    },
+    {
+      name: 'Transfer Ownership',
+      href: '/transfer',
+      icon: Send,
+      description: 'Transfer tokens with tracking'
+    },
+    {
+      name: 'Supply Chain Explorer',
+      href: '/explorer',
+      icon: Search,
+      description: 'Explore provenance data'
+    },
+    {
       name: 'Marketplace',
       href: '/marketplace',
       icon: ShoppingCart,
       description: 'Browse crop batches'
-    },
-    {
-      name: 'Mint Batch',
-      href: '/mint',
-      icon: Package,
-      description: 'Create new crop batch'
     },
     {
       name: 'Track Supply Chain',
@@ -53,6 +69,12 @@ const SidebarSimple: React.FC<SidebarSimpleProps> = ({ isOpen, toggleSidebar }) 
       href: '/register',
       icon: UserPlus,
       description: 'Manage user roles'
+    },
+    {
+      name: 'Auth Test',
+      href: '/auth-test',
+      icon: Shield,
+      description: 'Test authentication'
     }
   ];
 
@@ -68,23 +90,26 @@ const SidebarSimple: React.FC<SidebarSimpleProps> = ({ isOpen, toggleSidebar }) 
 
       {/* Sidebar */}
       <div className={`
-        fixed top-0 left-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50
+        fixed top-0 left-0 h-full w-64 bg-white/95 backdrop-blur-md shadow-2xl transform transition-all duration-300 ease-in-out z-50
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:relative md:translate-x-0 md:shadow-none md:border-r md:border-gray-200
+        md:relative md:translate-x-0 md:shadow-lg md:border-r md:border-green-100 md:bg-white
       `}>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between p-4 border-b border-green-100 bg-gradient-to-r from-green-50 to-green-100">
           <div className="flex items-center">
-            <div className="h-8 w-8 mr-2 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
-              <Leaf className="h-5 w-5 text-white" />
+            <div className="h-10 w-10 mr-3 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg">
+              <Leaf className="h-6 w-6 text-white" />
             </div>
-            <h2 className="text-lg font-bold text-green-800">GreenLedger</h2>
+            <div>
+              <h2 className="text-lg font-bold gradient-text">GreenLedger</h2>
+              <p className="text-xs text-gray-500">Supply Chain</p>
+            </div>
           </div>
-          
+
           {/* Close button for mobile */}
           <button
             onClick={toggleSidebar}
-            className="md:hidden text-gray-500 hover:text-gray-700 transition-colors"
+            className="md:hidden text-gray-500 hover:text-gray-700 transition-colors p-2 rounded-lg hover:bg-white/50"
           >
             <X className="h-6 w-6" />
           </button>
@@ -105,10 +130,10 @@ const SidebarSimple: React.FC<SidebarSimpleProps> = ({ isOpen, toggleSidebar }) 
                   }
                 }}
                 className={({ isActive }) => `
-                  flex items-center px-4 py-3 rounded-lg transition-all duration-200 group
-                  ${isActive 
-                    ? 'bg-green-100 text-green-800 border-l-4 border-green-600' 
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-green-700'
+                  flex items-center px-4 py-3 mx-2 rounded-xl transition-all duration-200 group hover-lift
+                  ${isActive
+                    ? 'bg-gradient-to-r from-green-100 to-green-50 text-green-800 shadow-md border-l-4 border-green-600'
+                    : 'text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 hover:text-green-700 hover:shadow-sm'
                   }
                 `}
               >
@@ -125,14 +150,17 @@ const SidebarSimple: React.FC<SidebarSimpleProps> = ({ isOpen, toggleSidebar }) 
         </nav>
 
         {/* Footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-gray-50">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-green-100 bg-gradient-to-r from-green-50 to-green-100">
           <div className="text-center">
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-600 font-medium">
               Agricultural Supply Chain
             </p>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-gray-500 mt-1">
               Powered by Blockchain
             </p>
+            <div className="flex justify-center mt-2">
+              <div className="h-1 w-8 bg-gradient-to-r from-green-400 to-green-600 rounded-full"></div>
+            </div>
           </div>
         </div>
       </div>

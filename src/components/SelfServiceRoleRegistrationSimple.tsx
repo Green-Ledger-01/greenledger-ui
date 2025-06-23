@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { User, Truck, ShoppingCart, Shield, X, Check, AlertCircle, Loader2 } from 'lucide-react';
-import { useSimpleWeb3 } from '../contexts/SimpleWeb3ContextClean';
+import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
 import { useToast } from '../contexts/ToastContext';
 
 interface SelfServiceRoleRegistrationSimpleProps {
@@ -120,13 +120,12 @@ const SelfServiceRoleRegistrationSimple: React.FC<SelfServiceRoleRegistrationSim
   showSkipOption = true,
   isModal = true
 }) => {
-  const { account, isConnected, connectWallet } = useSimpleWeb3();
+  const { account, isConnected, registerRoles, isRegistering } = useWeb3Enhanced();
   const { addToast } = useToast();
 
   // Local state
   const [selectedRoles, setSelectedRoles] = useState<UserRole[]>([]);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [isRegistering, setIsRegistering] = useState(false);
 
   // Check if user already has roles
   useEffect(() => {
@@ -176,42 +175,28 @@ const SelfServiceRoleRegistrationSimple: React.FC<SelfServiceRoleRegistrationSim
     }
 
     try {
-      setIsRegistering(true);
-      
-      // Simulate registration process
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Store roles locally
-      const roleData = {
-        address: account,
-        roles: selectedRoles,
-        timestamp: Date.now(),
-        isOnChain: false,
-      };
-      
-      localStorage.setItem(`greenledger_user_roles_${account}`, JSON.stringify(roleData));
-      
+      // Use the Web3Enhanced registerRoles method
+      await registerRoles(selectedRoles);
+
       addToast(
-        `Successfully registered as: ${selectedRoles.map(role => 
+        `Successfully registered as: ${selectedRoles.map(role =>
           roleOptions.find(r => r.id === role)?.title
         ).join(', ')}`,
         'success'
       );
-      
+
       setShowConfirmation(true);
-      
+
       // Auto-close confirmation after 3 seconds
       setTimeout(() => {
         onRegistrationComplete();
       }, 3000);
-      
+
     } catch (error: any) {
       console.error('Role registration failed:', error);
       addToast('Failed to register roles. Please try again.', 'error');
-    } finally {
-      setIsRegistering(false);
     }
-  }, [isConnected, selectedRoles, account, addToast, onRegistrationComplete]);
+  }, [isConnected, selectedRoles, registerRoles, addToast, onRegistrationComplete]);
 
   // Handle skip
   const handleSkip = useCallback(() => {
@@ -438,17 +423,14 @@ const SelfServiceRoleRegistrationSimple: React.FC<SelfServiceRoleRegistrationSim
                   )}
                   
                   <button
-                    onClick={isConnected ? handleRegister : connectWallet}
-                    disabled={isRegistering || (!isConnected && selectedRoles.length === 0)}
+                    onClick={handleRegister}
+                    disabled={isRegistering || !isConnected || selectedRoles.length === 0}
                     className={`
                       px-6 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2
-                      ${isConnected && selectedRoles.length > 0
+                      ${isConnected && selectedRoles.length > 0 && !isRegistering
                         ? 'bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg'
-                        : !isConnected
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       }
-                      ${isRegistering ? 'opacity-50 cursor-not-allowed' : ''}
                     `}
                   >
                     {isRegistering ? (
@@ -457,7 +439,7 @@ const SelfServiceRoleRegistrationSimple: React.FC<SelfServiceRoleRegistrationSim
                         <span>Registering...</span>
                       </>
                     ) : !isConnected ? (
-                      <span>Connect Wallet</span>
+                      <span>Connect Wallet First</span>
                     ) : selectedRoles.length === 0 ? (
                       <span>Select Role(s)</span>
                     ) : (

@@ -1,6 +1,14 @@
 import { Buffer } from 'buffer';
 window.Buffer = Buffer;
 
+// Ensure TextEncoder/TextDecoder are available globally
+if (!globalThis.TextEncoder) {
+  globalThis.TextEncoder = window.TextEncoder;
+}
+if (!globalThis.TextDecoder) {
+  globalThis.TextDecoder = window.TextDecoder;
+}
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { WagmiProvider } from 'wagmi';
