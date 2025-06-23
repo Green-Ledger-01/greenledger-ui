@@ -3,7 +3,8 @@ window.Buffer = Buffer;
 
 // Ensure import.meta.env is available
 try {
-  if (!import.meta.env) {
+  // Check if import.meta exists first
+  if (typeof import.meta !== 'undefined' && !import.meta.env) {
     (import.meta as any).env = {
       VITE_NODE_ENV: 'production',
       VITE_DEBUG: '',
@@ -31,7 +32,9 @@ if (!globalThis.process) {
   // Safely access import.meta.env with fallbacks
   let env: any = {};
   try {
-    env = import.meta.env || {};
+    if (typeof import.meta !== 'undefined' && import.meta.env) {
+      env = import.meta.env;
+    }
   } catch (e) {
     env = {};
   }
