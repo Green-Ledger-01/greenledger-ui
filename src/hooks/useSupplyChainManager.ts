@@ -21,15 +21,72 @@ export interface ProvenanceStep {
 }
 
 export const useInitializeProvenance = () => {
-  return useWriteContract();
+  const { writeContractAsync, ...rest } = useWriteContract();
+
+  const initializeProvenance = async (args: {
+    tokenId: bigint;
+    farmer: string;
+    location: string;
+    notes: string;
+  }) => {
+    return await writeContractAsync({
+      address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
+      abi: SupplyChainManagerABI.abi,
+      functionName: 'initializeProvenance',
+      args: [args.tokenId, args.farmer, args.location, args.notes],
+    });
+  };
+
+  return {
+    writeAsync: initializeProvenance,
+    ...rest,
+  };
 };
 
 export const useTransferWithProvenance = () => {
-  return useWriteContract();
+  const { writeContractAsync, ...rest } = useWriteContract();
+
+  const transferWithProvenance = async (args: {
+    tokenId: bigint;
+    to: string;
+    newState: number;
+    location: string;
+    notes: string;
+  }) => {
+    return await writeContractAsync({
+      address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
+      abi: SupplyChainManagerABI.abi,
+      functionName: 'transferWithProvenance',
+      args: [args.tokenId, args.to, args.newState, args.location, args.notes],
+    });
+  };
+
+  return {
+    writeAsync: transferWithProvenance,
+    ...rest,
+  };
 };
 
 export const useMarkAsConsumed = () => {
-  return useWriteContract();
+  const { writeContractAsync, ...rest } = useWriteContract();
+
+  const markAsConsumed = async (args: {
+    tokenId: bigint;
+    location: string;
+    notes: string;
+  }) => {
+    return await writeContractAsync({
+      address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
+      abi: SupplyChainManagerABI.abi,
+      functionName: 'markAsConsumed',
+      args: [args.tokenId, args.location, args.notes],
+    });
+  };
+
+  return {
+    writeAsync: markAsConsumed,
+    ...rest,
+  };
 };
 
 export const useProvenanceHistory = (tokenId?: bigint) => {

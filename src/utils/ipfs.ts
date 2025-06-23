@@ -5,6 +5,10 @@
 
 import { IPFS_CONFIG } from '../config/constants';
 
+// Simple in-memory cache for IPFS metadata
+const metadataCache = new Map<string, { data: CropMetadata; timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 // Types
 export interface CropMetadataAttribute {
   trait_type: string;
@@ -170,52 +174,107 @@ export const uploadMetadataToIPFS = async (metadata: CropMetadata): Promise<stri
 };
 
 /**
- * Fetch metadata from IPFS
+ * Fetch metadata from IPFS with fallback gateways and caching
  */
 export const fetchMetadataFromIPFS = async (ipfsUri: string): Promise<CropMetadata> => {
   if (!ipfsUri.startsWith('ipfs://')) {
     throw new Error('Invalid IPFS URI format');
   }
-  
+
   const hash = ipfsUri.replace('ipfs://', '');
-  const gatewayUrl = `${IPFS_CONFIG.GATEWAY}/${hash}`;
-  
-  try {
-    const response = await fetch(gatewayUrl);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch metadata: ${response.status} ${response.statusText}`);
-    }
-    
-    const metadata = await response.json();
-    return metadata as CropMetadata;
-  } catch (error) {
-    console.error('Error fetching metadata from IPFS:', error);
-    throw error;
+
+  // Check cache first
+  const cached = metadataCache.get(hash);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    console.log(`Using cached metadata for ${hash}`);
+    return cached.data;
   }
+
+  const gateways = [IPFS_CONFIG.GATEWAY, ...IPFS_CONFIG.FALLBACK_GATEWAYS];
+
+  let lastError: Error | null = null;
+
+  // Try each gateway in sequence
+  for (const gateway of gateways) {
+    try {
+      const gatewayUrl = `${gateway}/${hash}`;
+
+      const response = await fetch(gatewayUrl, {
+        headers: {
+          'Accept': 'application/json',
+        },
+        // Add timeout to prevent hanging requests
+        signal: AbortSignal.timeout(8000), // 8 second timeout per gateway
+        mode: 'cors', // Explicitly set CORS mode
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const metadata = await response.json();
+
+      // Validate that we got valid metadata
+      if (!metadata || typeof metadata !== 'object') {
+        throw new Error('Invalid metadata format received from IPFS');
+      }
+
+      const cropMetadata = metadata as CropMetadata;
+
+      // Cache the successful result
+      metadataCache.set(hash, {
+        data: cropMetadata,
+        timestamp: Date.now()
+      });
+
+      console.log(`Successfully fetched metadata from ${gateway}`);
+      return cropMetadata;
+
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error('Unknown error');
+      console.warn(`Failed to fetch from ${gateway}:`, lastError.message);
+      // Continue to next gateway
+    }
+  }
+
+  // If all gateways failed, throw the last error
+  console.error('All IPFS gateways failed for hash:', hash);
+  throw lastError || new Error('Failed to fetch metadata from all IPFS gateways');
 };
 
 /**
- * Convert IPFS URI to HTTP URL
+ * Clear the metadata cache
+ */
+export const clearMetadataCache = (): void => {
+  metadataCache.clear();
+  console.log('IPFS metadata cache cleared');
+};
+
+/**
+ * Convert IPFS URI to HTTP URL using the primary gateway
  */
 export const ipfsToHttp = (
-  ipfsUri: string, 
+  ipfsUri: string | undefined,
   gateway: string = IPFS_CONFIG.GATEWAY
 ): string => {
+  if (!ipfsUri || typeof ipfsUri !== 'string') {
+    return ''; // Return empty string if undefined or not a string
+  }
+
   if (!ipfsUri.startsWith('ipfs://')) {
     return ipfsUri; // Return as-is if not IPFS URI
   }
-  
+
   const hash = ipfsUri.replace('ipfs://', '');
   return `${gateway}/${hash}`;
 };
 
 /**
- * Check if we should use mock IPFS (for development)
+ * Check if we should use mock IPFS (only when API keys are not configured)
  */
 const shouldUseMockIPFS = (): boolean => {
-  return IPFS_CONFIG.PINATA_API_KEY === 'YOUR_PINATA_API_KEY' || 
-         IPFS_CONFIG.PINATA_SECRET_API_KEY === 'YOUR_PINATA_SECRET_API_KEY' ||
-         import.meta.env.MODE === 'development';
+  return IPFS_CONFIG.PINATA_API_KEY === 'YOUR_PINATA_API_KEY' ||
+         IPFS_CONFIG.PINATA_SECRET_API_KEY === 'YOUR_PINATA_SECRET_API_KEY';
 };
 
 /**
@@ -262,10 +321,6 @@ export const uploadCropBatch = async (params: UploadCropBatchParams): Promise<{ 
     return { metadataUri };
   } catch (error) {
     console.error('Error uploading crop batch to IPFS:', error);
-    
-    // Fallback to mock IPFS if real IPFS fails
-    console.warn('IPFS upload failed, falling back to mock service...');
-    const { mockUploadCropBatch } = await import('./mockIpfs');
-    return mockUploadCropBatch(params);
+    throw error; // Don't fallback to mock, throw the error instead
   }
 };

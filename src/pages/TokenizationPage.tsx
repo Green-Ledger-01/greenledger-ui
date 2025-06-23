@@ -8,12 +8,7 @@ import {
   Scale,
   FileText,
   Coins,
-  CheckCircle,
-  Leaf,
-  Zap,
-  Shield,
-  Database,
-  Globe
+  Shield
 } from 'lucide-react';
 import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
 import { useToast } from '../contexts/ToastContext';
@@ -67,24 +62,9 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
   const [uploadProgress, setUploadProgress] = useState<string>('');
   const [mintedTokenId, setMintedTokenId] = useState<number | null>(null);
   const [provenanceInitialized, setProvenanceInitialized] = useState(false);
-  const [mode, setMode] = useState<'development' | 'production'>('development');
 
   const canMint = hasRole('farmer');
   const isProcessing = isWritePending || isConfirming || isUploading || isInitializingProvenance;
-
-  // Check if we have real blockchain setup
-  const hasRealBlockchain = Boolean(nextTokenId && !isLoadingNextTokenId);
-  const hasRealIPFS = Boolean(import.meta.env.VITE_PINATA_API_KEY &&
-                             import.meta.env.VITE_PINATA_API_KEY !== 'YOUR_ACTUAL_PINATA_API_KEY_HERE');
-
-  // Auto-detect mode based on available services
-  useEffect(() => {
-    if (hasRealBlockchain && hasRealIPFS) {
-      setMode('production');
-    } else {
-      setMode('development');
-    }
-  }, [hasRealBlockchain, hasRealIPFS]);
 
   const validateField = (name: string, value: string): string | null => {
     if (!value && ['name', 'cropType', 'quantity', 'originFarm', 'harvestDate'].includes(name)) {
@@ -147,62 +127,12 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
     return !Object.values(errors).some(error => error !== null);
   };
 
-  // Development mode submission (local storage)
-  const handleDevelopmentSubmit = async () => {
-    setIsUploading(true);
-    setUploadProgress('Simulating blockchain transaction...');
-
-    try {
-      // Simulate processing time
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Generate a mock token ID
-      const tokenId = Date.now();
-
-      // Create batch record
-      const batchRecord = {
-        tokenId,
-        ...formData,
-        quantity: parseInt(formData.quantity),
-        harvestDate: new Date(formData.harvestDate).getTime(),
-        imageFile: imageFile?.name,
-        minter: account,
-        timestamp: Date.now(),
-        status: 'minted',
-        mode: 'development'
-      };
-
-      // Store batch record locally
-      const existingBatches = JSON.parse(localStorage.getItem('greenledger_crop_batches') || '[]');
-      existingBatches.push(batchRecord);
-      localStorage.setItem('greenledger_crop_batches', JSON.stringify(existingBatches));
-
-      addToast(`Crop batch minted successfully! Token ID: ${tokenId}`, 'success');
-      setMintedTokenId(tokenId);
-
-      // Reset form
-      resetForm();
-      onSuccess?.(tokenId);
-
-    } catch (error) {
-      console.error('Development minting failed:', error);
-      addToast('Failed to mint crop batch. Please try again.', 'error');
-    } finally {
-      setIsUploading(false);
-      setUploadProgress('');
-    }
-  };
-
-  // Production mode submission (blockchain + IPFS)
-  const handleProductionSubmit = async () => {
+  // Handle form submission (blockchain + IPFS)
+  const handleFormSubmit = async () => {
     try {
       clearError();
       setIsUploading(true);
       setUploadProgress('Preparing metadata...');
-
-      if (!hasRealIPFS) {
-        addToast('Using mock IPFS service. Configure Pinata API keys for production.', 'warning');
-      }
 
       setUploadProgress('Uploading image to IPFS...');
       addToast('Uploading image and metadata to IPFS...', 'info');
@@ -276,11 +206,7 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
       return;
     }
 
-    if (mode === 'development') {
-      await handleDevelopmentSubmit();
-    } else {
-      await handleProductionSubmit();
-    }
+    await handleFormSubmit();
   };
 
   const resetForm = () => {
@@ -307,12 +233,10 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
       addToast('Initializing supply chain provenance...', 'info');
 
       await initializeProvenance({
-        args: [
-          BigInt(tokenId),
-          account!,
-          formData.location || formData.originFarm,
-          `Initial production at ${formData.originFarm}. ${formData.notes || 'No additional notes.'}`
-        ]
+        tokenId: BigInt(tokenId),
+        farmer: account!,
+        location: formData.location || formData.originFarm,
+        notes: `Initial production at ${formData.originFarm}. ${formData.notes || 'No additional notes.'}`
       });
 
       setProvenanceInitialized(true);
@@ -352,7 +276,7 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
   // Display access denied message
   if (isConnected && !canMint) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 p-6">
+      <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-2xl mx-auto">
           <div className="bg-white rounded-2xl shadow-xl border border-yellow-200 overflow-hidden">
             <div className="bg-gradient-to-r from-yellow-400 to-orange-500 p-6 text-white text-center">
@@ -385,94 +309,19 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100">
-      <div className="p-6 max-w-5xl mx-auto">
-        {/* Hero Section */}
-        <div className="text-center mb-8 animate-fade-in-down">
-          <div className="flex items-center justify-center mb-6">
-            <div className="h-16 w-16 rounded-full gradient-bg-primary flex items-center justify-center shadow-lg mr-4">
-              <Coins className="h-8 w-8 text-white" />
-            </div>
-            <div className="text-left">
-              <h1 className="text-4xl lg:text-5xl font-bold gradient-text">Crop Tokenization</h1>
-              <p className="text-gray-500 text-lg">Create NFTs for your agricultural produce</p>
-            </div>
-          </div>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Transform your crop batches into blockchain-verified NFTs with complete traceability and provenance tracking.
+    <div className="min-h-screen bg-gray-50">
+      <div className="p-6 max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Crop Tokenization</h1>
+          <p className="text-gray-600">
+            Create NFTs for your agricultural produce with IPFS metadata and blockchain minting
           </p>
         </div>
 
-        {/* Mode Selector */}
-        <div className="mb-8 animate-fade-in-up">
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <Zap className="h-5 w-5 mr-2 text-blue-600" />
-              Tokenization Mode
-            </h2>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${
-                mode === 'development'
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`} onClick={() => setMode('development')}>
-                <div className="flex items-center mb-2">
-                  <Database className="h-5 w-5 mr-2 text-blue-600" />
-                  <h3 className="font-semibold text-gray-900">Development Mode</h3>
-                  {mode === 'development' && <CheckCircle className="h-4 w-4 ml-auto text-blue-600" />}
-                </div>
-                <p className="text-sm text-gray-600 mb-2">Local storage simulation for testing</p>
-                <div className="flex items-center text-xs text-gray-500">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                  Fast & Free • No blockchain fees • Local testing
-                </div>
-              </div>
-
-              <div className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${
-                mode === 'production'
-                  ? 'border-green-500 bg-green-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`} onClick={() => setMode('production')}>
-                <div className="flex items-center mb-2">
-                  <Globe className="h-5 w-5 mr-2 text-green-600" />
-                  <h3 className="font-semibold text-gray-900">Production Mode</h3>
-                  {mode === 'production' && <CheckCircle className="h-4 w-4 ml-auto text-green-600" />}
-                </div>
-                <p className="text-sm text-gray-600 mb-2">Real blockchain & IPFS integration</p>
-                <div className="flex items-center text-xs text-gray-500">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                  Permanent • Immutable • Global network
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 animate-fade-in-up">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200">
           {/* Header */}
           <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
-                mode === 'development' ? 'bg-blue-100' : 'bg-green-100'
-              }`}>
-                {mode === 'development' ?
-                  <Database className="h-6 w-6 text-blue-600" /> :
-                  <Globe className="h-6 w-6 text-green-600" />
-                }
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {mode === 'development' ? 'Development Tokenization' : 'Production Tokenization'}
-                </h2>
-                <p className="text-gray-600">
-                  {mode === 'development'
-                    ? 'Create a crop batch record with local storage for testing'
-                    : 'Create a new crop batch NFT with IPFS metadata and blockchain minting'
-                  }
-                </p>
-              </div>
-            </div>
-
             {/* Status indicators */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
               <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
@@ -482,7 +331,7 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
                 </span>
               </div>
 
-              {mode === 'production' && !isLoadingNextTokenId && nextTokenId && (
+              {!isLoadingNextTokenId && nextTokenId && (
                 <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg">
                   <Coins className="h-4 w-4 text-green-600" />
                   <span className="text-green-700 font-medium">Next Token ID: #{nextTokenId}</span>
@@ -491,9 +340,7 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
 
               <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
                 <Shield className="h-4 w-4 text-blue-600" />
-                <span className="text-blue-700 font-medium">
-                  {mode === 'development' ? 'Local Storage' : 'Blockchain + IPFS'}
-                </span>
+                <span className="text-blue-700 font-medium">Blockchain + IPFS</span>
               </div>
             </div>
 
@@ -748,16 +595,12 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
             <button
               type="submit"
               disabled={isProcessing || !isConnected}
-              className={`w-full py-4 px-6 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 ${
-                mode === 'development'
-                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
-                  : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white'
-              }`}
+              className="w-full py-4 px-6 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white"
             >
               {isProcessing ? (
                 <>
                   <LoadingSpinner variant="minimal" size="sm" className="mr-3" />
-                  {isUploading ? (mode === 'development' ? 'Simulating...' : 'Uploading to IPFS...') :
+                  {isUploading ? 'Uploading to IPFS...' :
                    isWritePending ? 'Waiting for Wallet...' :
                    isConfirming ? 'Confirming Transaction...' :
                    isInitializingProvenance ? 'Initializing Provenance...' :
@@ -765,17 +608,8 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
                 </>
               ) : (
                 <>
-                  {mode === 'development' ? (
-                    <>
-                      <Database className="h-5 w-5 mr-2" />
-                      Create Development Batch
-                    </>
-                  ) : (
-                    <>
-                      <Coins className="h-5 w-5 mr-2" />
-                      Mint Crop Batch Token
-                    </>
-                  )}
+                  <Coins className="h-5 w-5 mr-2" />
+                  Mint Crop Batch Token
                 </>
               )}
             </button>
@@ -823,24 +657,13 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
         </form>
 
         {/* Info Section */}
-        <div className={`p-6 border-t border-gray-200 rounded-b-xl ${
-          mode === 'development' ? 'bg-blue-50' : 'bg-green-50'
-        }`}>
+        <div className="p-6 border-t border-gray-200 rounded-b-xl bg-green-50">
           <div className="flex items-start space-x-3">
-            <Info className={`w-5 h-5 mt-0.5 ${
-              mode === 'development' ? 'text-blue-600' : 'text-green-600'
-            }`} />
-            <div className={`text-sm ${
-              mode === 'development' ? 'text-blue-800' : 'text-green-800'
-            }`}>
-              <p className="font-medium mb-1">
-                {mode === 'development' ? 'Development Mode Notice' : 'Production Mode Notice'}
-              </p>
+            <Info className="w-5 h-5 mt-0.5 text-green-600" />
+            <div className="text-sm text-green-800">
+              <p className="font-medium mb-1">Blockchain Storage</p>
               <p>
-                {mode === 'development'
-                  ? 'Your crop batch data is stored locally in your browser for testing. Switch to Production Mode for permanent blockchain storage.'
-                  : 'Your crop batch will be permanently stored on IPFS and minted as an NFT on the blockchain with complete provenance tracking.'
-                }
+                Your crop batch will be permanently stored on IPFS and minted as an NFT on the blockchain with complete provenance tracking.
               </p>
             </div>
           </div>
