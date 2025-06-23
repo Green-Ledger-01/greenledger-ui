@@ -6,7 +6,6 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
-.vscode
 .qodo
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
@@ -93,27 +92,49 @@ out
 .nuxt
 dist
 
-# Gatsby files
-.cache/
-# Comment in the public line in if your project uses Gatsby and not Next.js
-# https://nextjs.org/blog/next-9-1#public-directory-support
-# public
+# Vite build output (for this project)
+dist
+dist-ssr
+*.local
 
-# vuepress build output
-.vuepress/dist
+# Blockchain/Smart Contract specific files
+# Hardhat files
+cache/
+artifacts/
+**/artifacts/
+**/artifacts/**
 
-# vuepress v2.x temp and cache directory
-.temp
-.cache
+# TypeChain files
+typechain/
+typechain-types/
 
-# vitepress build output
-**/.vitepress/dist
+# Solidity coverage files
+coverage.json
 
-# vitepress cache directory
-**/.vitepress/cache
+# Hardhat Ignition default folder for deployments against a local node
+ignition/deployments/chain-31337
 
-# Docusaurus cache and generated files
-.docusaurus
+# Remix plugin state folders
+deps/
+states/
+
+# Debug info
+*.dbg.json
+
+# IDE and Editor files
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
 # Serverless directories
 .serverless/

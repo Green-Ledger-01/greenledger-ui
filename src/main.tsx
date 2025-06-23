@@ -9,6 +9,21 @@ if (!globalThis.TextDecoder) {
   globalThis.TextDecoder = window.TextDecoder;
 }
 
+// Ensure process.env is available globally for libraries that expect it
+if (!globalThis.process) {
+  globalThis.process = {
+    env: {
+      DEBUG: import.meta.env.VITE_DEBUG || '',
+      NODE_ENV: import.meta.env.VITE_NODE_ENV || 'production',
+      ...import.meta.env
+    },
+    version: '18.0.0',
+    versions: { node: '18.0.0' },
+    platform: 'browser',
+    nextTick: (cb: Function) => setTimeout(cb, 0),
+  };
+}
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { WagmiProvider } from 'wagmi';

@@ -136,3 +136,12 @@ export const clearOAuthMarkers = (): void => {
     console.warn('Failed to clear OAuth markers:', error);
   }
 };
+
+/**
+ * Clear all authentication-related data
+ */
+export const clearAllAuthData = (): void => {
+  clearAuthState();
+  clearOAuthMarkers();
+  console.log('All authentication data cleared');
+};

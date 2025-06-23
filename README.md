@@ -5,11 +5,13 @@ A modern, responsive React application for tracking agricultural supply chains u
 ## 🌟 Features
 
 ### Core Functionality
-- **Blockchain Integration**: Full Web3 support with Wagmi and RainbowKit
-- **Role-Based Access Control**: Farmer, Transporter, Buyer, and Admin roles
-- **NFT Minting**: Create crop batch NFTs with IPFS metadata storage
-- **Supply Chain Tracking**: Track produce from farm to table
-- **Marketplace**: Browse and explore crop batches
+- **Hybrid Web3 Integration**: Supports both traditional wallets (MetaMask, WalletConnect) and social login (Particle Network)
+- **Account Abstraction**: Seamless user experience with Particle Network
+- **Role-Based Access Control**: Farmer, Transporter, Buyer, and Admin roles with on-chain verification
+- **NFT Minting**: Create crop batch NFTs with optimized IPFS metadata storage (real + mock support)
+- **Supply Chain Tracking**: Complete traceability from farm to table with blockchain verification
+- **Marketplace**: Browse, explore, and purchase crop batches with cart functionality
+- **Enhanced Authentication**: Persistent auth state with OAuth redirect handling
 
 ### UI/UX Features
 - **Responsive Design**: Mobile-first approach with desktop optimization
@@ -25,44 +27,74 @@ A modern, responsive React application for tracking agricultural supply chains u
 ```
 src/
 ├── components/          # Reusable UI components
+│   ├── CartCheckoutSection.tsx
+│   ├── CartSidebar.tsx
 │   ├── CropBatchCard.tsx
 │   ├── CropBatchCardSkeleton.tsx
 │   ├── ErrorBoundary.tsx
-│   ├── Header.tsx
-│   └── Sidebar.tsx
+│   ├── ErrorMessage.tsx
+│   ├── HybridConnectButton.tsx
+│   ├── LoadingSpinner.tsx
+│   ├── SelfServiceRoleRegistrationSimple.tsx
+│   └── SidebarSimple.tsx
 ├── contexts/           # React contexts for state management
+│   ├── CartContext.tsx
 │   ├── ToastContext.tsx
-│   └── Web3Context.tsx
+│   └── Web3ContextEnhanced.tsx
 ├── hooks/              # Custom React hooks
+│   ├── useAuthState.ts
 │   ├── useCropBatchToken.ts
+│   ├── useSupplyChainFlow.ts
+│   ├── useSupplyChainManager.ts
 │   └── useUserManagement.ts
 ├── pages/              # Page components
+│   ├── AuthTestPage.tsx
+│   ├── AuthenticationPage.tsx
 │   ├── Dashboard.tsx
+│   ├── LandingPage.tsx
 │   ├── Marketplace.tsx
-│   ├── MintCropBatch.tsx
-│   └── RegisterUser.tsx
+│   ├── RegisterUserSimple.tsx
+│   ├── SupplyChainExplorer.tsx
+│   ├── SupplyChainTracker.tsx
+│   ├── TokenizationPage.tsx
+│   └── TransferOwnershipPage.tsx
 ├── utils/              # Utility functions
-│   ├── errorHandling.ts
-│   └── ipfs.ts
+│   ├── authPersistence.ts
+│   ├── index.ts
+│   ├── ipfs.ts (optimized with mock support)
+│   └── oauthHandler.ts
 ├── config/             # Configuration files
 │   ├── constants.ts
+│   ├── HybridWeb3Config.tsx
 │   └── wagmiConfig.ts
 ├── routes/             # Routing configuration
-│   └── AppRoutes.tsx
+│   └── SimpleAppRoutes.tsx
 ├── contracts/          # Smart contract ABIs
+│   ├── CropBatchToken.json
+│   ├── GreenLedgerAccess.json
+│   ├── GreenLedgerPaymaster.json
+│   ├── SupplyChainManager.json
+│   ├── UserManagement.json
+│   └── internal/
 ├── chains/             # Blockchain network configurations
+│   └── liskSepolia.ts
+├── shims/              # Browser compatibility shims
+│   └── utils.js
 └── assets/             # Static assets
+    └── react.svg
 ```
 
 ### Key Technologies
-- **React 19** with TypeScript
-- **Vite** for fast development and building
+- **React 18.3.1** with TypeScript
+- **Vite 6.3.5** for fast development and building
 - **Tailwind CSS** for styling
-- **Wagmi** for Web3 integration
-- **RainbowKit** for wallet connections
-- **React Router** for navigation
+- **Wagmi 2.15.6** for Web3 integration
+- **RainbowKit 2.2.6** for wallet connections
+- **Particle Network** for account abstraction and social login
+- **React Router 6.28.0** for navigation
 - **Lucide React** for icons
-- **TanStack Query** for data fetching
+- **TanStack Query 5.80.10** for data fetching
+- **Lisk Sepolia** blockchain network
 
 ## 🚀 Getting Started
 

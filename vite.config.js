@@ -2,6 +2,9 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
+import { fileURLToPath, URL } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [
@@ -20,6 +23,8 @@ export default defineConfig({
   define: {
     global: 'globalThis',
     'process.env': 'import.meta.env',
+    'process.env.DEBUG': 'import.meta.env.VITE_DEBUG',
+    'process.env.NODE_ENV': 'import.meta.env.VITE_NODE_ENV',
   },
   optimizeDeps: {
     include: [

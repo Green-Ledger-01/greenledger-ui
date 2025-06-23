@@ -49,7 +49,7 @@ export const format = (f, ...args) => {
       case '%j':
         try {
           return JSON.stringify(args[i++]);
-        } catch (_) {
+        } catch {
           return '[Circular]';
         }
       default:

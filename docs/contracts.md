@@ -1,3 +1,57 @@
+chunk-B2LN27F2.js?v=ec6b3330:20958 The above error occurred in the <Marketplace> component:
+
+    at Marketplace (http://localhost:5173/src/pages/Marketplace.tsx?t=1750644836493:34:24)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/chunk-XJLWB5DL.js?v=ec6b3330:4071:5)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/chunk-XJLWB5DL.js?v=ec6b3330:4612:5)
+    at div
+    at main
+    at div
+    at div
+    at AppContent (http://localhost:5173/src/routes/SimpleAppRoutes.tsx?t=1750644836493:54:45)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/chunk-XJLWB5DL.js?v=ec6b3330:4071:5)
+    at Routes (http://localhost:5173/node_modules/.vite/deps/chunk-XJLWB5DL.js?v=ec6b3330:4612:5)
+    at Router (http://localhost:5173/node_modules/.vite/deps/chunk-XJLWB5DL.js?v=ec6b3330:4555:15)
+    at BrowserRouter (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=ec6b3330:566:5)
+    at SimpleAppRoutes
+    at Web3ContextEnhancedProvider (http://localhost:5173/src/contexts/Web3ContextEnhanced.tsx:36:47)
+    at ToastProvider (http://localhost:5173/src/contexts/ToastContext.tsx:30:33)
+    at div
+    at ModalProvider (http://localhost:5173/node_modules/.vite/deps/@rainbow-me_rainbowkit.js?v=ec6b3330:41477:26)
+    at ShowBalanceProvider (http://localhost:5173/node_modules/.vite/deps/@rainbow-me_rainbowkit.js?v=ec6b3330:36596:32)
+    at TransactionStoreProvider (http://localhost:5173/node_modules/.vite/deps/@rainbow-me_rainbowkit.js?v=ec6b3330:37034:3)
+    at ModalSizeProvider (http://localhost:5173/node_modules/.vite/deps/@rainbow-me_rainbowkit.js?v=ec6b3330:37185:3)
+    at I18nProvider (http://localhost:5173/node_modules/.vite/deps/@rainbow-me_rainbowkit.js?v=ec6b3330:36302:23)
+    at WalletButtonProvider (http://localhost:5173/node_modules/.vite/deps/@rainbow-me_rainbowkit.js?v=ec6b3330:37161:33)
+    at RainbowKitChainProvider (http://localhost:5173/node_modules/.vite/deps/@rainbow-me_rainbowkit.js?v=ec6b3330:36561:3)
+    at RainbowKitProvider (http://localhost:5173/node_modules/.vite/deps/@rainbow-me_rainbowkit.js?v=ec6b3330:37967:3)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/chunk-UC2GEP2F.js?v=ec6b3330:2972:3)
+    at Hydrate (http://localhost:5173/node_modules/.vite/deps/chunk-7ZWWKVCT.js?v=ec6b3330:390:11)
+    at WagmiProvider (http://localhost:5173/node_modules/.vite/deps/chunk-7ZWWKVCT.js?v=ec6b3330:412:11)
+    at _i (http://localhost:5173/node_modules/.vite/deps/chunk-LWSKZNFI.js?v=ec6b3330:36099:23)
+    at Yu (http://localhost:5173/node_modules/.vite/deps/chunk-LWSKZNFI.js?v=ec6b3330:36152:46)
+    at HybridWeb3Provider (http://localhost:5173/src/config/HybridWeb3Config.tsx:84:38)
+    at ErrorBoundary (http://localhost:5173/src/components/ErrorBoundary.tsx:15:5)
+    at App (http://localhost:5173/src/App.tsx?t=1750644836493:34:3)
+    at QueryClientProvider (http://localhost:5173/node_modules/.vite/deps/chunk-UC2GEP2F.js?v=ec6b3330:2972:3)
+    at Hydrate (http://localhost:5173/node_modules/.vite/deps/chunk-7ZWWKVCT.js?v=ec6b3330:390:11)
+    at WagmiProvider (http://localhost:5173/node_modules/.vite/deps/chunk-7ZWWKVCT.js?v=ec6b3330:412:11)
+    at ErrorBoundary (http://localhost:5173/src/components/ErrorBoundary.tsx:15:5)
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary.
+ErrorBoundary.tsx:25 Error caught by boundary: TypeError: Cannot read properties of undefined (reading 'charAt')
+    at Marketplace.tsx:233:27
+    at Array.map (<anonymous>)
+    at Marketplace (Marketplace.tsx:231:42)
+    at renderWithHooks (chunk-B2LN27F2.js?v=ec6b3330:18474:26)
+    at updateFunctionComponent (chunk-B2LN27F2.js?v=ec6b3330:21508:28)
+    at beginWork (chunk-B2LN27F2.js?v=ec6b3330:22850:22)
+    at beginWork$1 (chunk-B2LN27F2.js?v=ec6b3330:26684:22)
+    at performUnitOfWork (chunk-B2LN27F2.js?v=ec6b3330:26129:20)
+    at workLoopSync (chunk-B2LN27F2.js?v=ec6b3330:26068:13)
+    at renderRootSync (chunk-B2LN27F2.js?v=ec6b3330:26047:15) 
+{componentStack: '\n    at Marketplace (http://localhost:5173/src/pag…lhost:5173/src/components/ErrorBoundary.tsx:15:5)'}
+﻿
+
 
 # COMMIT_MESSAGES.md
 ```js

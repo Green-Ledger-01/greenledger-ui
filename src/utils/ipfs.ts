@@ -190,6 +190,44 @@ export const fetchMetadataFromIPFS = async (ipfsUri: string): Promise<CropMetada
     return cached.data;
   }
 
+  // Check if this is mock data in localStorage
+  const mockMetadata = localStorage.getItem(`ipfs_metadata_${hash}`);
+  if (mockMetadata) {
+    try {
+      const metadata = JSON.parse(mockMetadata);
+      // Cache the mock result
+      metadataCache.set(hash, { data: metadata, timestamp: Date.now() });
+      console.log(`Using mock metadata for ${hash}`);
+      return metadata;
+    } catch (error) {
+      console.warn('Failed to parse mock metadata:', error);
+    }
+  }
+
+  // If using mock IPFS but no stored metadata, return default mock data
+  if (shouldUseMockIPFS()) {
+    const mockMetadata: CropMetadata = {
+      name: 'Mock Crop Batch',
+      description: 'This is a mock crop batch for development purposes',
+      image: 'ipfs://QmMockImageHash',
+      attributes: [
+        { trait_type: 'Crop Type', value: 'Mock Crop' },
+        { trait_type: 'Quantity (kg)', value: 50 },
+        { trait_type: 'Origin Farm', value: 'Mock Farm' },
+        { trait_type: 'Harvest Date', value: new Date().toLocaleDateString() },
+      ],
+      cropType: 'Mock Crop',
+      quantity: 50,
+      originFarm: 'Mock Farm',
+      harvestDate: Math.floor(Date.now() / 1000),
+      notes: 'Mock data for development',
+    };
+
+    // Cache the mock result
+    metadataCache.set(hash, { data: mockMetadata, timestamp: Date.now() });
+    return mockMetadata;
+  }
+
   const gateways = [IPFS_CONFIG.GATEWAY, ...IPFS_CONFIG.FALLBACK_GATEWAYS];
 
   let lastError: Error | null = null;
@@ -250,77 +288,157 @@ export const clearMetadataCache = (): void => {
   console.log('IPFS metadata cache cleared');
 };
 
-/**
- * Convert IPFS URI to HTTP URL using the primary gateway
- */
-export const ipfsToHttp = (
-  ipfsUri: string | undefined,
-  gateway: string = IPFS_CONFIG.GATEWAY
-): string => {
-  if (!ipfsUri || typeof ipfsUri !== 'string') {
-    return ''; // Return empty string if undefined or not a string
-  }
 
-  if (!ipfsUri.startsWith('ipfs://')) {
-    return ipfsUri; // Return as-is if not IPFS URI
-  }
-
-  const hash = ipfsUri.replace('ipfs://', '');
-  return `${gateway}/${hash}`;
-};
 
 /**
  * Check if we should use mock IPFS (only when API keys are not configured)
  */
 const shouldUseMockIPFS = (): boolean => {
   return IPFS_CONFIG.PINATA_API_KEY === 'YOUR_PINATA_API_KEY' ||
-         IPFS_CONFIG.PINATA_SECRET_API_KEY === 'YOUR_PINATA_SECRET_API_KEY';
+         IPFS_CONFIG.PINATA_SECRET_API_KEY === 'YOUR_PINATA_SECRET_API_KEY' ||
+         !IPFS_CONFIG.PINATA_API_KEY ||
+         !IPFS_CONFIG.PINATA_SECRET_API_KEY;
+};
+
+/**
+ * Create metadata object from upload parameters
+ */
+const createMetadataObject = (params: UploadCropBatchParams, imageUri: string): CropMetadata => {
+  return {
+    name: params.name,
+    description: params.description,
+    image: imageUri,
+    attributes: [
+      { trait_type: 'Crop Type', value: params.cropType },
+      { trait_type: 'Quantity (kg)', value: params.quantity },
+      { trait_type: 'Origin Farm', value: params.originFarm },
+      { trait_type: 'Harvest Date', value: new Date(params.harvestDate * 1000).toLocaleDateString() },
+      ...(params.notes ? [{ trait_type: 'Notes', value: params.notes }] : []),
+      ...(params.certifications?.length ? [{ trait_type: 'Certifications', value: params.certifications.join(', ') }] : []),
+      ...(params.location?.address ? [{ trait_type: 'Location', value: params.location.address }] : []),
+    ],
+    cropType: params.cropType,
+    quantity: params.quantity,
+    originFarm: params.originFarm,
+    harvestDate: params.harvestDate,
+    notes: params.notes,
+    certifications: params.certifications,
+    location: params.location,
+  };
 };
 
 /**
  * Upload complete crop batch (image + metadata) to IPFS
+ * Automatically uses mock IPFS if API keys are not configured
  */
 export const uploadCropBatch = async (params: UploadCropBatchParams): Promise<{ metadataUri: string }> => {
-  // Use mock IPFS if API keys are not configured or in development mode
-  if (shouldUseMockIPFS()) {
-    console.warn('Using mock IPFS service. Configure Pinata API keys for production use.');
-    const { mockUploadCropBatch } = await import('./mockIpfs');
-    return mockUploadCropBatch(params);
-  }
-
   try {
-    // First upload the image
-    const imageUri = await uploadFileToIPFS(params.imageFile);
-    
-    // Create metadata object
-    const metadata: CropMetadata = {
-      name: params.name,
-      description: params.description,
-      image: imageUri,
-      attributes: [
-        { trait_type: 'Crop Type', value: params.cropType },
-        { trait_type: 'Quantity (kg)', value: params.quantity },
-        { trait_type: 'Origin Farm', value: params.originFarm },
-        { trait_type: 'Harvest Date', value: new Date(params.harvestDate * 1000).toLocaleDateString() },
-        ...(params.notes ? [{ trait_type: 'Notes', value: params.notes }] : []),
-        ...(params.certifications?.length ? [{ trait_type: 'Certifications', value: params.certifications.join(', ') }] : []),
-        ...(params.location?.address ? [{ trait_type: 'Location', value: params.location.address }] : []),
-      ],
-      cropType: params.cropType,
-      quantity: params.quantity,
-      originFarm: params.originFarm,
-      harvestDate: params.harvestDate,
-      notes: params.notes,
-      certifications: params.certifications,
-      location: params.location,
-    };
-    
-    // Upload metadata
-    const metadataUri = await uploadMetadataToIPFS(metadata);
-    
+    let imageUri: string;
+    let metadataUri: string;
+
+    if (shouldUseMockIPFS()) {
+      console.warn('Using mock IPFS service. Configure Pinata API keys for production use.');
+
+      // Mock file upload
+      imageUri = await mockUploadFile(params.imageFile);
+
+      // Create metadata and upload
+      const metadata = createMetadataObject(params, imageUri);
+      metadataUri = await mockUploadMetadata(metadata);
+    } else {
+      // Real IPFS upload
+      imageUri = await uploadFileToIPFS(params.imageFile);
+
+      // Create metadata and upload
+      const metadata = createMetadataObject(params, imageUri);
+      metadataUri = await uploadMetadataToIPFS(metadata);
+    }
+
     return { metadataUri };
   } catch (error) {
     console.error('Error uploading crop batch to IPFS:', error);
-    throw error; // Don't fallback to mock, throw the error instead
+    throw error;
   }
+};
+
+// Mock IPFS functions (consolidated from mockIpfs.ts)
+const generateMockHash = (): string => {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let result = 'Qm';
+  for (let i = 0; i < 44; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
+
+const mockUploadFile = async (file: File): Promise<string> => {
+  // Simulate upload delay
+  await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+
+  const mockHash = generateMockHash();
+
+  // Store file data in localStorage for demo purposes
+  const reader = new FileReader();
+  return new Promise((resolve, reject) => {
+    reader.onload = () => {
+      try {
+        const base64Data = reader.result as string;
+        localStorage.setItem(`ipfs_${mockHash}`, base64Data);
+        resolve(`ipfs://${mockHash}`);
+      } catch (error) {
+        reject(new Error('Failed to process file for mock IPFS storage'));
+      }
+    };
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+};
+
+const mockUploadMetadata = async (metadata: CropMetadata): Promise<string> => {
+  // Simulate upload delay
+  await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
+
+  const mockHash = generateMockHash();
+
+  // Store metadata in localStorage
+  try {
+    localStorage.setItem(`ipfs_metadata_${mockHash}`, JSON.stringify(metadata));
+    return `ipfs://${mockHash}`;
+  } catch (error) {
+    throw new Error('Failed to store metadata in mock IPFS storage');
+  }
+};
+
+/**
+ * Enhanced IPFS to HTTP conversion with mock support
+ */
+export const ipfsToHttp = (
+  ipfsUri: string | undefined,
+  gateway: string = IPFS_CONFIG.GATEWAY
+): string => {
+  if (!ipfsUri || typeof ipfsUri !== 'string') {
+    return '';
+  }
+
+  if (!ipfsUri.startsWith('ipfs://')) {
+    return ipfsUri;
+  }
+
+  const hash = ipfsUri.replace('ipfs://', '');
+
+  // Check if this is mock data in localStorage
+  const storedData = localStorage.getItem(`ipfs_${hash}`);
+  if (storedData && storedData.startsWith('data:')) {
+    return storedData; // Return the base64 data URL
+  }
+
+  // For mock metadata or when no stored data, return placeholder
+  if (shouldUseMockIPFS() || localStorage.getItem(`ipfs_metadata_${hash}`)) {
+    const colors = ['B0D9B1', 'A8E6A3', '88D982', '6BCF7F', 'D4F1D4'];
+    const color = colors[hash.length % colors.length];
+    return `https://placehold.co/400x200/${color}/000000?text=Mock+Image`;
+  }
+
+  // Return real IPFS gateway URL
+  return `${gateway}/${hash}`;
 };
