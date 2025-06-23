@@ -1,6 +1,7 @@
 import React from 'react';
-import { ChevronRight, Calendar, MapPin, Scale, Sprout, User, Truck, ShoppingCart, Clock } from 'lucide-react';
+import { ChevronRight, Calendar, MapPin, Scale, Sprout, User, Truck, ShoppingCart, Clock, Plus, Check } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
+import { useCart } from '../contexts/CartContext';
 import { ipfsToHttp, CropMetadata } from '../utils/ipfs';
 
 interface CropBatchCardProps {
@@ -14,11 +15,35 @@ interface CropBatchCardProps {
 
 const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
   const { addToast } = useToast();
+  const { addToCart, isInCart } = useCart();
+
+  const isAlreadyInCart = isInCart(batch.tokenId);
 
   const handleMoreInfoClick = (e: React.MouseEvent) => {
     e.preventDefault();
     addToast(`Displaying more info for Batch ID: ${batch.tokenId}. Crop Type: ${batch.cropType}`, 'info');
     // In a real app, this would open a modal or navigate to a detail page
+  };
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (isAlreadyInCart) {
+      addToast(`${batch.name || `Batch #${batch.tokenId}`} is already in your cart`, 'warning');
+      return;
+    }
+
+    addToCart({
+      tokenId: batch.tokenId,
+      name: batch.name || `Batch #${batch.tokenId}`,
+      cropType: batch.cropType || 'Unknown',
+      quantity: batch.quantity || 0,
+      originFarm: batch.originFarm || 'Unknown Farm',
+      harvestDate: batch.harvestDate || 0,
+      image: batch.image,
+      owner: batch.owner || '',
+    });
   };
 
   const formatDate = (timestamp: number) => {
@@ -76,11 +101,11 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group border border-gray-200">
+    <div className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group border border-gray-100">
       {/* Image Section */}
       <div className="relative overflow-hidden">
         <img
-          src={ipfsToHttp(batch.image)}
+          src={ipfsToHttp(batch.image) || getPlaceholderImage()}
           alt={batch.name || 'Crop Batch Image'}
           className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
           onError={(e) => {
@@ -88,9 +113,9 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
             e.currentTarget.onerror = null; // Prevent infinite loop
           }}
         />
-        
+
         {/* Token ID Badge */}
-        <div className="absolute top-3 left-3 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+        <div className="absolute top-3 left-3 bg-gradient-to-br from-green-500 to-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
           ID: {batch.tokenId}
         </div>
         
@@ -106,19 +131,19 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
         
         {/* Certifications Badge */}
         {batch.certifications && batch.certifications.length > 0 && (
-          <div className="absolute bottom-3 right-3 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
+          <div className="absolute bottom-3 right-3 bg-gradient-to-br from-green-500 to-green-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
             Certified
           </div>
         )}
       </div>
 
       {/* Content Section */}
-      <div className="p-5">
+      <div className="p-6">
         {/* Title */}
         <h3 className="text-xl font-bold text-gray-900 mb-2 truncate">
           {batch.name || `Batch #${batch.tokenId}`}
         </h3>
-        
+
         {/* Description */}
         <p className="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">
           {batch.description || 'No description available.'}
@@ -127,31 +152,39 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
         {/* Attributes Grid */}
         <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
           <div className="flex items-center text-gray-700">
-            <Sprout className="h-4 w-4 mr-2 text-green-600" />
+            <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center mr-2">
+              <Sprout className="h-4 w-4 text-green-600" />
+            </div>
             <div>
               <div className="font-medium">{batch.cropType}</div>
               <div className="text-xs text-gray-500">Crop Type</div>
             </div>
           </div>
-          
+
           <div className="flex items-center text-gray-700">
-            <Scale className="h-4 w-4 mr-2 text-blue-600" />
+            <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center mr-2">
+              <Scale className="h-4 w-4 text-green-600" />
+            </div>
             <div>
               <div className="font-medium">{batch.quantity} kg</div>
               <div className="text-xs text-gray-500">Quantity</div>
             </div>
           </div>
-          
+
           <div className="flex items-center text-gray-700">
-            <MapPin className="h-4 w-4 mr-2 text-red-600" />
+            <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center mr-2">
+              <MapPin className="h-4 w-4 text-green-600" />
+            </div>
             <div>
               <div className="font-medium truncate">{batch.originFarm}</div>
               <div className="text-xs text-gray-500">Origin Farm</div>
             </div>
           </div>
-          
+
           <div className="flex items-center text-gray-700">
-            <Calendar className="h-4 w-4 mr-2 text-purple-600" />
+            <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center mr-2">
+              <Calendar className="h-4 w-4 text-green-600" />
+            </div>
             <div>
               <div className="font-medium">{formatDate(batch.harvestDate)}</div>
               <div className="text-xs text-gray-500">Harvest Date</div>
@@ -188,14 +221,40 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
           </div>
         )}
         
-        {/* Action Button */}
-        <button
-          onClick={handleMoreInfoClick}
-          className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-2 px-4 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 font-semibold flex items-center justify-center space-x-2 shadow-md hover:shadow-lg"
-        >
-          <span>View Details</span>
-          <ChevronRight className="h-4 w-4" />
-        </button>
+        {/* Action Buttons */}
+        <div className="space-y-3">
+          {/* Add to Cart Button */}
+          <button
+            onClick={handleAddToCart}
+            disabled={isAlreadyInCart}
+            className={`w-full py-3 px-4 rounded-xl transition-all duration-200 font-semibold flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:scale-105 ${
+              isAlreadyInCart
+                ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                : 'bg-green-600 text-white hover:bg-green-700'
+            }`}
+          >
+            {isAlreadyInCart ? (
+              <>
+                <Check className="h-4 w-4" />
+                <span>In Cart</span>
+              </>
+            ) : (
+              <>
+                <Plus className="h-4 w-4" />
+                <span>Add to Cart</span>
+              </>
+            )}
+          </button>
+
+          {/* View Details Button */}
+          <button
+            onClick={handleMoreInfoClick}
+            className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-xl hover:bg-gray-200 transition-all duration-200 font-medium flex items-center justify-center space-x-2 border border-gray-200"
+          >
+            <span>View Details</span>
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
       </div>
     </div>
   );
