@@ -5,13 +5,14 @@ import { useAuthState } from '../hooks/useAuthState';
 import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
 import SelfServiceRoleRegistrationSimple from '../components/SelfServiceRoleRegistrationSimple';
 import SidebarSimple from '../components/SidebarSimple';
+import CartSidebar from '../components/CartSidebar';
 import HybridConnectButton from '../components/HybridConnectButton';
 import LoadingSpinner from '../components/LoadingSpinner';
 import LandingPage from '../pages/LandingPage';
 import AuthenticationPage from '../pages/AuthenticationPage';
 import AuthTestPage from '../pages/AuthTestPage';
 import Dashboard from '../pages/Dashboard';
-import RegisterUserSimple from '../pages/RegisterUserSimple';
+import UserProfile from '../pages/RegisterUserSimple';
 import TokenizationPage from '../pages/TokenizationPage';
 import TransferOwnershipPage from '../pages/TransferOwnershipPage';
 import SupplyChainExplorer from '../pages/SupplyChainExplorer';
@@ -113,7 +114,7 @@ const AppContent = () => {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/register" element={<RegisterUserSimple />} />
+              <Route path="/profile" element={<UserProfile />} />
               <Route path="/mint" element={<TokenizationPage />} />
               <Route path="/tokenize" element={<TokenizationPage />} />
               <Route path="/transfer" element={<TransferOwnershipPage />} />
@@ -126,6 +127,9 @@ const AppContent = () => {
             </Routes>
           </div>
         </main>
+
+        {/* Cart Sidebar */}
+        <CartSidebar />
       </div>
     </div>
   );

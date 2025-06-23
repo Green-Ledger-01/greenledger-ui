@@ -95,7 +95,11 @@ export const mockFetchMetadataFromIPFS = async (ipfsUri: string): Promise<CropMe
 };
 
 // Mock convert IPFS to HTTP
-export const mockIpfsToHttp = (ipfsUri: string): string => {
+export const mockIpfsToHttp = (ipfsUri: string | undefined): string => {
+  if (!ipfsUri || typeof ipfsUri !== 'string') {
+    return ''; // Return empty string if undefined or not a string
+  }
+
   if (!ipfsUri.startsWith('ipfs://')) {
     return ipfsUri;
   }

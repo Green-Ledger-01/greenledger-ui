@@ -1,23 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  ArrowRight, 
-  Package, 
-  Truck, 
-  ShoppingCart, 
-  MapPin, 
-  Calendar, 
-  User, 
+import {
+  ArrowRight,
+  Package,
+  Truck,
+  ShoppingCart,
+  MapPin,
+  Calendar,
+  User,
   Clock,
   CheckCircle,
   Circle,
   AlertCircle,
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  LoadingOutlined
 } from 'lucide-react';
-// import { useSupplyChainFlow } from '../hooks/useSupplyChainFlow';
 import { useToast } from '../contexts/ToastContext';
 import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
+import { useProvenanceHistory, useTransferWithProvenance } from '../hooks/useSupplyChainManager';
+import { useCropBatchToken } from '../hooks/useCropBatchToken';
+import { fetchMetadataFromIPFS, CropMetadata } from '../utils/ipfs';
+import { CONTRACT_ADDRESSES } from '../config/constants';
 
 interface SupplyChainTrackerProps {
   tokenId?: number;
@@ -34,37 +38,93 @@ const SupplyChainTracker: React.FC<SupplyChainTrackerProps> = ({ tokenId: propTo
 
   const tokenId = propTokenId || (paramTokenId ? parseInt(paramTokenId) : null);
 
-  // Simplified mock implementation for SimpleAppRoutes
-  const trackingHistory = new Map();
-  const isLoadingHistory = false;
-  const isTransferring = false;
-  const isConfirming = false;
-  const lastTransferUpdate = Date.now();
-
+  // Real blockchain data state
   const [selectedTokenId, setSelectedTokenId] = useState<number>(tokenId || 1);
   const [transferAddress, setTransferAddress] = useState('');
   const [transferType, setTransferType] = useState<'transporter' | 'buyer'>('transporter');
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [isValidatingAddress, setIsValidatingAddress] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [currentHistory, setCurrentHistory] = useState<any>(null);
+  const [batchMetadata, setBatchMetadata] = useState<CropMetadata | null>(null);
 
-  const currentHistory = trackingHistory.get(selectedTokenId);
+  // Real blockchain hooks
+  const { getAllBatches } = useCropBatchToken();
+  const { data: provenanceHistory, refetch: refetchProvenance } = useProvenanceHistory(BigInt(selectedTokenId));
+  const { writeAsync: transferWithProvenance, isPending: isTransferring } = useTransferWithProvenance();
 
-  // Memoized functions to prevent infinite re-renders
-  const getSupplyChainHistory = React.useCallback(async (tokenId: number) => {
-    addToast('Supply chain tracking is available in the full version', 'info');
-  }, [addToast]);
+  // Real blockchain functions
+  const getSupplyChainHistory = useCallback(async (tokenId: number) => {
+    setIsLoadingHistory(true);
+    try {
+      // Fetch batch metadata from IPFS
+      const allBatches = await getAllBatches();
+      const batch = allBatches.find(b => b.tokenId === tokenId);
 
-  const transferToTransporter = React.useCallback(async (params: any) => {
-    addToast('Transfer functionality is available in the full version', 'info');
-  }, [addToast]);
+      if (batch && batch.metadataUri) {
+        try {
+          const metadata = await fetchMetadataFromIPFS(batch.metadataUri);
+          setBatchMetadata(metadata);
+        } catch (error) {
+          console.warn('Failed to fetch metadata:', error);
+          setBatchMetadata({
+            name: `Batch #${tokenId}`,
+            description: `${batch.cropType} from ${batch.originFarm}`,
+            image: '',
+            attributes: [],
+            cropType: batch.cropType,
+            quantity: batch.quantity,
+            originFarm: batch.originFarm,
+            harvestDate: batch.harvestDate,
+            notes: batch.notes,
+          });
+        }
+      }
 
-  const transferToBuyer = React.useCallback(async (params: any) => {
-    addToast('Transfer functionality is available in the full version', 'info');
-  }, [addToast]);
+      // Refetch provenance history
+      await refetchProvenance();
 
-  const canTransferTo = React.useCallback((role: string) => false, []);
+      // Process provenance data into history format
+      if (provenanceHistory && provenanceHistory.length > 0) {
+        const processedHistory = {
+          currentStep: provenanceHistory.length - 1,
+          isComplete: provenanceHistory.length >= 3, // farmer -> transporter -> buyer
+          steps: provenanceHistory.map((entry: any, index: number) => ({
+            role: index === 0 ? 'farmer' : index === 1 ? 'transporter' : 'buyer',
+            address: entry.from || entry.to,
+            timestamp: Number(entry.timestamp),
+            transactionHash: entry.transactionHash,
+            location: entry.location || '',
+            notes: entry.notes || '',
+          }))
+        };
+        setCurrentHistory(processedHistory);
+      } else {
+        setCurrentHistory(null);
+      }
 
-  const validateTransferRecipient = React.useCallback(async (address: string, role: string) => false, []);
+      addToast('Supply chain history loaded', 'success');
+    } catch (error) {
+      console.error('Failed to fetch supply chain history:', error);
+      addToast('Failed to load supply chain history', 'error');
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  }, [getAllBatches, refetchProvenance, provenanceHistory, addToast]);
+
+  const canTransferTo = useCallback((role: string) => {
+    // Check if user has permission to transfer to this role
+    return hasRole('farmer') || hasRole('transporter') || hasRole('buyer');
+  }, [hasRole]);
+
+  const validateTransferRecipient = useCallback(async (address: string, role: string) => {
+    // Basic address validation
+    if (!address || !address.startsWith('0x') || address.length !== 42) {
+      return false;
+    }
+    // In a real implementation, you might check if the address has the required role
+    return true;
+  }, []);
 
   // Load supply chain history when token ID changes
   useEffect(() => {
@@ -90,16 +150,29 @@ const SupplyChainTracker: React.FC<SupplyChainTrackerProps> = ({ tokenId: propTo
     }
 
     try {
-      if (transferType === 'transporter') {
-        await transferToTransporter({ tokenId: selectedTokenId, to: transferAddress });
-      } else {
-        await transferToBuyer({ tokenId: selectedTokenId, to: transferAddress });
-      }
-      
+      // Determine the new state based on transfer type
+      const newState = transferType === 'transporter' ? 1 : 2; // 1 = IN_TRANSIT, 2 = DELIVERED
+
+      // Use the real transfer function from the hook
+      await transferWithProvenance({
+        tokenId: BigInt(selectedTokenId),
+        to: transferAddress,
+        newState: newState,
+        location: '', // location (could be added to form)
+        notes: `Transfer to ${transferType}`
+      });
+
       setShowTransferModal(false);
       setTransferAddress('');
+      addToast('Transfer initiated successfully', 'success');
+
+      // Refresh the supply chain history after transfer
+      setTimeout(() => {
+        getSupplyChainHistory(selectedTokenId);
+      }, 2000);
     } catch (error) {
       console.error('Transfer failed:', error);
+      addToast('Transfer failed', 'error');
     }
   };
 
@@ -202,7 +275,7 @@ const SupplyChainTracker: React.FC<SupplyChainTrackerProps> = ({ tokenId: propTo
               {isLoadingHistory ? 'Loading...' : 'Track Batch'}
             </button>
             
-            {canTransferTo('transporter') || canTransferTo('buyer') ? (
+            {(hasRole('farmer') || hasRole('transporter') || hasRole('buyer')) && (
               <button
                 onClick={() => setShowTransferModal(true)}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -210,10 +283,31 @@ const SupplyChainTracker: React.FC<SupplyChainTrackerProps> = ({ tokenId: propTo
                 <ArrowRight className="h-4 w-4" />
                 Transfer Ownership
               </button>
-            ) : null}
+            )}
           </div>
         </div>
       </div>
+
+      {/* Batch Information */}
+      {batchMetadata && (
+        <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            Batch Information
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p><strong>Name:</strong> {batchMetadata.name}</p>
+              <p><strong>Crop Type:</strong> {batchMetadata.cropType}</p>
+              <p><strong>Quantity:</strong> {batchMetadata.quantity} kg</p>
+              <p><strong>Origin Farm:</strong> {batchMetadata.originFarm}</p>
+            </div>
+            <div>
+              <p><strong>Description:</strong> {batchMetadata.description}</p>
+              {batchMetadata.notes && <p><strong>Notes:</strong> {batchMetadata.notes}</p>}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Supply Chain Flow */}
       {currentHistory && (
@@ -344,12 +438,8 @@ const SupplyChainTracker: React.FC<SupplyChainTrackerProps> = ({ tokenId: propTo
                   onChange={(e) => setTransferType(e.target.value as 'transporter' | 'buyer')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 >
-                  {canTransferTo('transporter') && (
-                    <option value="transporter">Transporter</option>
-                  )}
-                  {canTransferTo('buyer') && (
-                    <option value="buyer">Buyer</option>
-                  )}
+                  <option value="transporter">Transporter</option>
+                  <option value="buyer">Buyer</option>
                 </select>
               </div>
               
@@ -376,12 +466,11 @@ const SupplyChainTracker: React.FC<SupplyChainTrackerProps> = ({ tokenId: propTo
               </button>
               <button
                 onClick={handleTransfer}
-                disabled={isTransferring || isConfirming || isValidatingAddress || !transferAddress}
+                disabled={isTransferring || isValidatingAddress || !transferAddress}
                 className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
               >
-                {isValidatingAddress ? 'Validating...' : 
-                 isTransferring ? 'Transferring...' : 
-                 isConfirming ? 'Confirming...' : 
+                {isValidatingAddress ? 'Validating...' :
+                 isTransferring ? 'Transferring...' :
                  'Transfer'}
               </button>
             </div>

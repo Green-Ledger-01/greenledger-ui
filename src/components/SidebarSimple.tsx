@@ -65,10 +65,10 @@ const SidebarSimple: React.FC<SidebarSimpleProps> = ({ isOpen, toggleSidebar }) 
       description: 'Track batch journey'
     },
     {
-      name: 'Register User',
-      href: '/register',
+      name: 'Profile',
+      href: '/profile',
       icon: UserPlus,
-      description: 'Manage user roles'
+      description: 'View and manage profile'
     },
     {
       name: 'Auth Test',
@@ -90,18 +90,18 @@ const SidebarSimple: React.FC<SidebarSimpleProps> = ({ isOpen, toggleSidebar }) 
 
       {/* Sidebar */}
       <div className={`
-        fixed top-0 left-0 h-full w-64 bg-white/95 backdrop-blur-md shadow-2xl transform transition-all duration-300 ease-in-out z-50
+        fixed top-0 left-0 h-full w-64 bg-white shadow-2xl transform transition-all duration-300 ease-in-out z-50
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:relative md:translate-x-0 md:shadow-lg md:border-r md:border-green-100 md:bg-white
+        md:relative md:translate-x-0 md:shadow-xl md:border-r md:border-gray-100 md:bg-white
       `}>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-green-100 bg-gradient-to-r from-green-50 to-green-100">
+        <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-white">
           <div className="flex items-center">
-            <div className="h-10 w-10 mr-3 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg">
+            <div className="h-10 w-10 mr-3 rounded-xl bg-green-600 flex items-center justify-center shadow-lg">
               <Leaf className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-bold gradient-text">GreenLedger</h2>
+              <h2 className="text-lg font-bold text-green-600">GreenLedger</h2>
               <p className="text-xs text-gray-500">Supply Chain</p>
             </div>
           </div>
@@ -109,7 +109,7 @@ const SidebarSimple: React.FC<SidebarSimpleProps> = ({ isOpen, toggleSidebar }) 
           {/* Close button for mobile */}
           <button
             onClick={toggleSidebar}
-            className="md:hidden text-gray-500 hover:text-gray-700 transition-colors p-2 rounded-lg hover:bg-white/50"
+            className="md:hidden text-gray-500 hover:text-green-600 transition-colors p-2 rounded-lg hover:bg-green-50"
           >
             <X className="h-6 w-6" />
           </button>
@@ -129,21 +129,28 @@ const SidebarSimple: React.FC<SidebarSimpleProps> = ({ isOpen, toggleSidebar }) 
                     toggleSidebar();
                   }
                 }}
-                className={({ isActive }) => `
-                  flex items-center px-4 py-3 mx-2 rounded-xl transition-all duration-200 group hover-lift
-                  ${isActive
-                    ? 'bg-gradient-to-r from-green-100 to-green-50 text-green-800 shadow-md border-l-4 border-green-600'
-                    : 'text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 hover:text-green-700 hover:shadow-sm'
-                  }
-                `}
               >
-                <Icon className="h-5 w-5 mr-3 flex-shrink-0" />
-                <div className="flex-1">
-                  <div className="font-medium">{item.name}</div>
-                  <div className="text-xs text-gray-500 group-hover:text-gray-600">
-                    {item.description}
+                {({ isActive }) => (
+                  <div className={`
+                    flex items-center px-4 py-3 mx-2 rounded-xl transition-all duration-200 group
+                    ${isActive
+                      ? 'bg-green-600 text-white shadow-lg'
+                      : 'text-gray-700 hover:bg-green-50 hover:text-green-600 hover:shadow-sm'
+                    }
+                  `}>
+                    <div className={`h-10 w-10 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 ${
+                      isActive ? 'bg-white/20' : 'bg-gray-100 group-hover:bg-green-100'
+                    }`}>
+                      <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-gray-600 group-hover:text-green-600'}`} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium">{item.name}</div>
+                      <div className={`text-xs ${isActive ? 'text-white/80' : 'text-gray-500 group-hover:text-green-500'}`}>
+                        {item.description}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
               </NavLink>
             );
           })}

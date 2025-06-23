@@ -2,24 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Activity, MapPin, Zap, TrendingUp, Users, Package, Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
-// import { useRealTimeMarketplace } from '../hooks/useRealTimeMarketplace';
-// import { useCropBatchToken } from '../hooks/useCropBatchToken';
+import { useCropBatchToken } from '../hooks/useCropBatchToken';
+import { useUserTokenHistory, useTokensByState } from '../hooks/useSupplyChainManager';
+import CartCheckoutSection from '../components/CartCheckoutSection';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { hasRole } = useWeb3Enhanced();
+  const { hasRole, isConnected, account } = useWeb3Enhanced();
+  const { getAllBatches, isLoading, error } = useCropBatchToken();
+
+  // Real-time blockchain data hooks
+  const { data: userTokenHistory } = useUserTokenHistory(account);
+  const { data: producedTokens } = useTokensByState(0); // Produced state
+  const { data: inTransitTokens } = useTokensByState(1); // InTransit state
+  const { data: deliveredTokens } = useTokensByState(2); // Delivered state
 
   // Helper function to check if user can perform action
   const canPerformAction = React.useCallback((role: string) => hasRole(role), [hasRole]);
 
-  // Simplified mock data for SimpleAppRoutes
-  const batches = React.useMemo(() => [], []);
-  const totalBatches = 12; // Mock data
-  const connectionStatus = 'connected' as const;
+  // Real blockchain data
+  const [batches, setBatches] = useState<any[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const connectionStatus = isConnected ? 'connected' : 'disconnected';
   const lastUpdateTime = React.useMemo(() => Date.now(), []);
-  const refetchBatches = React.useCallback(() => Promise.resolve(), []);
-  const isRefreshing = false;
-  const nextTokenId = 13;
   
   const [liveStats, setLiveStats] = useState({
     totalBatches: 0,
@@ -61,24 +66,63 @@ const Dashboard: React.FC = () => {
     },
   ];
 
+  // Load batches from blockchain
+  const refetchBatches = React.useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      const allBatches = await getAllBatches();
+      setBatches(allBatches);
+    } catch (error) {
+      console.error('Failed to fetch batches:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [getAllBatches]);
+
+  // Load batches on mount
+  useEffect(() => {
+    refetchBatches();
+  }, [refetchBatches]);
+
   // Update live stats when data changes
   useEffect(() => {
-    const uniqueFarms = new Set(batches.map(batch => batch.originFarm)).size;
-    const recentBatches = batches.filter(batch => 
-      batch.lastUpdated && Date.now() - batch.lastUpdated < 86400000 // 24 hours
+    if (!account) {
+      // Show platform-wide stats when not connected
+      setLiveStats({
+        totalBatches: 0,
+        activeFarms: 0,
+        registeredUsers: 0,
+        recentTransactions: 0,
+      });
+      return;
+    }
+
+    // User-specific data calculations
+    const userBatches = batches.filter(batch =>
+      batch.owner?.toLowerCase() === account.toLowerCase() ||
+      batch.minter?.toLowerCase() === account.toLowerCase()
+    );
+
+    const uniqueFarms = new Set(userBatches.map(batch => batch.originFarm)).size;
+    const recentBatches = userBatches.filter(batch =>
+      batch.timestamp && Date.now() - batch.timestamp < 86400000 // 24 hours
     ).length;
-    
+
+    // Calculate real-time stats from blockchain data per connected address
+    const totalSupplyChainTokens = (producedTokens || 0) + (inTransitTokens || 0) + (deliveredTokens || 0);
+    const userInteractionCount = userTokenHistory ? userTokenHistory.length : 0;
+
     setLiveStats({
-      totalBatches: totalBatches,
-      activeFarms: uniqueFarms,
-      registeredUsers: Math.floor(totalBatches * 1.5) + 50, // Simulated
-      recentTransactions: recentBatches + Math.floor(totalBatches * 0.3),
+      totalBatches: userBatches.length, // User's batches only
+      activeFarms: uniqueFarms, // Farms user has interacted with
+      registeredUsers: totalSupplyChainTokens, // Platform-wide token count
+      recentTransactions: recentBatches + userInteractionCount, // User's activity
     });
-  }, [batches, totalBatches]);
+  }, [batches, producedTokens, inTransitTokens, deliveredTokens, userTokenHistory, account]);
 
   const stats = React.useMemo(() => [
     {
-      label: 'Total Batches',
+      label: 'Your Batches',
       value: liveStats.totalBatches.toLocaleString(),
       icon: Package,
       color: 'text-blue-600',
@@ -92,14 +136,14 @@ const Dashboard: React.FC = () => {
       isLive: true
     },
     {
-      label: 'Registered Users',
+      label: 'Platform Tokens',
       value: liveStats.registeredUsers.toLocaleString(),
       icon: Users,
       color: 'text-purple-600',
-      isLive: false
+      isLive: true
     },
     {
-      label: 'Recent Activity',
+      label: 'Your Activity',
       value: liveStats.recentTransactions.toLocaleString(),
       icon: TrendingUp,
       color: 'text-orange-600',
@@ -141,134 +185,129 @@ const Dashboard: React.FC = () => {
   }, [canPerformAction, navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100">
-      <div className="p-6 space-y-8">
-        {/* Header */}
-        <div className="text-center">
-          <h1 className="text-4xl lg:text-5xl font-bold gradient-text mb-4 animate-fade-in-down">
-            Welcome to GreenLedger
-          </h1>
-          <p className="text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto animate-fade-in-up">
-            Your blockchain-powered agricultural supply chain management platform
-          </p>
-
-          {/* Connection Status */}
-          <div className="mt-6 flex justify-center animate-fade-in-up">
-            <div className="flex items-center gap-2 px-6 py-3 glass rounded-full shadow-lg border border-white/20">
-              {getConnectionIcon()}
-              <span className="text-sm font-medium text-gray-700">
-                {connectionStatus === 'connected' ? 'Connected to blockchain' :
-                 connectionStatus === 'disconnected' ? 'Disconnected from blockchain' :
-                 'Syncing with blockchain'}
-              </span>
-              {connectionStatus === 'connected' && (
-                <>
-                  <span className="text-gray-400">•</span>
-                  <span className="text-xs text-gray-500">
-                    Updated {formatLastUpdate(lastUpdateTime)}
+    <div className="min-h-screen bg-gray-50">
+      <div className="p-4 space-y-4">
+        {/* Compact Header */}
+        <div className="bg-white rounded-lg p-4 shadow border border-gray-200">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-4 mb-2">
+                <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+                <div className="flex items-center gap-2">
+                  {getConnectionIcon()}
+                  <span className="text-sm text-gray-600">
+                    {connectionStatus === 'connected' ? 'Connected' :
+                     connectionStatus === 'disconnected' ? 'Disconnected' :
+                     'Syncing'}
                   </span>
-                </>
-              )}
+                  {connectionStatus === 'connected' && account && (
+                    <>
+                      <span className="text-gray-400">•</span>
+                      <span className="text-xs text-gray-500">
+                        {account.slice(0, 6)}...{account.slice(-4)}
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+              <p className="text-sm text-gray-600">
+                Your blockchain-powered agricultural supply chain management platform
+              </p>
+            </div>
+
+            {/* Quick Action Buttons */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate('/marketplace')}
+                className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all text-sm"
+              >
+                <Activity className="h-4 w-4" />
+                Marketplace
+              </button>
+              <button
+                onClick={() => navigate('/tokenize')}
+                className="flex items-center gap-2 bg-gray-100 text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-200 transition-all border border-gray-200 text-sm"
+              >
+                <Package className="h-4 w-4" />
+                Create Batch
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Hero Section */}
-        <section className="gradient-bg-primary text-white rounded-2xl shadow-2xl p-8 lg:p-12 text-center hover-lift animate-fade-in-up">
-          <h2 className="text-3xl lg:text-4xl font-extrabold mb-6">
-            Transparent Agricultural Supply Chain
-          </h2>
-          <p className="text-lg lg:text-xl mb-8 max-w-4xl mx-auto opacity-90 leading-relaxed">
-            Track your produce from farm to table with immutable blockchain records,
-            ensuring trust and traceability at every step of the supply chain.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-6">
-            <button
-              onClick={() => navigate('/marketplace')}
-              className="bg-white text-green-700 font-semibold px-8 py-4 rounded-xl shadow-lg hover:bg-green-50 transition-all transform hover:scale-105 hover:shadow-xl"
-            >
-              <Activity className="inline h-5 w-5 mr-2" />
-              Explore Marketplace
-            </button>
-            <button
-              onClick={() => navigate('/tokenize')}
-              className="bg-green-600 text-white font-semibold px-8 py-4 rounded-xl shadow-lg border-2 border-green-500 hover:bg-green-500 transition-all transform hover:scale-105 hover:shadow-xl"
-            >
-              <Package className="inline h-5 w-5 mr-2" />
-              Create Batch
-            </button>
-          </div>
-        </section>
-
-        {/* Stats Grid */}
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in-up">
+        {/* Compact Stats Grid */}
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             return (
-              <div key={index} className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 relative overflow-hidden hover-lift">
+              <div key={index} className="bg-white rounded-lg shadow p-4 border border-gray-100 relative">
                 {stat.isLive && (
-                  <div className="absolute top-4 right-4">
-                    <div className="flex items-center gap-1">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-xs text-green-600 font-medium">LIVE</span>
-                    </div>
+                  <div className="absolute top-2 right-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   </div>
                 )}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 mb-2">{stat.label}</p>
-                    <p className="text-3xl lg:text-4xl font-bold text-gray-900 mb-1">{stat.value}</p>
-                    {stat.isLive && connectionStatus === 'connected' && (
-                      <p className="text-xs text-green-600">Real-time data</p>
-                    )}
+                <div className="text-center">
+                  <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <Icon className="h-5 w-5 text-green-600" />
                   </div>
-                  <div className={`h-12 w-12 rounded-lg bg-gray-50 flex items-center justify-center ${stat.color}`}>
-                    <Icon className="h-6 w-6" />
-                  </div>
+                  <div className="text-2xl font-bold text-green-600 mb-1">{stat.value}</div>
+                  <div className="text-sm text-gray-700 font-medium">{stat.label}</div>
+                  {stat.isLive && connectionStatus === 'connected' && account && (
+                    <p className="text-xs text-green-600 mt-1">Live</p>
+                  )}
+                  {!account && (
+                    <p className="text-xs text-gray-500 mt-1">Connect wallet</p>
+                  )}
                 </div>
               </div>
             );
           })}
         </section>
 
-      {/* Data Visualizations */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-            <Activity className="h-6 w-6 text-green-600 mr-2" />
-            Recent Token Mints
-          </h3>
-          <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center text-gray-500">
+      {/* Compact Data Visualizations */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-white rounded-lg shadow p-4 border border-gray-100">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center">
+              <Activity className="h-4 w-4 text-green-600" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900">Recent Activity</h3>
+          </div>
+          <div className="h-48 bg-gray-50 rounded-lg flex items-center justify-center text-gray-500">
             <div className="text-center">
-              <TrendingUp className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-              <p className="font-medium">Chart Coming Soon</p>
-              <p className="text-sm">Visualizing latest crop batch tokenizations</p>
+              <TrendingUp className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+              <p className="font-medium text-sm">Chart Coming Soon</p>
+              <p className="text-xs text-gray-600">Latest crop batch tokenizations</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-            <MapPin className="h-6 w-6 text-blue-600 mr-2" />
-            Supply Chain Map
-          </h3>
-          <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center text-gray-500">
+        <div className="bg-white rounded-lg shadow p-4 border border-gray-100">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center">
+              <MapPin className="h-4 w-4 text-green-600" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900">Supply Chain Map</h3>
+          </div>
+          <div className="h-48 bg-gray-50 rounded-lg flex items-center justify-center text-gray-500">
             <div className="text-center">
-              <MapPin className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-              <p className="font-medium">Interactive Map Coming Soon</p>
-              <p className="text-sm">Global movement and origin tracking</p>
+              <MapPin className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+              <p className="font-medium text-sm">Interactive Map Coming Soon</p>
+              <p className="text-xs text-gray-600">Global movement tracking</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Quick Actions */}
-      <section className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-        <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-          <Zap className="h-6 w-6 text-yellow-600 mr-2" />
-          Quick Actions
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Compact Quick Actions */}
+      <section className="bg-white rounded-lg shadow p-4 border border-gray-100">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center">
+            <Zap className="h-4 w-4 text-green-600" />
+          </div>
+          <h3 className="text-lg font-bold text-gray-900">Quick Actions</h3>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {quickActions.map((action, index) => {
             const Icon = action.icon;
             const canPerform = !action.requiresRole || canPerformAction(action.requiresRole);
@@ -280,20 +319,22 @@ const Dashboard: React.FC = () => {
                 onClick={() => handleQuickAction(action)}
                 disabled={isDisabled}
                 className={`
-                  ${action.color} text-white p-4 rounded-lg font-semibold transition-all shadow-md hover:shadow-lg
-                  ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'transform hover:scale-105'}
+                  bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg transition-all text-center
+                  ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100 hover:shadow-md'}
                 `}
               >
-                <Icon className="h-6 w-6 mx-auto mb-2" />
-                <div className="text-sm font-bold">{action.title}</div>
-                <div className="text-xs opacity-90 mt-1">{action.description}</div>
+                <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <Icon className="h-4 w-4 text-green-600" />
+                </div>
+                <div className="text-xs font-bold text-gray-900">{action.title}</div>
+                <div className="text-xs text-gray-600 mt-1">{action.description}</div>
                 {action.requiresRole && !canPerform && (
-                  <div className="text-xs mt-1 opacity-75">
-                    Requires {action.requiresRole} role
+                  <div className="text-xs mt-1 text-orange-600">
+                    Requires {action.requiresRole}
                   </div>
                 )}
                 {action.disabled && (
-                  <div className="text-xs mt-1 opacity-75">
+                  <div className="text-xs mt-1 text-gray-500">
                     Coming Soon
                   </div>
                 )}
@@ -301,6 +342,11 @@ const Dashboard: React.FC = () => {
             );
           })}
         </div>
+      </section>
+
+      {/* Cart Checkout Section */}
+      <section>
+        <CartCheckoutSection />
       </section>
       </div>
     </div>
