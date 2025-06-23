@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 // import { useSupplyChainFlow } from '../hooks/useSupplyChainFlow';
 import { useToast } from '../contexts/ToastContext';
-import { useSimpleWeb3 } from '../contexts/SimpleWeb3Context';
+import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
 
 interface SupplyChainTrackerProps {
   tokenId?: number;
@@ -27,7 +27,10 @@ const SupplyChainTracker: React.FC<SupplyChainTrackerProps> = ({ tokenId: propTo
   const { tokenId: paramTokenId } = useParams<{ tokenId: string }>();
   const navigate = useNavigate();
   const { addToast } = useToast();
-  const { userRoles, canPerformAction } = useSimpleWeb3();
+  const { hasRole } = useWeb3Enhanced();
+
+  // Helper function to check if user can perform action
+  const canPerformAction = (role: string) => hasRole(role);
 
   const tokenId = propTokenId || (paramTokenId ? parseInt(paramTokenId) : null);
 
@@ -38,22 +41,6 @@ const SupplyChainTracker: React.FC<SupplyChainTrackerProps> = ({ tokenId: propTo
   const isConfirming = false;
   const lastTransferUpdate = Date.now();
 
-  const getSupplyChainHistory = async (tokenId: number) => {
-    addToast('Supply chain tracking is available in the full version', 'info');
-  };
-
-  const transferToTransporter = async (params: any) => {
-    addToast('Transfer functionality is available in the full version', 'info');
-  };
-
-  const transferToBuyer = async (params: any) => {
-    addToast('Transfer functionality is available in the full version', 'info');
-  };
-
-  const canTransferTo = (role: string) => false;
-
-  const validateTransferRecipient = async (address: string, role: string) => false;
-
   const [selectedTokenId, setSelectedTokenId] = useState<number>(tokenId || 1);
   const [transferAddress, setTransferAddress] = useState('');
   const [transferType, setTransferType] = useState<'transporter' | 'buyer'>('transporter');
@@ -62,12 +49,29 @@ const SupplyChainTracker: React.FC<SupplyChainTrackerProps> = ({ tokenId: propTo
 
   const currentHistory = trackingHistory.get(selectedTokenId);
 
+  // Memoized functions to prevent infinite re-renders
+  const getSupplyChainHistory = React.useCallback(async (tokenId: number) => {
+    addToast('Supply chain tracking is available in the full version', 'info');
+  }, [addToast]);
+
+  const transferToTransporter = React.useCallback(async (params: any) => {
+    addToast('Transfer functionality is available in the full version', 'info');
+  }, [addToast]);
+
+  const transferToBuyer = React.useCallback(async (params: any) => {
+    addToast('Transfer functionality is available in the full version', 'info');
+  }, [addToast]);
+
+  const canTransferTo = React.useCallback((role: string) => false, []);
+
+  const validateTransferRecipient = React.useCallback(async (address: string, role: string) => false, []);
+
   // Load supply chain history when token ID changes
   useEffect(() => {
     if (selectedTokenId) {
       getSupplyChainHistory(selectedTokenId);
     }
-  }, [selectedTokenId, getSupplyChainHistory, lastTransferUpdate]);
+  }, [selectedTokenId, getSupplyChainHistory]);
 
   // Handle transfer submission
   const handleTransfer = async () => {

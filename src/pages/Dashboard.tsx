@@ -1,20 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Activity, MapPin, Zap, TrendingUp, Users, Package, Wifi, WifiOff, RefreshCw } from 'lucide-react';
-import { useSimpleWeb3 } from '../contexts/SimpleWeb3Context';
+import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
 // import { useRealTimeMarketplace } from '../hooks/useRealTimeMarketplace';
 // import { useCropBatchToken } from '../hooks/useCropBatchToken';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { userRoles, canPerformAction } = useSimpleWeb3();
+  const { hasRole } = useWeb3Enhanced();
+
+  // Helper function to check if user can perform action
+  const canPerformAction = React.useCallback((role: string) => hasRole(role), [hasRole]);
 
   // Simplified mock data for SimpleAppRoutes
-  const batches = [];
+  const batches = React.useMemo(() => [], []);
   const totalBatches = 12; // Mock data
   const connectionStatus = 'connected' as const;
-  const lastUpdateTime = Date.now();
-  const refetchBatches = () => Promise.resolve();
+  const lastUpdateTime = React.useMemo(() => Date.now(), []);
+  const refetchBatches = React.useCallback(() => Promise.resolve(), []);
   const isRefreshing = false;
   const nextTokenId = 13;
   
@@ -35,11 +38,11 @@ const Dashboard: React.FC = () => {
       requiresRole: 'admin' as const,
     },
     {
-      title: 'Mint New Batch',
+      title: 'Tokenize Crop',
       description: 'Create new crop batch NFTs',
       icon: Package,
       color: 'bg-blue-500 hover:bg-blue-600',
-      path: '/mint',
+      path: '/tokenize',
       requiresRole: 'farmer' as const,
     },
     {
@@ -73,50 +76,50 @@ const Dashboard: React.FC = () => {
     });
   }, [batches, totalBatches]);
 
-  const stats = [
-    { 
-      label: 'Total Batches', 
-      value: liveStats.totalBatches.toLocaleString(), 
-      icon: Package, 
+  const stats = React.useMemo(() => [
+    {
+      label: 'Total Batches',
+      value: liveStats.totalBatches.toLocaleString(),
+      icon: Package,
       color: 'text-blue-600',
-      isLive: true 
+      isLive: true
     },
-    { 
-      label: 'Active Farms', 
-      value: liveStats.activeFarms.toString(), 
-      icon: MapPin, 
+    {
+      label: 'Active Farms',
+      value: liveStats.activeFarms.toString(),
+      icon: MapPin,
       color: 'text-green-600',
-      isLive: true 
+      isLive: true
     },
-    { 
-      label: 'Registered Users', 
-      value: liveStats.registeredUsers.toLocaleString(), 
-      icon: Users, 
+    {
+      label: 'Registered Users',
+      value: liveStats.registeredUsers.toLocaleString(),
+      icon: Users,
       color: 'text-purple-600',
-      isLive: false 
+      isLive: false
     },
-    { 
-      label: 'Recent Activity', 
-      value: liveStats.recentTransactions.toLocaleString(), 
-      icon: TrendingUp, 
+    {
+      label: 'Recent Activity',
+      value: liveStats.recentTransactions.toLocaleString(),
+      icon: TrendingUp,
       color: 'text-orange-600',
-      isLive: true 
+      isLive: true
     },
-  ];
+  ], [liveStats]);
 
-  const formatLastUpdate = (timestamp: number) => {
+  const formatLastUpdate = React.useCallback((timestamp: number) => {
     const now = Date.now();
     const diff = now - timestamp;
     const minutes = Math.floor(diff / 60000);
     const seconds = Math.floor((diff % 60000) / 1000);
-    
+
     if (minutes > 0) {
       return `${minutes}m ${seconds}s ago`;
     }
     return `${seconds}s ago`;
-  };
+  }, []);
 
-  const getConnectionIcon = () => {
+  const getConnectionIcon = React.useCallback(() => {
     switch (connectionStatus) {
       case 'connected':
         return <Wifi className="h-4 w-4 text-green-600" />;
@@ -127,101 +130,106 @@ const Dashboard: React.FC = () => {
       default:
         return <WifiOff className="h-4 w-4 text-gray-400" />;
     }
-  };
+  }, [connectionStatus]);
 
-  const handleQuickAction = (action: typeof quickActions[0]) => {
+  const handleQuickAction = React.useCallback((action: typeof quickActions[0]) => {
     if (action.disabled) return;
     if (action.requiresRole && !canPerformAction(action.requiresRole)) {
       return; // Button should be disabled, but just in case
     }
     navigate(action.path);
-  };
+  }, [canPerformAction, navigate]);
 
   return (
-    <div className="p-6 space-y-8">
-      {/* Header */}
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Welcome to GreenLedger
-        </h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Your blockchain-powered agricultural supply chain management platform
-        </p>
-        
-        {/* Connection Status */}
-        <div className="mt-4 flex justify-center">
-          <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-md border border-gray-200">
-            {getConnectionIcon()}
-            <span className="text-sm font-medium text-gray-700">
-              {connectionStatus === 'connected' ? 'Connected to blockchain' :
-               connectionStatus === 'disconnected' ? 'Disconnected from blockchain' :
-               'Syncing with blockchain'}
-            </span>
-            {connectionStatus === 'connected' && (
-              <>
-                <span className="text-gray-400">•</span>
-                <span className="text-xs text-gray-500">
-                  Updated {formatLastUpdate(lastUpdateTime)}
-                </span>
-              </>
-            )}
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100">
+      <div className="p-6 space-y-8">
+        {/* Header */}
+        <div className="text-center">
+          <h1 className="text-4xl lg:text-5xl font-bold gradient-text mb-4 animate-fade-in-down">
+            Welcome to GreenLedger
+          </h1>
+          <p className="text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto animate-fade-in-up">
+            Your blockchain-powered agricultural supply chain management platform
+          </p>
+
+          {/* Connection Status */}
+          <div className="mt-6 flex justify-center animate-fade-in-up">
+            <div className="flex items-center gap-2 px-6 py-3 glass rounded-full shadow-lg border border-white/20">
+              {getConnectionIcon()}
+              <span className="text-sm font-medium text-gray-700">
+                {connectionStatus === 'connected' ? 'Connected to blockchain' :
+                 connectionStatus === 'disconnected' ? 'Disconnected from blockchain' :
+                 'Syncing with blockchain'}
+              </span>
+              {connectionStatus === 'connected' && (
+                <>
+                  <span className="text-gray-400">•</span>
+                  <span className="text-xs text-gray-500">
+                    Updated {formatLastUpdate(lastUpdateTime)}
+                  </span>
+                </>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-green-700 to-green-800 text-white rounded-2xl shadow-xl p-8 text-center">
-        <h2 className="text-3xl font-extrabold mb-4">
-          Transparent Agricultural Supply Chain
-        </h2>
-        <p className="text-lg mb-6 max-w-3xl mx-auto opacity-90">
-          Track your produce from farm to table with immutable blockchain records, 
-          ensuring trust and traceability at every step of the supply chain.
-        </p>
-        <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <button 
-            onClick={() => navigate('/marketplace')}
-            className="bg-white text-green-700 font-semibold px-8 py-3 rounded-full shadow-lg hover:bg-green-50 transition-all transform hover:scale-105"
-          >
-            Explore Marketplace
-          </button>
-          <button 
-            onClick={() => navigate('/register')}
-            className="bg-green-600 text-white font-semibold px-8 py-3 rounded-full shadow-lg border-2 border-green-500 hover:bg-green-500 transition-all transform hover:scale-105"
-          >
-            Get Started
-          </button>
-        </div>
-      </section>
+        {/* Hero Section */}
+        <section className="gradient-bg-primary text-white rounded-2xl shadow-2xl p-8 lg:p-12 text-center hover-lift animate-fade-in-up">
+          <h2 className="text-3xl lg:text-4xl font-extrabold mb-6">
+            Transparent Agricultural Supply Chain
+          </h2>
+          <p className="text-lg lg:text-xl mb-8 max-w-4xl mx-auto opacity-90 leading-relaxed">
+            Track your produce from farm to table with immutable blockchain records,
+            ensuring trust and traceability at every step of the supply chain.
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-6">
+            <button
+              onClick={() => navigate('/marketplace')}
+              className="bg-white text-green-700 font-semibold px-8 py-4 rounded-xl shadow-lg hover:bg-green-50 transition-all transform hover:scale-105 hover:shadow-xl"
+            >
+              <Activity className="inline h-5 w-5 mr-2" />
+              Explore Marketplace
+            </button>
+            <button
+              onClick={() => navigate('/tokenize')}
+              className="bg-green-600 text-white font-semibold px-8 py-4 rounded-xl shadow-lg border-2 border-green-500 hover:bg-green-500 transition-all transform hover:scale-105 hover:shadow-xl"
+            >
+              <Package className="inline h-5 w-5 mr-2" />
+              Create Batch
+            </button>
+          </div>
+        </section>
 
-      {/* Stats Grid */}
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <div key={index} className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 relative overflow-hidden">
-              {stat.isLive && (
-                <div className="absolute top-3 right-3">
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-xs text-green-600 font-medium">LIVE</span>
+        {/* Stats Grid */}
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in-up">
+          {stats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <div key={index} className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 relative overflow-hidden hover-lift">
+                {stat.isLive && (
+                  <div className="absolute top-4 right-4">
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-xs text-green-600 font-medium">LIVE</span>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-2">{stat.label}</p>
+                    <p className="text-3xl lg:text-4xl font-bold text-gray-900 mb-1">{stat.value}</p>
+                    {stat.isLive && connectionStatus === 'connected' && (
+                      <p className="text-xs text-green-600">Real-time data</p>
+                    )}
+                  </div>
+                  <div className={`h-12 w-12 rounded-lg bg-gray-50 flex items-center justify-center ${stat.color}`}>
+                    <Icon className="h-6 w-6" />
                   </div>
                 </div>
-              )}
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                  <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
-                  {stat.isLive && connectionStatus === 'connected' && (
-                    <p className="text-xs text-green-600 mt-1">Real-time data</p>
-                  )}
-                </div>
-                <Icon className={`h-8 w-8 ${stat.color}`} />
               </div>
-            </div>
-          );
-        })}
-      </section>
+            );
+          })}
+        </section>
 
       {/* Data Visualizations */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -294,6 +302,7 @@ const Dashboard: React.FC = () => {
           })}
         </div>
       </section>
+      </div>
     </div>
   );
 };

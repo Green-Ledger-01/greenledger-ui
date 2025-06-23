@@ -4,10 +4,22 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
+    <title>GreenLedger - Blockchain Agricultural Supply Chain</title>
+
+    <!-- Meta tags for OAuth and social authentication -->
+    <meta name="description" content="Blockchain-powered agricultural supply chain management with transparent tracking from farm to table" />
+    <meta name="keywords" content="blockchain, agriculture, supply chain, NFT, Web3, Lisk" />
+
+    <!-- Relaxed CSP for development - allows OAuth and Web3 authentication -->
+    <!-- Note: Tighten this for production deployment -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: wss:;
+      object-src 'none';
+      base-uri 'self';
+    " />
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

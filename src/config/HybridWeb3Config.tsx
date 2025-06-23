@@ -111,15 +111,26 @@ export const HybridWeb3Provider: React.FC<HybridWeb3ProviderProps> = ({ children
         
         // UI Configuration
         themeType: 'dark',
-        
+        language: 'en',
+
         // Chain configuration - focus on Lisk Sepolia
         chains: [liskSepolia],
-        
+
         // Security configuration
         securityAccount: {
           // Prompt settings
           promptSettingWhenSign: 1, // First time only
           promptMasterPasswordSettingWhenLogin: 1 // First time only
+        },
+
+        // Authentication persistence and redirect configuration
+        // Use Particle Network's default redirect handling for better compatibility
+        // redirectUrl: typeof window !== 'undefined' ? `${window.location.origin}/redirect.html` : undefined,
+
+        // Additional OAuth configuration for better redirect handling
+        customStyle: {
+          // Ensure the modal doesn't interfere with OAuth redirects
+          zIndex: 1000,
         },
         
         // Wallet configuration

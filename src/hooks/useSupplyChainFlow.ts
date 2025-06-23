@@ -1,366 +1,345 @@
-/**
- * Supply Chain Flow Hook
- * Handles the 3-step supply chain flow: farmer → transporter → buyer
- * Includes ownership transfer logic and real-time tracking
- */
-
 import { useState, useCallback, useEffect } from 'react';
-import { useWriteContract, useWaitForTransactionReceipt, useReadContract, useWatchContractEvent } from 'wagmi';
-import { useAccount } from 'wagmi';
+import { usePublicClient } from 'wagmi';
+import { getAddress } from 'viem';
 import { CONTRACT_ADDRESSES } from '../config/constants';
 import { useToast } from '../contexts/ToastContext';
-import { useWeb3 } from '../contexts/Web3Context';
-import { getErrorMessage } from '../utils/errorHandling';
 import CropBatchTokenABI from '../contracts/CropBatchToken.json';
-import UserManagementABI from '../contracts/UserManagement.json';
+import { useCropBatchToken } from './useCropBatchToken';
 
-export interface SupplyChainStep {
-  role: 'farmer' | 'transporter' | 'buyer';
-  address: string;
+export interface SupplyChainEvent {
+  id: string;
+  tokenId: number;
+  eventType: 'minted' | 'transferred';
+  from: string;
+  to: string;
   timestamp: number;
-  transactionHash?: string;
-  blockNumber?: number;
+  blockNumber: number;
+  transactionHash: string;
+  metadata?: {
+    cropType?: string;
+    quantity?: number;
+    metadataUri?: string;
+  };
 }
 
 export interface SupplyChainHistory {
   tokenId: number;
-  steps: SupplyChainStep[];
-  currentStep: number; // 0: farmer, 1: transporter, 2: buyer
-  isComplete: boolean;
+  events: SupplyChainEvent[];
+  currentOwner: string;
+  minter: string;
+  totalTransfers: number;
 }
 
-interface TransferParams {
-  tokenId: number;
-  to: string;
-  amount?: number; // Default to 1 for ERC1155
-}
-
-interface UseSupplyChainFlowReturn {
-  // Transfer functions
-  transferToTransporter: (params: TransferParams) => Promise<void>;
-  transferToBuyer: (params: TransferParams) => Promise<void>;
-  transferOwnership: (params: TransferParams) => Promise<void>;
-  
-  // State
-  isTransferring: boolean;
-  isConfirming: boolean;
-  isConfirmed: boolean;
-  transferError: Error | null;
-  transferHash: string | undefined;
-  
-  // Supply chain tracking
-  getSupplyChainHistory: (tokenId: number) => Promise<SupplyChainHistory | null>;
-  trackingHistory: Map<number, SupplyChainHistory>;
-  isLoadingHistory: boolean;
-  
-  // Role validation
-  canTransferTo: (role: 'transporter' | 'buyer') => boolean;
-  validateTransferRecipient: (address: string, expectedRole: 'transporter' | 'buyer') => Promise<boolean>;
-  
-  // Real-time updates
-  lastTransferUpdate: number;
-}
-
-export const useSupplyChainFlow = (): UseSupplyChainFlowReturn => {
-  const { address } = useAccount();
+export const useSupplyChainFlow = () => {
   const { addToast } = useToast();
-  const { userRoles, canPerformAction } = useWeb3();
+  const publicClient = usePublicClient();
+  const { transferToken } = useCropBatchToken();
   
-  const [trackingHistory, setTrackingHistory] = useState<Map<number, SupplyChainHistory>>(new Map());
-  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const [lastTransferUpdate, setLastTransferUpdate] = useState(Date.now());
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Contract write operations
-  const { 
-    writeContract, 
-    data: transferHash, 
-    isPending: isTransferring, 
-    error: writeError 
-  } = useWriteContract();
-
-  const { 
-    isLoading: isConfirming, 
-    isSuccess: isConfirmed, 
-    error: confirmError 
-  } = useWaitForTransactionReceipt({ hash: transferHash });
-
-  const transferError = writeError || confirmError;
-
-  // Function to validate if an address has a specific role
-  const validateTransferRecipient = useCallback(async (
-    recipientAddress: string, 
-    expectedRole: 'transporter' | 'buyer'
-  ): Promise<boolean> => {
+  // Get supply chain history for a token
+  const getSupplyChainHistory = useCallback(async (tokenId: number): Promise<SupplyChainHistory | null> => {
+    if (!publicClient) return null;
+    
     try {
-      // This would be implemented with actual contract calls
-      // For now, we'll simulate the role validation
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          // Simulate role validation based on address pattern
-          const lastChar = recipientAddress.slice(-1).toLowerCase();
-          if (expectedRole === 'transporter') {
-            resolve(['4', '5', '6', '7'].includes(lastChar));
-          } else if (expectedRole === 'buyer') {
-            resolve(['8', '9', 'a', 'b', 'c', 'd', 'e', 'f'].includes(lastChar));
-          }
-          resolve(false);
-        }, 100);
+      setIsLoading(true);
+      setError(null);
+
+      const events: SupplyChainEvent[] = [];
+
+      // Get minting events
+      const mintLogs = await publicClient.getLogs({
+        address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
+        event: {
+          type: 'event',
+          name: 'CropBatchMinted',
+          inputs: [
+            { name: 'tokenId', type: 'uint256', indexed: true },
+            { name: 'minter', type: 'address', indexed: true },
+            { name: 'metadataUri', type: 'string', indexed: false },
+            { name: 'cropType', type: 'string', indexed: false },
+            { name: 'quantity', type: 'uint256', indexed: false },
+          ],
+        },
+        args: {
+          tokenId: BigInt(tokenId),
+        },
+        fromBlock: 'earliest',
+        toBlock: 'latest',
       });
-    } catch (error) {
-      console.error('Error validating recipient role:', error);
+
+      // Process mint events
+      for (const log of mintLogs) {
+        if (log.args && log.blockNumber) {
+          const block = await publicClient.getBlock({ blockNumber: log.blockNumber });
+          events.push({
+            id: `mint-${log.transactionHash}-${log.logIndex}`,
+            tokenId,
+            eventType: 'minted',
+            from: '0x0000000000000000000000000000000000000000',
+            to: log.args.minter as string,
+            timestamp: Number(block.timestamp) * 1000,
+            blockNumber: Number(log.blockNumber),
+            transactionHash: log.transactionHash,
+            metadata: {
+              cropType: log.args.cropType as string,
+              quantity: Number(log.args.quantity),
+              metadataUri: log.args.metadataUri as string,
+            },
+          });
+        }
+      }
+
+      // Get transfer events
+      const transferLogs = await publicClient.getLogs({
+        address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
+        event: {
+          type: 'event',
+          name: 'TransferSingle',
+          inputs: [
+            { name: 'operator', type: 'address', indexed: true },
+            { name: 'from', type: 'address', indexed: true },
+            { name: 'to', type: 'address', indexed: true },
+            { name: 'id', type: 'uint256', indexed: false },
+            { name: 'value', type: 'uint256', indexed: false },
+          ],
+        },
+        args: {
+          id: BigInt(tokenId),
+        },
+        fromBlock: 'earliest',
+        toBlock: 'latest',
+      });
+
+      // Process transfer events (excluding mints)
+      for (const log of transferLogs) {
+        if (log.args && log.blockNumber && log.args.from !== '0x0000000000000000000000000000000000000000') {
+          const block = await publicClient.getBlock({ blockNumber: log.blockNumber });
+          events.push({
+            id: `transfer-${log.transactionHash}-${log.logIndex}`,
+            tokenId,
+            eventType: 'transferred',
+            from: log.args.from as string,
+            to: log.args.to as string,
+            timestamp: Number(block.timestamp) * 1000,
+            blockNumber: Number(log.blockNumber),
+            transactionHash: log.transactionHash,
+          });
+        }
+      }
+
+      // Sort events by timestamp
+      events.sort((a, b) => a.timestamp - b.timestamp);
+
+      const minter = events.find(e => e.eventType === 'minted')?.to || '0x0000000000000000000000000000000000000000';
+      const currentOwner = events.length > 0 ? events[events.length - 1].to : minter;
+      const totalTransfers = events.filter(e => e.eventType === 'transferred').length;
+
+      return {
+        tokenId,
+        events,
+        currentOwner,
+        minter,
+        totalTransfers,
+      };
+
+    } catch (err) {
+      console.error('Error fetching supply chain history:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch supply chain history');
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [publicClient]);
+
+  // Transfer to transporter
+  const transferToTransporter = useCallback(async (params: { tokenId: number; to: string; amount?: number }) => {
+    try {
+      setError(null);
+      
+      await transferToken({
+        from: '', // Will be filled by the hook
+        to: params.to,
+        tokenId: params.tokenId,
+        amount: params.amount || 1,
+      });
+
+      addToast('Transfer to transporter initiated', 'info');
+      
+    } catch (err) {
+      console.error('Error transferring to transporter:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to transfer to transporter';
+      setError(errorMessage);
+      addToast(`Transfer failed: ${errorMessage}`, 'error');
+      throw err;
+    }
+  }, [transferToken, addToast]);
+
+  // Transfer to buyer
+  const transferToBuyer = useCallback(async (params: { tokenId: number; to: string; amount?: number }) => {
+    try {
+      setError(null);
+      
+      await transferToken({
+        from: '', // Will be filled by the hook
+        to: params.to,
+        tokenId: params.tokenId,
+        amount: params.amount || 1,
+      });
+
+      addToast('Transfer to buyer initiated', 'info');
+      
+    } catch (err) {
+      console.error('Error transferring to buyer:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to transfer to buyer';
+      setError(errorMessage);
+      addToast(`Transfer failed: ${errorMessage}`, 'error');
+      throw err;
+    }
+  }, [transferToken, addToast]);
+
+  // Validate transfer recipient (check if address has required role)
+  const validateTransferRecipient = useCallback(async (address: string, expectedRole: string): Promise<boolean> => {
+    try {
+      // For now, we'll do basic address validation
+      // In a full implementation, this would check the UserManagement contract for roles
+      if (!address || address.length !== 42 || !address.startsWith('0x')) {
+        return false;
+      }
+
+      // Basic checksum validation
+      try {
+        getAddress(address);
+        return true;
+      } catch {
+        return false;
+      }
+    } catch (err) {
+      console.error('Error validating transfer recipient:', err);
       return false;
     }
   }, []);
 
-  // Function to get user role from address
-  const getUserRole = useCallback(async (userAddress: string): Promise<'farmer' | 'transporter' | 'buyer' | null> => {
-    try {
-      // This would be implemented with actual contract calls to UserManagement
-      // For now, we'll simulate it
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const lastChar = userAddress.slice(-1).toLowerCase();
-          if (['0', '1', '2', '3'].includes(lastChar)) resolve('farmer');
-          else if (['4', '5', '6', '7'].includes(lastChar)) resolve('transporter');
-          else if (['8', '9', 'a', 'b', 'c', 'd', 'e', 'f'].includes(lastChar)) resolve('buyer');
-          else resolve(null);
-        }, 50);
-      });
-    } catch (error) {
-      console.error('Error getting user role:', error);
-      return null;
-    }
+  // Check if user can transfer to specific role
+  const canTransferTo = useCallback((role: string): boolean => {
+    // This would typically check the current user's role and the supply chain rules
+    // For now, we'll allow all transfers for demonstration
+    return true;
   }, []);
 
-  // Function to get supply chain history for a token
-  const getSupplyChainHistory = useCallback(async (tokenId: number): Promise<SupplyChainHistory | null> => {
-    try {
-      setIsLoadingHistory(true);
-      
-      // Check cache first
-      const cached = trackingHistory.get(tokenId);
-      if (cached && Date.now() - lastTransferUpdate < 30000) {
-        return cached;
-      }
-
-      // This would be implemented by querying Transfer events from the blockchain
-      // For now, we'll simulate the history
-      const mockHistory: SupplyChainHistory = {
-        tokenId,
-        steps: [
-          {
-            role: 'farmer',
-            address: `0x${tokenId.toString().padStart(40, '0')}`,
-            timestamp: Math.floor(Date.now() / 1000) - (tokenId * 86400),
-            transactionHash: `0x${tokenId.toString().padStart(64, '0')}`,
-            blockNumber: 1000000 + tokenId,
-          }
-        ],
-        currentStep: 0,
-        isComplete: false,
-      };
-
-      // Simulate additional steps based on token ID
-      if (tokenId % 3 === 0) {
-        mockHistory.steps.push({
-          role: 'transporter',
-          address: `0x${(tokenId + 1000).toString().padStart(40, '0')}`,
-          timestamp: Math.floor(Date.now() / 1000) - (tokenId * 43200),
-          transactionHash: `0x${(tokenId + 1000).toString().padStart(64, '0')}`,
-          blockNumber: 1000000 + tokenId + 100,
-        });
-        mockHistory.currentStep = 1;
-      }
-
-      if (tokenId % 5 === 0) {
-        mockHistory.steps.push({
-          role: 'buyer',
-          address: `0x${(tokenId + 2000).toString().padStart(40, '0')}`,
-          timestamp: Math.floor(Date.now() / 1000) - (tokenId * 21600),
-          transactionHash: `0x${(tokenId + 2000).toString().padStart(64, '0')}`,
-          blockNumber: 1000000 + tokenId + 200,
-        });
-        mockHistory.currentStep = 2;
-        mockHistory.isComplete = true;
-      }
-
-      // Update cache
-      setTrackingHistory(prev => new Map(prev.set(tokenId, mockHistory)));
-      
-      return mockHistory;
-    } catch (error) {
-      console.error(`Error fetching supply chain history for token ${tokenId}:`, error);
-      addToast(`Failed to load supply chain history: ${getErrorMessage(error)}`, 'error');
-      return null;
-    } finally {
-      setIsLoadingHistory(false);
-    }
-  }, [trackingHistory, lastTransferUpdate, addToast]);
-
-  // Generic transfer function
-  const transferOwnership = useCallback(async (params: TransferParams) => {
-    if (!address) {
-      addToast('Please connect your wallet first', 'error');
-      return;
-    }
-
-    try {
-      await writeContract({
-        address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
-        abi: CropBatchTokenABI,
-        functionName: 'safeTransferFrom',
-        args: [
-          address as `0x${string}`,
-          params.to as `0x${string}`,
-          BigInt(params.tokenId),
-          BigInt(params.amount || 1),
-          '0x', // Empty data
-        ],
-      });
-    } catch (error) {
-      console.error('Transfer error:', error);
-      addToast(`Transfer failed: ${getErrorMessage(error)}`, 'error');
-    }
-  }, [address, writeContract, addToast]);
-
-  // Transfer to transporter with role validation
-  const transferToTransporter = useCallback(async (params: TransferParams) => {
-    if (!canPerformAction('farmer')) {
-      addToast('Only farmers can transfer to transporters', 'error');
-      return;
-    }
-
-    // Validate recipient is a transporter
-    const isValidTransporter = await validateTransferRecipient(params.to, 'transporter');
-    if (!isValidTransporter) {
-      addToast('Recipient must be a registered transporter', 'error');
-      return;
-    }
-
-    addToast('Transferring to transporter...', 'info');
-    await transferOwnership(params);
-  }, [canPerformAction, validateTransferRecipient, transferOwnership, addToast]);
-
-  // Transfer to buyer with role validation
-  const transferToBuyer = useCallback(async (params: TransferParams) => {
-    if (!canPerformAction('transporter') && !canPerformAction('farmer')) {
-      addToast('Only farmers or transporters can transfer to buyers', 'error');
-      return;
-    }
-
-    // Validate recipient is a buyer
-    const isValidBuyer = await validateTransferRecipient(params.to, 'buyer');
-    if (!isValidBuyer) {
-      addToast('Recipient must be a registered buyer', 'error');
-      return;
-    }
-
-    addToast('Transferring to buyer...', 'info');
-    await transferOwnership(params);
-  }, [canPerformAction, validateTransferRecipient, transferOwnership, addToast]);
-
-  // Check if current user can transfer to specific role
-  const canTransferTo = useCallback((role: 'transporter' | 'buyer'): boolean => {
-    if (role === 'transporter') {
-      return canPerformAction('farmer');
-    } else if (role === 'buyer') {
-      return canPerformAction('transporter') || canPerformAction('farmer');
-    }
-    return false;
-  }, [canPerformAction]);
-
-  // Handle transfer confirmation
-  useEffect(() => {
-    if (isConfirmed && transferHash) {
-      addToast('Ownership transferred successfully!', 'success');
-      setLastTransferUpdate(Date.now());
-      
-      // Clear relevant cache entries
-      setTrackingHistory(prev => {
-        const newMap = new Map(prev);
-        // In a real implementation, we'd know which token was transferred
-        // For now, we'll clear the entire cache to force refresh
-        newMap.clear();
-        return newMap;
-      });
-    }
+  // Get recent supply chain activity
+  const getRecentActivity = useCallback(async (limit: number = 10): Promise<SupplyChainEvent[]> => {
+    if (!publicClient) return [];
     
-    if (confirmError) {
-      addToast(`Transfer confirmation failed: ${getErrorMessage(confirmError)}`, 'error');
-    }
-  }, [isConfirmed, confirmError, transferHash, addToast]);
+    try {
+      setIsLoading(true);
+      setError(null);
 
-  // Handle write errors
-  useEffect(() => {
-    if (writeError) {
-      addToast(`Transfer failed: ${getErrorMessage(writeError)}`, 'error');
-    }
-  }, [writeError, addToast]);
+      const events: SupplyChainEvent[] = [];
 
-  // Watch for transfer events to update supply chain history
-  useWatchContractEvent({
-    address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
-    abi: CropBatchTokenABI,
-    eventName: 'TransferSingle',
-    onLogs: (logs) => {
-      logs.forEach(async (log) => {
-        if (log.args.from !== '0x0000000000000000000000000000000000000000') {
-          const tokenId = Number(log.args.id);
-          const fromAddress = log.args.from as string;
-          const toAddress = log.args.to as string;
+      // Get recent mint events
+      const mintLogs = await publicClient.getLogs({
+        address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
+        event: {
+          type: 'event',
+          name: 'CropBatchMinted',
+          inputs: [
+            { name: 'tokenId', type: 'uint256', indexed: true },
+            { name: 'minter', type: 'address', indexed: true },
+            { name: 'metadataUri', type: 'string', indexed: false },
+            { name: 'cropType', type: 'string', indexed: false },
+            { name: 'quantity', type: 'uint256', indexed: false },
+          ],
+        },
+        fromBlock: 'earliest',
+        toBlock: 'latest',
+      });
+
+      // Get recent transfer events
+      const transferLogs = await publicClient.getLogs({
+        address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
+        event: {
+          type: 'event',
+          name: 'TransferSingle',
+          inputs: [
+            { name: 'operator', type: 'address', indexed: true },
+            { name: 'from', type: 'address', indexed: true },
+            { name: 'to', type: 'address', indexed: true },
+            { name: 'id', type: 'uint256', indexed: false },
+            { name: 'value', type: 'uint256', indexed: false },
+          ],
+        },
+        fromBlock: 'earliest',
+        toBlock: 'latest',
+      });
+
+      // Process and combine events
+      const allLogs = [...mintLogs, ...transferLogs];
+      
+      for (const log of allLogs.slice(-limit)) {
+        if (log.blockNumber) {
+          const block = await publicClient.getBlock({ blockNumber: log.blockNumber });
           
-          console.log(`Transfer detected for token ${tokenId}: ${fromAddress} → ${toAddress}`);
-          
-          // Update supply chain history
-          const fromRole = await getUserRole(fromAddress);
-          const toRole = await getUserRole(toAddress);
-          
-          if (fromRole && toRole) {
-            addToast(
-              `Supply chain update: Token #${tokenId} moved from ${fromRole} to ${toRole}`, 
-              'info'
-            );
-            
-            // Remove from cache to force refresh
-            setTrackingHistory(prev => {
-              const newMap = new Map(prev);
-              newMap.delete(tokenId);
-              return newMap;
+          if (log.eventName === 'CropBatchMinted' && log.args) {
+            events.push({
+              id: `mint-${log.transactionHash}-${log.logIndex}`,
+              tokenId: Number(log.args.tokenId),
+              eventType: 'minted',
+              from: '0x0000000000000000000000000000000000000000',
+              to: log.args.minter as string,
+              timestamp: Number(block.timestamp) * 1000,
+              blockNumber: Number(log.blockNumber),
+              transactionHash: log.transactionHash,
+              metadata: {
+                cropType: log.args.cropType as string,
+                quantity: Number(log.args.quantity),
+                metadataUri: log.args.metadataUri as string,
+              },
             });
-            
-            setLastTransferUpdate(Date.now());
+          } else if (log.eventName === 'TransferSingle' && log.args && log.args.from !== '0x0000000000000000000000000000000000000000') {
+            events.push({
+              id: `transfer-${log.transactionHash}-${log.logIndex}`,
+              tokenId: Number(log.args.id),
+              eventType: 'transferred',
+              from: log.args.from as string,
+              to: log.args.to as string,
+              timestamp: Number(block.timestamp) * 1000,
+              blockNumber: Number(log.blockNumber),
+              transactionHash: log.transactionHash,
+            });
           }
         }
-      });
-    },
-    onError: (error) => {
-      console.error('Error watching transfer events:', error);
-    },
-  });
+      }
+
+      return events.sort((a, b) => b.timestamp - a.timestamp).slice(0, limit);
+
+    } catch (err) {
+      console.error('Error fetching recent activity:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch recent activity');
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  }, [publicClient]);
+
+  // Clear errors
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
 
   return {
-    // Transfer functions
+    // State
+    isLoading,
+    error,
+
+    // Functions
+    getSupplyChainHistory,
     transferToTransporter,
     transferToBuyer,
-    transferOwnership,
-    
-    // State
-    isTransferring,
-    isConfirming,
-    isConfirmed,
-    transferError,
-    transferHash,
-    
-    // Supply chain tracking
-    getSupplyChainHistory,
-    trackingHistory,
-    isLoadingHistory,
-    
-    // Role validation
-    canTransferTo,
     validateTransferRecipient,
-    
-    // Real-time updates
-    lastTransferUpdate,
+    canTransferTo,
+    getRecentActivity,
+    clearError,
   };
 };

@@ -1,79 +1,65 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Menu } from 'lucide-react';
-import { SimpleWeb3Provider } from '../contexts/SimpleWeb3Context';
-import { ToastProvider } from '../contexts/ToastContext';
-import Sidebar from '../components/Sidebar';
-import SelfServiceRoleRegistration from '../components/SelfServiceRoleRegistration';
+import { useAuthState } from '../hooks/useAuthState';
+import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
+import SelfServiceRoleRegistrationSimple from '../components/SelfServiceRoleRegistrationSimple';
+import SidebarSimple from '../components/SidebarSimple';
+import HybridConnectButton from '../components/HybridConnectButton';
+import LoadingSpinner from '../components/LoadingSpinner';
+import LandingPage from '../pages/LandingPage';
+import AuthenticationPage from '../pages/AuthenticationPage';
+import AuthTestPage from '../pages/AuthTestPage';
 import Dashboard from '../pages/Dashboard';
-import RegisterUser from '../pages/RegisterUser';
-import MintCropBatch from '../pages/MintCropBatch';
+import RegisterUserSimple from '../pages/RegisterUserSimple';
+import TokenizationPage from '../pages/TokenizationPage';
+import TransferOwnershipPage from '../pages/TransferOwnershipPage';
+import SupplyChainExplorer from '../pages/SupplyChainExplorer';
 import Marketplace from '../pages/Marketplace';
 import SupplyChainTracker from '../pages/SupplyChainTracker';
-import { useSimpleRoleManagement } from '../hooks/useSimpleRoleManagement';
-import { useSimpleWeb3 } from '../contexts/SimpleWeb3Context';
 
-// Simple Connect Button Component
+// Simple Connect Button Component using HybridConnectButton
 const SimpleConnectButton: React.FC = () => {
-  const { account, isConnected, isConnecting, connectWallet, disconnectWallet } = useSimpleWeb3();
-
-  if (isConnecting) {
-    return (
-      <button
-        disabled
-        className="px-4 py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed"
-      >
-        Connecting...
-      </button>
-    );
-  }
-
-  if (isConnected && account) {
-    return (
-      <div className="flex items-center space-x-2">
-        <span className="text-sm text-gray-600">
-          {`${account.slice(0, 6)}...${account.slice(-4)}`}
-        </span>
-        <button
-          onClick={disconnectWallet}
-          className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm transition-colors"
-        >
-          Disconnect
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <button
-      onClick={connectWallet}
-      className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-    >
-      Connect Wallet
-    </button>
-  );
+  return <HybridConnectButton variant="compact" />;
 };
 
 // Main App Content Component
 const AppContent = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { 
-    showRoleRegistration, 
-    handleRegistrationComplete, 
-    handleSkipRoleSelection 
-  } = useSimpleRoleManagement();
+  const { needsRoleRegistration } = useWeb3Enhanced();
+  const { isAnyConnected, isConnecting } = useAuthState();
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  // Show role registration overlay if needed
-  if (showRoleRegistration) {
+  // Show landing page if not connected, but don't show it during connection process
+  if (!isAnyConnected && !isConnecting) {
+    return <LandingPage />;
+  }
+
+  // Show loading state during connection
+  if (isConnecting) {
     return (
-      <SelfServiceRoleRegistration
-        onRegistrationComplete={handleRegistrationComplete}
-        onSkip={handleSkipRoleSelection}
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 flex items-center justify-center">
+        <LoadingSpinner
+          variant="branded"
+          size="xl"
+          text="Connecting to your wallet..."
+          className="p-8"
+        />
+      </div>
+    );
+  }
+
+  // Show role registration overlay if needed
+  if (needsRoleRegistration) {
+    return (
+      <SelfServiceRoleRegistrationSimple
+        onRegistrationComplete={() => {}}
+        onSkip={() => {}}
         showSkipOption={true}
+        isModal={true}
       />
     );
   }
@@ -81,25 +67,35 @@ const AppContent = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-green-50 via-white to-green-100">
       {/* Mobile Header with Hamburger */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-white shadow-md border-b border-gray-200">
-        <button 
-          onClick={toggleSidebar} 
-          className="text-green-800 focus:outline-none hover:text-green-600 transition-colors"
+      <div className="md:hidden flex items-center justify-between p-4 bg-white/80 backdrop-blur-md shadow-lg border-b border-green-100 sticky top-0 z-40">
+        <button
+          onClick={toggleSidebar}
+          className="text-green-800 focus:outline-none hover:text-green-600 transition-colors p-2 rounded-lg hover:bg-green-50"
         >
           <Menu className="h-6 w-6" />
         </button>
-        <h1 className="text-xl font-bold text-green-800">GreenLedger</h1>
+        <div className="flex items-center space-x-2">
+          <div className="h-8 w-8 rounded-full gradient-bg-primary flex items-center justify-center">
+            <span className="text-white text-sm font-bold">G</span>
+          </div>
+          <h1 className="text-xl font-bold gradient-text">GreenLedger</h1>
+        </div>
         <SimpleConnectButton />
       </div>
 
       {/* Desktop Header */}
       <div className="hidden md:block">
-        <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="bg-white/80 backdrop-blur-md shadow-sm border-b border-green-100 sticky top-0 z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-4">
-              <div className="flex items-center">
-                <h1 className="text-2xl font-bold text-green-800">GreenLedger</h1>
-                <span className="ml-2 text-sm text-gray-500">Agricultural Supply Chain</span>
+              <div className="flex items-center space-x-3">
+                <div className="h-10 w-10 rounded-full gradient-bg-primary flex items-center justify-center">
+                  <span className="text-white font-bold">G</span>
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold gradient-text">GreenLedger</h1>
+                  <span className="text-sm text-gray-500">Agricultural Supply Chain</span>
+                </div>
               </div>
               <SimpleConnectButton />
             </div>
@@ -109,18 +105,26 @@ const AppContent = () => {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+        <SidebarSimple isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 bg-opacity-80">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/register" element={<RegisterUser />} />
-            <Route path="/mint" element={<MintCropBatch />} />
-            <Route path="/marketplace" element={<Marketplace />} />
-            <Route path="/track" element={<SupplyChainTracker />} />
-            <Route path="/track/:tokenId" element={<SupplyChainTracker />} />
-          </Routes>
+        <main className="flex-1 overflow-y-auto bg-transparent">
+          <div className="min-h-full">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/register" element={<RegisterUserSimple />} />
+              <Route path="/mint" element={<TokenizationPage />} />
+              <Route path="/tokenize" element={<TokenizationPage />} />
+              <Route path="/transfer" element={<TransferOwnershipPage />} />
+              <Route path="/explorer" element={<SupplyChainExplorer />} />
+              <Route path="/marketplace" element={<Marketplace />} />
+              <Route path="/track" element={<SupplyChainTracker />} />
+              <Route path="/track/:tokenId" element={<SupplyChainTracker />} />
+              <Route path="/auth" element={<AuthenticationPage />} />
+              <Route path="/auth-test" element={<AuthTestPage />} />
+            </Routes>
+          </div>
         </main>
       </div>
     </div>
@@ -129,28 +133,31 @@ const AppContent = () => {
 
 /**
  * Simple App Routes Component
- * 
- * A simplified version of the app routes that doesn't depend on
- * complex Web3 libraries that are causing build issues.
- * 
+ *
+ * Now uses the hybrid Web3 setup with both WalletConnect (for Lisk blockchain)
+ * and Particle Network (for account abstraction). The providers are configured
+ * in App.tsx for proper layering.
+ *
  * This provides:
- * - Basic wallet connection functionality
- * - Self-service role registration
+ * - WalletConnect support for Lisk blockchain
+ * - Particle Network account abstraction
+ * - Enhanced role management
  * - All core app functionality
  * - Clean, maintainable architecture
- * 
- * Can be easily upgraded to use more advanced Web3 libraries
- * once the build issues are resolved.
  */
 const SimpleAppRoutes = () => {
   return (
-    <ToastProvider>
-      <SimpleWeb3Provider>
-        <Router>
-          <AppContent />
-        </Router>
-      </SimpleWeb3Provider>
-    </ToastProvider>
+    <Router
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
+      <Routes>
+        <Route path="/landing" element={<LandingPage />} />
+        <Route path="/*" element={<AppContent />} />
+      </Routes>
+    </Router>
   );
 };
 
