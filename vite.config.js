@@ -20,11 +20,17 @@ export default defineConfig({
       protocolImports: true, // Support `node:` protocol imports if required
     }),
   ],
+  // Load environment variables from .env file
+  envDir: '.',
+  envPrefix: 'VITE_',
   define: {
     global: 'globalThis',
     'process.env': 'import.meta.env',
     'process.env.DEBUG': 'import.meta.env.VITE_DEBUG',
     'process.env.NODE_ENV': 'import.meta.env.VITE_NODE_ENV',
+    // Ensure import.meta.env is properly defined
+    'import.meta.env.VITE_NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+    'import.meta.env.VITE_DEBUG': JSON.stringify(process.env.VITE_DEBUG || ''),
   },
   optimizeDeps: {
     include: [

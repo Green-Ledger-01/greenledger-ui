@@ -1,6 +1,23 @@
 import { Buffer } from 'buffer';
 window.Buffer = Buffer;
 
+// Ensure import.meta.env is available
+try {
+  if (!import.meta.env) {
+    (import.meta as any).env = {
+      VITE_NODE_ENV: 'production',
+      VITE_DEBUG: '',
+      MODE: 'production',
+      DEV: false,
+      PROD: true,
+      SSR: false
+    };
+  }
+} catch (e) {
+  // import.meta might not be available in some environments
+  console.warn('import.meta.env not available:', e);
+}
+
 // Ensure TextEncoder/TextDecoder are available globally
 if (!globalThis.TextEncoder) {
   globalThis.TextEncoder = window.TextEncoder;
@@ -11,11 +28,19 @@ if (!globalThis.TextDecoder) {
 
 // Ensure process.env is available globally for libraries that expect it
 if (!globalThis.process) {
+  // Safely access import.meta.env with fallbacks
+  let env: any = {};
+  try {
+    env = import.meta.env || {};
+  } catch (e) {
+    env = {};
+  }
+
   globalThis.process = {
     env: {
-      DEBUG: import.meta.env.VITE_DEBUG || '',
-      NODE_ENV: import.meta.env.VITE_NODE_ENV || 'production',
-      ...import.meta.env
+      DEBUG: env.VITE_DEBUG || '',
+      NODE_ENV: env.VITE_NODE_ENV || 'production',
+      ...env
     },
     version: '18.0.0',
     versions: { node: '18.0.0' },
