@@ -155,3 +155,13 @@ export const TOAST_CONFIG = {
   SUCCESS_DURATION: 10000,
   ERROR_DURATION: 8000,
 } as const;
+
+// Currency Configuration
+export const CURRENCY_CONFIG = {
+  DEFAULT_CURRENCY: 'USD' as const,
+  SUPPORTED_CURRENCIES: ['ETH', 'USD', 'KES', 'NGN'] as const,
+  EXCHANGE_RATE_CACHE_DURATION: 5 * 60 * 1000, // 5 minutes
+  FALLBACK_ETH_PRICE_USD: 2000,
+  FALLBACK_USD_KES: 150,
+  FALLBACK_USD_NGN: 800,
+} as const;

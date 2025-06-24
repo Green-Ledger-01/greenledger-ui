@@ -19,6 +19,7 @@ import { getErrorMessage, formatTxHash, getBlockExplorerUrl } from '../utils';
 import { VALIDATION_LIMITS } from '../config/constants';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import CurrencyDisplay, { CURRENCY_CONFIG, convertCurrency } from '../components/CurrencyDisplay';
 
 interface TokenizationPageProps {
   onSuccess?: (tokenId: number) => void;
@@ -50,6 +51,8 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
     description: '',
     cropType: '',
     quantity: '',
+    pricePerKg: '',
+    priceCurrency: 'KES' as 'ETH' | 'USD' | 'KES' | 'NGN',
     originFarm: '',
     harvestDate: '',
     notes: '',
@@ -67,24 +70,34 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
   const isProcessing = isWritePending || isConfirming || isUploading || isInitializingProvenance;
 
   const validateField = (name: string, value: string): string | null => {
-    if (!value && ['name', 'cropType', 'quantity', 'originFarm', 'harvestDate'].includes(name)) {
+    if (!value && ['name', 'cropType', 'quantity', 'pricePerKg', 'originFarm', 'harvestDate'].includes(name)) {
       return 'This field is required.';
     }
-    
+
     if (name === 'quantity') {
       const q = parseInt(value);
       if (isNaN(q) || q < VALIDATION_LIMITS.MIN_QUANTITY_KG || q > VALIDATION_LIMITS.MAX_QUANTITY_KG) {
         return `Quantity must be between ${VALIDATION_LIMITS.MIN_QUANTITY_KG} and ${VALIDATION_LIMITS.MAX_QUANTITY_KG} kg.`;
       }
     }
-    
+
+    if (name === 'pricePerKg') {
+      const price = parseFloat(value);
+      if (isNaN(price) || price <= 0) {
+        return 'Price must be a positive number.';
+      }
+      if (price > 1000) {
+        return 'Price seems too high. Please check the value.';
+      }
+    }
+
     if (name === 'harvestDate') {
       const date = new Date(value);
       if (isNaN(date.getTime()) || date > new Date()) {
         return 'Please enter a valid harvest date (not in the future).';
       }
     }
-    
+
     return null;
   };
 
@@ -140,12 +153,18 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
       const quantity = parseInt(formData.quantity);
       const harvestDate = new Date(formData.harvestDate);
 
+      // Convert price to ETH for storage
+      const priceInEth = formData.pricePerKg ?
+        convertCurrency(parseFloat(formData.pricePerKg), formData.priceCurrency, 'ETH') :
+        undefined;
+
       const { metadataUri } = await uploadCropBatch({
         name: formData.name,
         description: formData.description,
         imageFile: imageFile!,
         cropType: formData.cropType,
         quantity,
+        pricePerKg: priceInEth,
         originFarm: formData.originFarm,
         harvestDate: Math.floor(harvestDate.getTime() / 1000),
         notes: formData.notes,
@@ -211,8 +230,8 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
 
   const resetForm = () => {
     setFormData({
-      name: '', description: '', cropType: '', quantity: '', originFarm: '',
-      harvestDate: '', notes: '', certifications: '', location: '',
+      name: '', description: '', cropType: '', quantity: '', pricePerKg: '', priceCurrency: 'KES',
+      originFarm: '', harvestDate: '', notes: '', certifications: '', location: '',
     });
     setImageFile(null);
     setFormErrors({});
@@ -232,11 +251,30 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
     try {
       addToast('Initializing supply chain provenance...', 'info');
 
+      // Validate required data before calling contract
+      if (!account) {
+        throw new Error('Wallet account not available');
+      }
+
+      if (!tokenId || tokenId <= 0) {
+        throw new Error('Invalid token ID');
+      }
+
+      const location = formData.location || formData.originFarm || 'Farm Location';
+      const notes = `Initial production at ${formData.originFarm}. ${formData.notes || 'No additional notes.'}`;
+
+      console.log('Initializing provenance with:', {
+        tokenId: BigInt(tokenId),
+        farmer: account,
+        location,
+        notes
+      });
+
       await initializeProvenance({
         tokenId: BigInt(tokenId),
-        farmer: account!,
-        location: formData.location || formData.originFarm,
-        notes: `Initial production at ${formData.originFarm}. ${formData.notes || 'No additional notes.'}`
+        farmer: account,
+        location,
+        notes
       });
 
       setProvenanceInitialized(true);
@@ -249,13 +287,26 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
       // Reset form on complete success
       resetForm();
       onSuccess?.(tokenId);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Provenance initialization failed:', error);
+
+      // More detailed error logging
+      const errorMessage = error?.message || error?.reason || error?.data?.message || 'Unknown error';
+      console.error('Detailed error:', {
+        message: errorMessage,
+        code: error?.code,
+        data: error?.data,
+        stack: error?.stack
+      });
+
       addToast(
         `Token minted successfully (ID: ${tokenId}) but provenance initialization failed. You can initialize it manually later.`,
         'warning',
         8000
       );
+
+      // Also show the specific error in console for debugging
+      addToast(`Provenance initialization error: ${errorMessage}`, 'error');
     }
   };
 
@@ -318,6 +369,8 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
             Create NFTs for your agricultural produce with IPFS metadata and blockchain minting
           </p>
         </div>
+
+
 
         <div className="bg-white rounded-xl shadow-lg border border-gray-200">
           {/* Header */}
@@ -401,16 +454,15 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
                 }`}
                 disabled={isProcessing}
               >
-                <option value="">Select crop type</option>
-                <option value="Wheat">Wheat</option>
-                <option value="Rice">Rice</option>
-                <option value="Corn">Corn</option>
-                <option value="Soybeans">Soybeans</option>
-                <option value="Tomatoes">Tomatoes</option>
-                <option value="Potatoes">Potatoes</option>
-                <option value="Coffee">Coffee</option>
-                <option value="Cotton">Cotton</option>
-                <option value="Sugarcane">Sugarcane</option>
+                <option value="">Select crop category</option>
+                <option value="Cereals">Cereals</option>
+                <option value="Fruits">Fruits</option>
+                <option value="Legumes">Legumes</option>
+                <option value="Livestock">Livestock</option>
+                <option value="Vegetables">Vegetables</option>
+                <option value="Nuts & Seeds">Nuts & Seeds</option>
+                <option value="Herbs & Spices">Herbs & Spices</option>
+                <option value="Fiber Crops">Fiber Crops</option>
                 <option value="Other">Other</option>
               </select>
               {formErrors.cropType && <p className="mt-1 text-xs text-red-600">{formErrors.cropType}</p>}
@@ -434,7 +486,7 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
             />
           </div>
 
-          {/* Quantity and Farm */}
+          {/* Quantity and Price */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
               <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-2">
@@ -459,24 +511,84 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
             </div>
 
             <div>
-              <label htmlFor="originFarm" className="block text-sm font-medium text-gray-700 mb-2">
-                <MapPin className="h-4 w-4 inline mr-1" />
-                Origin Farm <span className="text-red-500">*</span>
+              <label htmlFor="pricePerKg" className="block text-sm font-medium text-gray-700 mb-2">
+                <Scale className="h-4 w-4 inline mr-1" />
+                Price per kg <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                id="originFarm"
-                name="originFarm"
-                value={formData.originFarm}
-                onChange={handleInputChange}
-                placeholder="e.g., Green Valley Farm"
-                className={`w-full px-4 py-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors ${
-                  formErrors.originFarm ? 'border-red-400 bg-red-50' : 'border-gray-300'
-                }`}
-                disabled={isProcessing}
-              />
-              {formErrors.originFarm && <p className="mt-1 text-xs text-red-600">{formErrors.originFarm}</p>}
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  id="pricePerKg"
+                  name="pricePerKg"
+                  value={formData.pricePerKg}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 100"
+                  step="0.01"
+                  min="0"
+                  className={`flex-1 px-4 py-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors ${
+                    formErrors.pricePerKg ? 'border-red-400 bg-red-50' : 'border-gray-300'
+                  }`}
+                  disabled={isProcessing}
+                />
+                <select
+                  name="priceCurrency"
+                  value={formData.priceCurrency}
+                  onChange={handleInputChange}
+                  className="px-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                  disabled={isProcessing}
+                >
+                  <option value="KES">KSh (KES)</option>
+                  <option value="NGN">₦ (NGN)</option>
+                  <option value="USD">$ (USD)</option>
+                  <option value="ETH">Ξ (ETH)</option>
+                </select>
+              </div>
+              {formErrors.pricePerKg && <p className="mt-1 text-xs text-red-600">{formErrors.pricePerKg}</p>}
+              <p className="mt-1 text-xs text-gray-500">
+                Set your price per kilogram in {CURRENCY_CONFIG[formData.priceCurrency].name}
+              </p>
             </div>
+          </div>
+
+          {/* Price Preview */}
+          {formData.pricePerKg && formData.quantity && !isNaN(parseFloat(formData.pricePerKg)) && !isNaN(parseInt(formData.quantity)) && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-green-800 mb-3">Price Preview</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-green-700">Total Value:</span>
+                  <span className="font-medium text-green-800">
+                    {CURRENCY_CONFIG[formData.priceCurrency].symbol}{(parseFloat(formData.pricePerKg) * parseInt(formData.quantity)).toLocaleString()}
+                  </span>
+                </div>
+                <CurrencyDisplay
+                  amount={parseFloat(formData.pricePerKg) * parseInt(formData.quantity)}
+                  currency={formData.priceCurrency}
+                  showAllCurrencies={true}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Origin Farm */}
+          <div>
+            <label htmlFor="originFarm" className="block text-sm font-medium text-gray-700 mb-2">
+              <MapPin className="h-4 w-4 inline mr-1" />
+              Origin Farm <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="originFarm"
+              name="originFarm"
+              value={formData.originFarm}
+              onChange={handleInputChange}
+              placeholder="e.g., Green Valley Farm"
+              className={`w-full px-4 py-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors ${
+                formErrors.originFarm ? 'border-red-400 bg-red-50' : 'border-gray-300'
+              }`}
+              disabled={isProcessing}
+            />
+            {formErrors.originFarm && <p className="mt-1 text-xs text-red-600">{formErrors.originFarm}</p>}
           </div>
 
           {/* Harvest Date and Location */}

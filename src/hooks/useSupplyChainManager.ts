@@ -29,12 +29,45 @@ export const useInitializeProvenance = () => {
     location: string;
     notes: string;
   }) => {
-    return await writeContractAsync({
-      address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
-      abi: SupplyChainManagerABI.abi,
-      functionName: 'initializeProvenance',
-      args: [args.tokenId, args.farmer, args.location, args.notes],
+    // Validate inputs before calling contract
+    if (!args.tokenId || args.tokenId <= 0n) {
+      throw new Error('Invalid token ID provided');
+    }
+
+    if (!args.farmer || args.farmer === '0x0000000000000000000000000000000000000000') {
+      throw new Error('Invalid farmer address provided');
+    }
+
+    if (!args.location || args.location.trim() === '') {
+      throw new Error('Location is required');
+    }
+
+    if (!args.notes || args.notes.trim() === '') {
+      throw new Error('Notes are required');
+    }
+
+    console.log('Calling initializeProvenance with:', {
+      address: CONTRACT_ADDRESSES.SupplyChainManager,
+      tokenId: args.tokenId.toString(),
+      farmer: args.farmer,
+      location: args.location,
+      notes: args.notes
     });
+
+    try {
+      const result = await writeContractAsync({
+        address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
+        abi: SupplyChainManagerABI,
+        functionName: 'initializeProvenance',
+        args: [args.tokenId, args.farmer, args.location, args.notes],
+      });
+
+      console.log('initializeProvenance transaction result:', result);
+      return result;
+    } catch (error: any) {
+      console.error('initializeProvenance contract call failed:', error);
+      throw error;
+    }
   };
 
   return {
@@ -55,7 +88,7 @@ export const useTransferWithProvenance = () => {
   }) => {
     return await writeContractAsync({
       address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
-      abi: SupplyChainManagerABI.abi,
+      abi: SupplyChainManagerABI,
       functionName: 'transferWithProvenance',
       args: [args.tokenId, args.to, args.newState, args.location, args.notes],
     });
@@ -77,7 +110,7 @@ export const useMarkAsConsumed = () => {
   }) => {
     return await writeContractAsync({
       address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
-      abi: SupplyChainManagerABI.abi,
+      abi: SupplyChainManagerABI,
       functionName: 'markAsConsumed',
       args: [args.tokenId, args.location, args.notes],
     });
@@ -92,7 +125,7 @@ export const useMarkAsConsumed = () => {
 export const useProvenanceHistory = (tokenId?: bigint) => {
   return useReadContract({
     address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
-    abi: SupplyChainManagerABI.abi,
+    abi: SupplyChainManagerABI,
     functionName: 'getProvenanceHistory',
     args: tokenId ? [tokenId] : undefined,
     query: {
@@ -104,7 +137,7 @@ export const useProvenanceHistory = (tokenId?: bigint) => {
 export const useProvenanceStep = (tokenId?: bigint, stepIndex?: bigint) => {
   return useReadContract({
     address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
-    abi: SupplyChainManagerABI.abi,
+    abi: SupplyChainManagerABI,
     functionName: 'getProvenanceStep',
     args: tokenId && stepIndex !== undefined ? [tokenId, stepIndex] : undefined,
     query: {
@@ -116,7 +149,7 @@ export const useProvenanceStep = (tokenId?: bigint, stepIndex?: bigint) => {
 export const useTokensByState = (state?: number) => {
   return useReadContract({
     address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
-    abi: SupplyChainManagerABI.abi,
+    abi: SupplyChainManagerABI,
     functionName: 'getTokensByState',
     args: state !== undefined ? [state] : undefined,
     query: {
@@ -128,7 +161,7 @@ export const useTokensByState = (state?: number) => {
 export const useTokensInState = (state?: number, offset?: bigint, limit?: bigint) => {
   return useReadContract({
     address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
-    abi: SupplyChainManagerABI.abi,
+    abi: SupplyChainManagerABI,
     functionName: 'getTokensInState',
     args: state !== undefined && offset !== undefined && limit !== undefined ? [state, offset, limit] : undefined,
     query: {
@@ -140,7 +173,7 @@ export const useTokensInState = (state?: number, offset?: bigint, limit?: bigint
 export const useUserTokenHistory = (userAddress?: string) => {
   return useReadContract({
     address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
-    abi: SupplyChainManagerABI.abi,
+    abi: SupplyChainManagerABI,
     functionName: 'getUserTokenHistory',
     args: userAddress ? [userAddress] : undefined,
     query: {
@@ -152,7 +185,7 @@ export const useUserTokenHistory = (userAddress?: string) => {
 export const useHasUserInteracted = (tokenId?: bigint, userAddress?: string) => {
   return useReadContract({
     address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
-    abi: SupplyChainManagerABI.abi,
+    abi: SupplyChainManagerABI,
     functionName: 'hasUserInteracted',
     args: tokenId && userAddress ? [tokenId, userAddress] : undefined,
     query: {
