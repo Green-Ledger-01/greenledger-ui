@@ -8,7 +8,8 @@ import {
   Scale,
   FileText,
   Coins,
-  Shield
+  Shield,
+  CheckCircle
 } from 'lucide-react';
 import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
 import { useToast } from '../contexts/ToastContext';
@@ -42,7 +43,7 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
 
   const {
     writeAsync: initializeProvenance,
-    isLoading: isInitializingProvenance,
+    isPending: isInitializingProvenance,
     error: provenanceError,
   } = useInitializeProvenance();
 
@@ -176,7 +177,7 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
       addToast('IPFS upload complete. Initiating blockchain transaction...', 'info');
 
       await mintNewBatch({
-        to: account,
+        to: account!,
         cropType: formData.cropType,
         quantity,
         originFarm: formData.originFarm,
