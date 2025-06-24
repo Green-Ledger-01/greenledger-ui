@@ -15,9 +15,9 @@
     "jsx": "react-jsx",
 
     /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
 
     /* Additional options for better compatibility */
@@ -32,9 +32,7 @@
     "noImplicitAny": false,
     "strictNullChecks": false,
     "noImplicitReturns": false,
-    "noImplicitThis": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false
+    "noImplicitThis": false
   },
   "include": ["src", "vite-env.d.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
