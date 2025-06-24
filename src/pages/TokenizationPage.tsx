@@ -19,8 +19,7 @@ import { getErrorMessage, formatTxHash, getBlockExplorerUrl } from '../utils';
 import { VALIDATION_LIMITS } from '../config/constants';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
-import CurrencyDisplay from '../components/CurrencyDisplay';
-import SimpleCurrencyDisplay from '../components/SimpleCurrencyDisplay';
+import CurrencyDisplay, { CURRENCY_CONFIG, convertCurrency } from '../components/CurrencyDisplay';
 
 interface TokenizationPageProps {
   onSuccess?: (tokenId: number) => void;
@@ -53,6 +52,7 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
     cropType: '',
     quantity: '',
     pricePerKg: '',
+    priceCurrency: 'KES' as 'ETH' | 'USD' | 'KES' | 'NGN',
     originFarm: '',
     harvestDate: '',
     notes: '',
@@ -153,13 +153,18 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
       const quantity = parseInt(formData.quantity);
       const harvestDate = new Date(formData.harvestDate);
 
+      // Convert price to ETH for storage
+      const priceInEth = formData.pricePerKg ?
+        convertCurrency(parseFloat(formData.pricePerKg), formData.priceCurrency, 'ETH') :
+        undefined;
+
       const { metadataUri } = await uploadCropBatch({
         name: formData.name,
         description: formData.description,
         imageFile: imageFile!,
         cropType: formData.cropType,
         quantity,
-        pricePerKg: formData.pricePerKg ? parseFloat(formData.pricePerKg) : undefined,
+        pricePerKg: priceInEth,
         originFarm: formData.originFarm,
         harvestDate: Math.floor(harvestDate.getTime() / 1000),
         notes: formData.notes,
@@ -225,8 +230,8 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
 
   const resetForm = () => {
     setFormData({
-      name: '', description: '', cropType: '', quantity: '', pricePerKg: '', originFarm: '',
-      harvestDate: '', notes: '', certifications: '', location: '',
+      name: '', description: '', cropType: '', quantity: '', pricePerKg: '', priceCurrency: 'KES',
+      originFarm: '', harvestDate: '', notes: '', certifications: '', location: '',
     });
     setImageFile(null);
     setFormErrors({});
@@ -246,11 +251,30 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
     try {
       addToast('Initializing supply chain provenance...', 'info');
 
+      // Validate required data before calling contract
+      if (!account) {
+        throw new Error('Wallet account not available');
+      }
+
+      if (!tokenId || tokenId <= 0) {
+        throw new Error('Invalid token ID');
+      }
+
+      const location = formData.location || formData.originFarm || 'Farm Location';
+      const notes = `Initial production at ${formData.originFarm}. ${formData.notes || 'No additional notes.'}`;
+
+      console.log('Initializing provenance with:', {
+        tokenId: BigInt(tokenId),
+        farmer: account,
+        location,
+        notes
+      });
+
       await initializeProvenance({
         tokenId: BigInt(tokenId),
-        farmer: account!,
-        location: formData.location || formData.originFarm,
-        notes: `Initial production at ${formData.originFarm}. ${formData.notes || 'No additional notes.'}`
+        farmer: account,
+        location,
+        notes
       });
 
       setProvenanceInitialized(true);
@@ -263,13 +287,26 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
       // Reset form on complete success
       resetForm();
       onSuccess?.(tokenId);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Provenance initialization failed:', error);
+
+      // More detailed error logging
+      const errorMessage = error?.message || error?.reason || error?.data?.message || 'Unknown error';
+      console.error('Detailed error:', {
+        message: errorMessage,
+        code: error?.code,
+        data: error?.data,
+        stack: error?.stack
+      });
+
       addToast(
         `Token minted successfully (ID: ${tokenId}) but provenance initialization failed. You can initialize it manually later.`,
         'warning',
         8000
       );
+
+      // Also show the specific error in console for debugging
+      addToast(`Provenance initialization error: ${errorMessage}`, 'error');
     }
   };
 
@@ -476,24 +513,40 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
             <div>
               <label htmlFor="pricePerKg" className="block text-sm font-medium text-gray-700 mb-2">
                 <Scale className="h-4 w-4 inline mr-1" />
-                Price per kg (ETH) <span className="text-red-500">*</span>
+                Price per kg <span className="text-red-500">*</span>
               </label>
-              <input
-                type="number"
-                id="pricePerKg"
-                name="pricePerKg"
-                value={formData.pricePerKg}
-                onChange={handleInputChange}
-                placeholder="e.g., 0.01"
-                step="0.001"
-                min="0"
-                className={`w-full px-4 py-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors ${
-                  formErrors.pricePerKg ? 'border-red-400 bg-red-50' : 'border-gray-300'
-                }`}
-                disabled={isProcessing}
-              />
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  id="pricePerKg"
+                  name="pricePerKg"
+                  value={formData.pricePerKg}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 100"
+                  step="0.01"
+                  min="0"
+                  className={`flex-1 px-4 py-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors ${
+                    formErrors.pricePerKg ? 'border-red-400 bg-red-50' : 'border-gray-300'
+                  }`}
+                  disabled={isProcessing}
+                />
+                <select
+                  name="priceCurrency"
+                  value={formData.priceCurrency}
+                  onChange={handleInputChange}
+                  className="px-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                  disabled={isProcessing}
+                >
+                  <option value="KES">KSh (KES)</option>
+                  <option value="NGN">₦ (NGN)</option>
+                  <option value="USD">$ (USD)</option>
+                  <option value="ETH">Ξ (ETH)</option>
+                </select>
+              </div>
               {formErrors.pricePerKg && <p className="mt-1 text-xs text-red-600">{formErrors.pricePerKg}</p>}
-              <p className="mt-1 text-xs text-gray-500">Set your initial price per kilogram in ETH</p>
+              <p className="mt-1 text-xs text-gray-500">
+                Set your price per kilogram in {CURRENCY_CONFIG[formData.priceCurrency].name}
+              </p>
             </div>
           </div>
 
@@ -505,11 +558,12 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-green-700">Total Value:</span>
                   <span className="font-medium text-green-800">
-                    {(parseFloat(formData.pricePerKg) * parseInt(formData.quantity)).toFixed(3)} ETH
+                    {CURRENCY_CONFIG[formData.priceCurrency].symbol}{(parseFloat(formData.pricePerKg) * parseInt(formData.quantity)).toLocaleString()}
                   </span>
                 </div>
-                <SimpleCurrencyDisplay
-                  ethAmount={parseFloat(formData.pricePerKg) * parseInt(formData.quantity)}
+                <CurrencyDisplay
+                  amount={parseFloat(formData.pricePerKg) * parseInt(formData.quantity)}
+                  currency={formData.priceCurrency}
                   showAllCurrencies={true}
                 />
               </div>
