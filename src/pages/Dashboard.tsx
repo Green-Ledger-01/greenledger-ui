@@ -109,7 +109,7 @@ const Dashboard: React.FC = () => {
     ).length;
 
     // Calculate real-time stats from blockchain data per connected address
-    const totalSupplyChainTokens = (producedTokens || 0) + (inTransitTokens || 0) + (deliveredTokens || 0);
+    const totalSupplyChainTokens = Number(producedTokens || 0) + Number(inTransitTokens || 0) + Number(deliveredTokens || 0);
     const userInteractionCount = userTokenHistory ? userTokenHistory.length : 0;
 
     setLiveStats({
