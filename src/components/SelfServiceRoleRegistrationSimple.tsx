@@ -16,7 +16,7 @@ interface RoleOption {
   id: UserRole;
   title: string;
   description: string;
-  icon: React.ReactNode;
+  iconType: 'user' | 'truck' | 'shopping-cart' | 'shield';
   color: string;
   bgColor: string;
   benefits: string[];
@@ -28,7 +28,7 @@ const roleOptions: RoleOption[] = [
     id: 'farmer',
     title: 'Farmer',
     description: 'Produce and tokenize crop batches',
-    icon: <User className="w-8 h-8" />,
+    iconType: 'user',
     color: 'text-green-600',
     bgColor: 'bg-green-500',
     benefits: [
@@ -43,7 +43,7 @@ const roleOptions: RoleOption[] = [
     id: 'transporter',
     title: 'Transporter',
     description: 'Handle logistics and supply chain',
-    icon: <Truck className="w-8 h-8" />,
+    iconType: 'truck',
     color: 'text-blue-600',
     bgColor: 'bg-blue-500',
     benefits: [
@@ -58,7 +58,7 @@ const roleOptions: RoleOption[] = [
     id: 'buyer',
     title: 'Buyer',
     description: 'Purchase and verify crop batches',
-    icon: <ShoppingCart className="w-8 h-8" />,
+    iconType: 'shopping-cart',
     color: 'text-purple-600',
     bgColor: 'bg-purple-500',
     benefits: [
@@ -73,7 +73,7 @@ const roleOptions: RoleOption[] = [
     id: 'admin',
     title: 'Administrator',
     description: 'Manage platform and oversee operations',
-    icon: <Shield className="w-8 h-8" />,
+    iconType: 'shield',
     color: 'text-red-600',
     bgColor: 'bg-red-500',
     benefits: [
@@ -126,6 +126,23 @@ const SelfServiceRoleRegistrationSimple: React.FC<SelfServiceRoleRegistrationSim
   // Local state
   const [selectedRoles, setSelectedRoles] = useState<UserRole[]>([]);
   const [showConfirmation, setShowConfirmation] = useState(false);
+
+  // Helper function to render icons
+  const renderIcon = (iconType: string) => {
+    const iconProps = { className: "w-8 h-8" };
+    switch (iconType) {
+      case 'user':
+        return <User {...iconProps} />;
+      case 'truck':
+        return <Truck {...iconProps} />;
+      case 'shopping-cart':
+        return <ShoppingCart {...iconProps} />;
+      case 'shield':
+        return <Shield {...iconProps} />;
+      default:
+        return <User {...iconProps} />;
+    }
+  };
 
   // Check if user already has roles
   useEffect(() => {
@@ -326,7 +343,7 @@ const SelfServiceRoleRegistrationSimple: React.FC<SelfServiceRoleRegistrationSim
 
                       {/* Role Icon */}
                       <div className={`w-16 h-16 ${role.bgColor} rounded-lg flex items-center justify-center text-white mb-4`}>
-                        {role.icon}
+                        {renderIcon(role.iconType)}
                       </div>
 
                       {/* Role Info */}
