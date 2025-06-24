@@ -8,7 +8,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      jsxRuntime: 'automatic',
+      jsxImportSource: 'react',
+      babel: {
+        plugins: []
+      }
+    }),
     nodePolyfills({
       globals: {
         Buffer: true,
@@ -40,11 +46,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@coinbase/wallet-sdk/dist/vendor-js/eth-eip712-util/index.cjs': 'eth-eip712-util',
-      'react': path.resolve(__dirname, './node_modules/react'),
       'util': path.resolve(__dirname, 'src/shims/utils.js'),
-      'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
-      'react-router': path.resolve(__dirname, './node_modules/react-router'),
-      'react-router-dom': path.resolve(__dirname, './node_modules/react-router-dom'),
+      'react': path.resolve(__dirname, 'node_modules/react'),
+      'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
     },
     dedupe: ['react', 'react-dom'],
   },
