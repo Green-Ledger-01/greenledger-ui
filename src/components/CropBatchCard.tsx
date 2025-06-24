@@ -3,6 +3,8 @@ import { ChevronRight, Calendar, MapPin, Scale, Sprout, User, Truck, ShoppingCar
 import { useToast } from '../contexts/ToastContext';
 import { useCart } from '../contexts/CartContext';
 import { ipfsToHttp, CropMetadata } from '../utils/ipfs';
+import CurrencyDisplay from './CurrencyDisplay';
+import SimpleCurrencyDisplay from './SimpleCurrencyDisplay';
 
 interface CropBatchCardProps {
   batch: CropMetadata & { 
@@ -42,6 +44,7 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
       originFarm: batch.originFarm || 'Unknown Farm',
       harvestDate: batch.harvestDate || 0,
       image: batch.image,
+      price: batch.pricePerKg,
       owner: batch.owner || '',
     });
   };
@@ -207,7 +210,7 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
         {/* Price Highlight for Marketplace */}
         {batch.pricePerKg && (
           <div className="mb-4 p-3 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <DollarSign className="h-5 w-5 text-green-600" />
                 <span className="text-sm font-medium text-green-800">Total Price</span>
@@ -221,6 +224,13 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
                 </div>
               </div>
             </div>
+
+            {/* Multi-Currency Display */}
+            <SimpleCurrencyDisplay
+              ethAmount={batch.pricePerKg * batch.quantity}
+              showAllCurrencies={true}
+              className="mt-2"
+            />
           </div>
         )}
         
