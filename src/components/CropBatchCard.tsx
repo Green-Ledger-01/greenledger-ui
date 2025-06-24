@@ -4,7 +4,6 @@ import { useToast } from '../contexts/ToastContext';
 import { useCart } from '../contexts/CartContext';
 import { ipfsToHttp, CropMetadata } from '../utils/ipfs';
 import CurrencyDisplay from './CurrencyDisplay';
-import SimpleCurrencyDisplay from './SimpleCurrencyDisplay';
 
 interface CropBatchCardProps {
   batch: CropMetadata & { 
@@ -226,8 +225,9 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
             </div>
 
             {/* Multi-Currency Display */}
-            <SimpleCurrencyDisplay
-              ethAmount={batch.pricePerKg * batch.quantity}
+            <CurrencyDisplay
+              amount={batch.pricePerKg * batch.quantity}
+              currency="ETH"
               showAllCurrencies={true}
               className="mt-2"
             />
