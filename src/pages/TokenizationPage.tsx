@@ -19,6 +19,8 @@ import { getErrorMessage, formatTxHash, getBlockExplorerUrl } from '../utils';
 import { VALIDATION_LIMITS } from '../config/constants';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import CurrencyDisplay from '../components/CurrencyDisplay';
+import SimpleCurrencyDisplay from '../components/SimpleCurrencyDisplay';
 
 interface TokenizationPageProps {
   onSuccess?: (tokenId: number) => void;
@@ -331,6 +333,8 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
           </p>
         </div>
 
+
+
         <div className="bg-white rounded-xl shadow-lg border border-gray-200">
           {/* Header */}
           <div className="p-6 border-b border-gray-200">
@@ -492,6 +496,25 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
               <p className="mt-1 text-xs text-gray-500">Set your initial price per kilogram in ETH</p>
             </div>
           </div>
+
+          {/* Price Preview */}
+          {formData.pricePerKg && formData.quantity && !isNaN(parseFloat(formData.pricePerKg)) && !isNaN(parseInt(formData.quantity)) && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-green-800 mb-3">Price Preview</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-green-700">Total Value:</span>
+                  <span className="font-medium text-green-800">
+                    {(parseFloat(formData.pricePerKg) * parseInt(formData.quantity)).toFixed(3)} ETH
+                  </span>
+                </div>
+                <SimpleCurrencyDisplay
+                  ethAmount={parseFloat(formData.pricePerKg) * parseInt(formData.quantity)}
+                  showAllCurrencies={true}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Origin Farm */}
           <div>
