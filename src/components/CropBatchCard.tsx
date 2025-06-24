@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronRight, Calendar, MapPin, Scale, Sprout, User, Truck, ShoppingCart, Clock, Plus, Check } from 'lucide-react';
+import { ChevronRight, Calendar, MapPin, Scale, Sprout, User, Truck, ShoppingCart, Clock, Plus, Check, DollarSign } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 import { useCart } from '../contexts/CartContext';
 import { ipfsToHttp, CropMetadata } from '../utils/ipfs';
@@ -171,6 +171,18 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
             </div>
           </div>
 
+          {batch.pricePerKg && (
+            <div className="flex items-center text-gray-700">
+              <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center mr-2">
+                <DollarSign className="h-4 w-4 text-green-600" />
+              </div>
+              <div>
+                <div className="font-medium">{batch.pricePerKg} ETH/kg</div>
+                <div className="text-xs text-gray-500">Price per kg</div>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center text-gray-700">
             <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center mr-2">
               <MapPin className="h-4 w-4 text-green-600" />
@@ -191,6 +203,26 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
             </div>
           </div>
         </div>
+
+        {/* Price Highlight for Marketplace */}
+        {batch.pricePerKg && (
+          <div className="mb-4 p-3 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <DollarSign className="h-5 w-5 text-green-600" />
+                <span className="text-sm font-medium text-green-800">Total Price</span>
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-bold text-green-800">
+                  {(batch.pricePerKg * batch.quantity).toFixed(3)} ETH
+                </div>
+                <div className="text-xs text-green-600">
+                  {batch.pricePerKg} ETH/kg × {batch.quantity} kg
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Supply Chain & Owner Info */}
         {(batch.owner || batch.lastUpdated) && (
