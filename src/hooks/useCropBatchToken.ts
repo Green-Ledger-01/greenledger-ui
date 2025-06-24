@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, usePublicClient } from 'wagmi';
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, usePublicClient, useWatchContractEvent } from 'wagmi';
 import { parseEther, formatEther, getAddress } from 'viem';
 import { CONTRACT_ADDRESSES } from '../config/constants';
 import { useToast } from '../contexts/ToastContext';
@@ -39,9 +39,10 @@ export const useCropBatchToken = () => {
   const { address } = useAccount();
   const { addToast } = useToast();
   const publicClient = usePublicClient();
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Contract write hook
   const { 
@@ -92,13 +93,49 @@ export const useCropBatchToken = () => {
 
       const [cropType, quantity, originFarm, harvestDate, notes, metadataUri] = batchDetails;
 
-      // Get token owner
-      const owner = await publicClient.readContract({
-        address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
-        abi: CropBatchTokenABI,
-        functionName: 'balanceOf',
-        args: [address || '0x0000000000000000000000000000000000000000', BigInt(tokenId)],
-      });
+      // Find the current owner by checking transfer events
+      let currentOwner = '0x0000000000000000000000000000000000000000';
+
+      try {
+        // Get all transfer events for this token to find current owner
+        const transferLogs = await publicClient.getLogs({
+          address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
+          event: {
+            type: 'event',
+            name: 'TransferSingle',
+            inputs: [
+              { name: 'operator', type: 'address', indexed: true },
+              { name: 'from', type: 'address', indexed: true },
+              { name: 'to', type: 'address', indexed: true },
+              { name: 'id', type: 'uint256', indexed: false },
+              { name: 'value', type: 'uint256', indexed: false },
+            ],
+          },
+          args: {
+            id: BigInt(tokenId),
+          },
+          fromBlock: 'earliest',
+          toBlock: 'latest',
+        });
+
+        // Find the most recent transfer to get current owner
+        if (transferLogs.length > 0) {
+          const latestTransfer = transferLogs[transferLogs.length - 1];
+          currentOwner = latestTransfer.args?.to || currentOwner;
+        }
+      } catch (error) {
+        console.warn('Failed to fetch transfer events for ownership:', error);
+        // Fallback: check if current user owns it
+        const balance = await publicClient.readContract({
+          address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
+          abi: CropBatchTokenABI,
+          functionName: 'balanceOf',
+          args: [address || '0x0000000000000000000000000000000000000000', BigInt(tokenId)],
+        });
+        if (Number(balance) > 0) {
+          currentOwner = address || '0x0000000000000000000000000000000000000000';
+        }
+      }
 
       // Get minting event to find original minter
       const logs = await publicClient.getLogs({
@@ -135,7 +172,7 @@ export const useCropBatchToken = () => {
         harvestDate: Number(harvestDate),
         notes: notes as string,
         metadataUri: metadataUri as string,
-        owner: address || '0x0000000000000000000000000000000000000000',
+        owner: currentOwner,
         minter: minter as string,
         timestamp,
       };
@@ -342,6 +379,36 @@ export const useCropBatchToken = () => {
     }
   }, [receiptError, addToast]);
 
+  // Watch for transfer events to trigger live updates
+  useWatchContractEvent({
+    address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
+    abi: CropBatchTokenABI,
+    eventName: 'TransferSingle',
+    onLogs(logs) {
+      console.log('Transfer event detected:', logs);
+      // Trigger refresh for components using this hook
+      setRefreshTrigger(prev => prev + 1);
+      addToast('Ownership transfer detected - updating data...', 'info');
+    },
+  });
+
+  // Watch for batch transfer events (if using TransferBatch)
+  useWatchContractEvent({
+    address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
+    abi: CropBatchTokenABI,
+    eventName: 'TransferBatch',
+    onLogs(logs) {
+      console.log('Batch transfer event detected:', logs);
+      setRefreshTrigger(prev => prev + 1);
+      addToast('Batch transfer detected - updating data...', 'info');
+    },
+  });
+
+  // Function to manually trigger refresh
+  const triggerRefresh = useCallback(() => {
+    setRefreshTrigger(prev => prev + 1);
+  }, []);
+
   return {
     // State
     isLoading,
@@ -352,6 +419,7 @@ export const useCropBatchToken = () => {
     isConfirmed,
     nextTokenId: nextTokenId ? Number(nextTokenId) : undefined,
     isLoadingNextTokenId,
+    refreshTrigger, // For components to watch for changes
 
     // Functions
     mintNewBatch,
@@ -361,6 +429,7 @@ export const useCropBatchToken = () => {
     getAllBatches,
     clearError,
     refetchNextTokenId,
+    triggerRefresh, // Manual refresh trigger
   };
 };
 
