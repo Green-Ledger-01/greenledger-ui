@@ -4,7 +4,6 @@ import { useCart } from '../contexts/CartContext';
 import { useToast } from '../contexts/ToastContext';
 import { ipfsToHttp } from '../utils/ipfs';
 import CurrencyDisplay from './CurrencyDisplay';
-import SimpleCurrencyDisplay from './SimpleCurrencyDisplay';
 
 const CartSidebar: React.FC = () => {
   const { items, totalItems, isOpen, closeCart, removeFromCart, clearCart } = useCart();
@@ -139,8 +138,10 @@ const CartSidebar: React.FC = () => {
                         </div>
                         {item.price && (
                           <div className="mt-2">
-                            <SimpleCurrencyDisplay
-                              ethAmount={item.price * item.quantity}
+                            <CurrencyDisplay
+                              amount={item.price * item.quantity}
+                              currency="ETH"
+                              compact={true}
                             />
                           </div>
                         )}
@@ -183,8 +184,9 @@ const CartSidebar: React.FC = () => {
                 </div>
 
                 {/* Multi-Currency Display */}
-                <SimpleCurrencyDisplay
-                  ethAmount={totalPrice}
+                <CurrencyDisplay
+                  amount={totalPrice}
+                  currency="ETH"
                   showAllCurrencies={true}
                 />
               </div>
