@@ -4,6 +4,7 @@ import { useToast } from '../contexts/ToastContext';
 import { useCart } from '../contexts/CartContext';
 import { ipfsToHttp, CropMetadata } from '../utils/ipfs';
 import CurrencyDisplay from './CurrencyDisplay';
+import { useCropBatchToken } from '../hooks/useCropBatchToken';
 
 interface CropBatchCardProps {
   batch: CropMetadata & { 
@@ -17,9 +18,28 @@ interface CropBatchCardProps {
 const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
   const { addToast } = useToast();
   const { addToCart, isInCart } = useCart();
+  const { refreshTrigger, getBatchDetails } = useCropBatchToken();
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [currentOwner, setCurrentOwner] = useState(batch.owner || '');
 
   const isAlreadyInCart = isInCart(batch.tokenId);
+
+  // Update owner when transfer events are detected
+  React.useEffect(() => {
+    if (refreshTrigger > 0) {
+      const updateOwnership = async () => {
+        try {
+          const updatedBatch = await getBatchDetails(batch.tokenId);
+          if (updatedBatch && updatedBatch.owner !== currentOwner) {
+            setCurrentOwner(updatedBatch.owner);
+          }
+        } catch (error) {
+          console.warn('Failed to update ownership:', error);
+        }
+      };
+      updateOwnership();
+    }
+  }, [refreshTrigger, batch.tokenId, getBatchDetails, currentOwner]);
 
   const handleMoreInfoClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -305,16 +325,18 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
                     </div>
                   )}
 
-                  {batch.owner && (
+                  {currentOwner && (
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
                         <User className="h-5 w-5 text-green-600" />
                       </div>
                       <div>
                         <div className="font-semibold text-gray-900 font-mono text-sm">
-                          {batch.owner.slice(0, 6)}...{batch.owner.slice(-4)}
+                          {currentOwner.slice(0, 6)}...{currentOwner.slice(-4)}
                         </div>
-                        <div className="text-sm text-gray-500">Owner</div>
+                        <div className="text-sm text-gray-500">
+                          Owner {currentOwner !== batch.owner ? '(Updated)' : ''}
+                        </div>
                       </div>
                     </div>
                   )}
