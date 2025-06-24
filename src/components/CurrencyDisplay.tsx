@@ -57,8 +57,18 @@ const CurrencyDisplay: React.FC<CurrencyDisplayProps> = ({
   showAllCurrencies = false,
   compact = false,
 }) => {
-  if (amount <= 0) {
+  if (amount < 0) {
     return null;
+  }
+
+  // Handle zero price case
+  if (amount === 0) {
+    return (
+      <div className={`flex items-center gap-2 ${className}`}>
+        <DollarSign className="h-4 w-4 text-gray-400" />
+        <span className="font-medium text-gray-500">Price not set</span>
+      </div>
+    );
   }
 
   const formatCurrency = (value: number, currencyCode: string) => {

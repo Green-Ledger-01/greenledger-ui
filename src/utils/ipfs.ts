@@ -208,23 +208,29 @@ export const fetchMetadataFromIPFS = async (ipfsUri: string): Promise<CropMetada
 
   // If using mock IPFS but no stored metadata, return default mock data
   if (shouldUseMockIPFS()) {
+    // Create different mock data based on hash to simulate variety
+    const hashNum = hash.charCodeAt(hash.length - 1) % 4;
+    const mockPrices = [0.01, 0.025, 0.05, 0]; // Include one with no price
+    const mockCrops = ['Tomatoes', 'Corn', 'Wheat', 'Rice'];
+    const mockFarms = ['Green Valley Farm', 'Sunrise Agriculture', 'Organic Fields Co.', 'Fresh Harvest Farm'];
+
     const mockMetadata: CropMetadata = {
-      name: 'Mock Crop Batch',
-      description: 'This is a mock crop batch for development purposes',
+      name: `${mockCrops[hashNum]} Batch`,
+      description: `Fresh ${mockCrops[hashNum].toLowerCase()} from ${mockFarms[hashNum]}`,
       image: 'ipfs://QmMockImageHash',
       attributes: [
-        { trait_type: 'Crop Type', value: 'Mock Crop' },
-        { trait_type: 'Quantity (kg)', value: 50 },
-        { trait_type: 'Price per kg (ETH)', value: 0.01 },
-        { trait_type: 'Origin Farm', value: 'Mock Farm' },
+        { trait_type: 'Crop Type', value: mockCrops[hashNum] },
+        { trait_type: 'Quantity (kg)', value: 50 + (hashNum * 25) },
+        ...(mockPrices[hashNum] > 0 ? [{ trait_type: 'Price per kg (ETH)', value: mockPrices[hashNum] }] : []),
+        { trait_type: 'Origin Farm', value: mockFarms[hashNum] },
         { trait_type: 'Harvest Date', value: new Date().toLocaleDateString() },
       ],
-      cropType: 'Mock Crop',
-      quantity: 50,
-      pricePerKg: 0.01,
-      originFarm: 'Mock Farm',
+      cropType: mockCrops[hashNum],
+      quantity: 50 + (hashNum * 25),
+      pricePerKg: mockPrices[hashNum],
+      originFarm: mockFarms[hashNum],
       harvestDate: Math.floor(Date.now() / 1000),
-      notes: 'Mock data for development',
+      notes: `Mock ${mockCrops[hashNum].toLowerCase()} data for development`,
     };
 
     // Cache the mock result

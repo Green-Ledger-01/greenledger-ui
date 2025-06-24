@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { Filter, Search, Info, RefreshCw, Wifi, WifiOff, Clock, AlertCircle, ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react';
+import { Filter, Search, Info, RefreshCw, Wifi, WifiOff, Clock, AlertCircle, ChevronLeft, ChevronRight, ShoppingCart, DollarSign } from 'lucide-react';
 import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
 import { useCropBatchToken } from '../hooks/useCropBatchToken';
 import { useToast } from '../contexts/ToastContext';
@@ -7,6 +7,8 @@ import { useCart } from '../contexts/CartContext';
 import { fetchMetadataFromIPFS, CropMetadata } from '../utils/ipfs';
 import CropBatchCard from '../components/CropBatchCard';
 import CropBatchCardSkeleton from '../components/CropBatchCardSkeleton';
+import CropBatchModal from '../components/CropBatchModal';
+import { CURRENCY_CONFIG } from '../components/CurrencyDisplay';
 
 const Marketplace: React.FC = () => {
   const { addToast } = useToast();
@@ -34,6 +36,22 @@ const Marketplace: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'name' | 'quantity'>('newest');
+
+  // Modal state for expanded card view
+  const [selectedBatch, setSelectedBatch] = useState<(CropMetadata & {
+    tokenId: number;
+    owner?: string;
+    supplyChainStatus?: 'farmer' | 'transporter' | 'buyer';
+    lastUpdated?: number;
+  }) | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Currency preference state
+  const [selectedCurrency, setSelectedCurrency] = useState<'ETH' | 'USD' | 'KES' | 'NGN'>(() => {
+    // Load from localStorage or default to ETH
+    const saved = localStorage.getItem('marketplace_currency');
+    return (saved && ['ETH', 'USD', 'KES', 'NGN'].includes(saved)) ? saved as 'ETH' | 'USD' | 'KES' | 'NGN' : 'ETH';
+  });
 
   // Load batches from blockchain and fetch metadata from IPFS with rate limiting
   const refetchBatches = useCallback(async () => {
@@ -67,6 +85,7 @@ const Marketplace: React.FC = () => {
                   attributes: [],
                   cropType: batch.cropType,
                   quantity: batch.quantity,
+                  pricePerKg: 0, // Default price when no metadata
                   originFarm: batch.originFarm,
                   harvestDate: batch.harvestDate,
                   notes: batch.notes,
@@ -93,6 +112,7 @@ const Marketplace: React.FC = () => {
                 attributes: [],
                 cropType: batch.cropType,
                 quantity: batch.quantity,
+                pricePerKg: 0, // Default price when IPFS fetch fails
                 originFarm: batch.originFarm,
                 harvestDate: batch.harvestDate,
                 notes: batch.notes,
@@ -130,6 +150,29 @@ const Marketplace: React.FC = () => {
   useEffect(() => {
     refetchBatches();
   }, [refetchBatches]);
+
+  // Modal handlers
+  const handleExpandBatch = useCallback((batch: CropMetadata & {
+    tokenId: number;
+    owner?: string;
+    supplyChainStatus?: 'farmer' | 'transporter' | 'buyer';
+    lastUpdated?: number;
+  }) => {
+    setSelectedBatch(batch);
+    setIsModalOpen(true);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false);
+    setSelectedBatch(null);
+  }, []);
+
+  // Currency change handler
+  const handleCurrencyChange = useCallback((currency: 'ETH' | 'USD' | 'KES' | 'NGN') => {
+    setSelectedCurrency(currency);
+    localStorage.setItem('marketplace_currency', currency);
+    addToast(`Currency changed to ${CURRENCY_CONFIG[currency].name}`, 'success');
+  }, [addToast]);
 
   // Format last update time
   const formatLastUpdate = useCallback((timestamp: number) => {
@@ -255,6 +298,22 @@ const Marketplace: React.FC = () => {
 
             {/* Controls */}
             <div className="flex items-center gap-3">
+              {/* Currency Dropdown */}
+              <div className="flex items-center gap-2">
+                <DollarSign className="h-4 w-4 text-green-600" />
+                <select
+                  value={selectedCurrency}
+                  onChange={(e) => handleCurrencyChange(e.target.value as 'ETH' | 'USD' | 'KES' | 'NGN')}
+                  className="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                >
+                  {Object.entries(CURRENCY_CONFIG).map(([code, config]) => (
+                    <option key={code} value={code}>
+                      {config.symbol} {config.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Sort Dropdown */}
               <select
                 value={sortBy}
@@ -477,9 +536,15 @@ const Marketplace: React.FC = () => {
       ) : (
         <>
           {currentBatches.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
               {currentBatches.map((batch) => (
-                <CropBatchCard key={batch.tokenId} batch={batch} />
+                <CropBatchCard
+                  key={batch.tokenId}
+                  batch={batch}
+                  compact={true}
+                  onExpand={handleExpandBatch}
+                  selectedCurrency={selectedCurrency}
+                />
               ))}
             </div>
           ) : (
@@ -590,6 +655,16 @@ const Marketplace: React.FC = () => {
         </div>
       )}
       </div>
+
+      {/* Expanded Card Modal */}
+      {selectedBatch && (
+        <CropBatchModal
+          batch={selectedBatch}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          selectedCurrency={selectedCurrency}
+        />
+      )}
     </div>
   );
 };

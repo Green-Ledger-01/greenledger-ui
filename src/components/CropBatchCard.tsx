@@ -1,20 +1,23 @@
-import React from 'react';
-import { ChevronRight, Calendar, MapPin, Scale, Sprout, User, Truck, ShoppingCart, Clock, Plus, Check, DollarSign } from 'lucide-react';
+import React, { useState } from 'react';
+import { ChevronRight, Calendar, MapPin, Scale, Sprout, User, Truck, ShoppingCart, Clock, Plus, Check, DollarSign, Eye } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 import { useCart } from '../contexts/CartContext';
 import { ipfsToHttp, CropMetadata } from '../utils/ipfs';
 import CurrencyDisplay from './CurrencyDisplay';
 
 interface CropBatchCardProps {
-  batch: CropMetadata & { 
+  batch: CropMetadata & {
     tokenId: number;
     owner?: string;
     supplyChainStatus?: 'farmer' | 'transporter' | 'buyer';
     lastUpdated?: number;
   };
+  compact?: boolean;
+  onExpand?: (batch: CropBatchCardProps['batch']) => void;
+  selectedCurrency?: 'ETH' | 'USD' | 'KES' | 'NGN';
 }
 
-const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
+const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch, compact = false, onExpand, selectedCurrency = 'ETH' }) => {
   const { addToast } = useToast();
   const { addToCart, isInCart } = useCart();
 
@@ -22,8 +25,19 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
 
   const handleMoreInfoClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    addToast(`Displaying more info for Batch ID: ${batch.tokenId}. Crop Type: ${batch.cropType}`, 'info');
-    // In a real app, this would open a modal or navigate to a detail page
+    if (compact && onExpand) {
+      onExpand(batch);
+    } else {
+      addToast(`Displaying more info for Batch ID: ${batch.tokenId}. Crop Type: ${batch.cropType}`, 'info');
+      // In a real app, this would open a modal or navigate to a detail page
+    }
+  };
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (compact && onExpand) {
+      e.preventDefault();
+      onExpand(batch);
+    }
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -102,6 +116,97 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
     return 'Just now';
   };
 
+  // Compact card layout
+  if (compact) {
+    return (
+      <div
+        onClick={handleCardClick}
+        className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 hover:scale-105 overflow-hidden group border border-gray-100 cursor-pointer animate-scaleIn"
+      >
+        {/* Image Section */}
+        <div className="relative overflow-hidden">
+          <img
+            src={ipfsToHttp(batch.image) || getPlaceholderImage()}
+            alt={batch.name || 'Crop Batch Image'}
+            className="w-full h-32 object-cover transition-transform duration-300 group-hover:scale-105"
+            onError={(e) => {
+              e.currentTarget.src = getPlaceholderImage();
+              e.currentTarget.onerror = null; // Prevent infinite loop
+            }}
+          />
+
+          {/* Token ID Badge */}
+          <div className="absolute top-2 left-2 bg-gradient-to-br from-green-500 to-green-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+            #{batch.tokenId}
+          </div>
+
+          {/* View Details Icon */}
+          <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <Eye className="h-3 w-3" />
+          </div>
+        </div>
+
+        {/* Content Section */}
+        <div className="p-4">
+          {/* Title */}
+          <h3 className="text-lg font-bold text-gray-900 mb-2 truncate">
+            {batch.name || `Batch #${batch.tokenId}`}
+          </h3>
+
+          {/* Essential Info Grid */}
+          <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
+            <div className="flex items-center text-gray-700">
+              <Sprout className="h-3 w-3 text-green-600 mr-1" />
+              <span className="font-medium truncate">{batch.cropType}</span>
+            </div>
+            <div className="flex items-center text-gray-700">
+              <Scale className="h-3 w-3 text-green-600 mr-1" />
+              <span className="font-medium">{batch.quantity} kg</span>
+            </div>
+          </div>
+
+          {/* Price */}
+          <div className="mb-3 p-2 bg-green-50 rounded-lg border border-green-200">
+            <div className="text-center">
+              <CurrencyDisplay
+                amount={batch.pricePerKg ? batch.pricePerKg * batch.quantity : 0}
+                currency={selectedCurrency}
+                compact={true}
+              />
+            </div>
+          </div>
+
+          {/* Quick Action Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleAddToCart(e);
+            }}
+            disabled={isAlreadyInCart}
+            className={`w-full py-2 px-3 rounded-lg transition-all duration-200 font-medium flex items-center justify-center space-x-2 text-sm ${
+              isAlreadyInCart
+                ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                : 'bg-green-600 text-white hover:bg-green-700'
+            }`}
+          >
+            {isAlreadyInCart ? (
+              <>
+                <Check className="h-3 w-3" />
+                <span>In Cart</span>
+              </>
+            ) : (
+              <>
+                <Plus className="h-3 w-3" />
+                <span>Add to Cart</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Full card layout (existing)
   return (
     <div className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group border border-gray-100">
       {/* Image Section */}
@@ -120,7 +225,7 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
         <div className="absolute top-3 left-3 bg-gradient-to-br from-green-500 to-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
           ID: {batch.tokenId}
         </div>
-        
+
         {/* Supply Chain Status Badge */}
         {batch.supplyChainStatus && (
           <div className={`absolute top-3 right-3 text-xs font-bold px-2 py-1 rounded-full shadow-md border ${getSupplyChainColor(batch.supplyChainStatus)}`}>
@@ -130,7 +235,7 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
             </div>
           </div>
         )}
-        
+
         {/* Certifications Badge */}
         {batch.certifications && batch.certifications.length > 0 && (
           <div className="absolute bottom-3 right-3 bg-gradient-to-br from-green-500 to-green-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
@@ -173,17 +278,19 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
             </div>
           </div>
 
-          {batch.pricePerKg && (
-            <div className="flex items-center text-gray-700">
-              <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center mr-2">
-                <DollarSign className="h-4 w-4 text-green-600" />
-              </div>
-              <div>
-                <div className="font-medium">{batch.pricePerKg} ETH/kg</div>
-                <div className="text-xs text-gray-500">Price per kg</div>
-              </div>
+          <div className="flex items-center text-gray-700">
+            <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center mr-2">
+              <DollarSign className="h-4 w-4 text-green-600" />
             </div>
-          )}
+            <div>
+              <CurrencyDisplay
+                amount={batch.pricePerKg || 0}
+                currency={selectedCurrency}
+                compact={true}
+              />
+              <div className="text-xs text-gray-500">Price per kg</div>
+            </div>
+          </div>
 
           <div className="flex items-center text-gray-700">
             <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center mr-2">
@@ -207,32 +314,40 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
         </div>
 
         {/* Price Highlight for Marketplace */}
-        {batch.pricePerKg && (
-          <div className="mb-4 p-3 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-green-600" />
-                <span className="text-sm font-medium text-green-800">Total Price</span>
-              </div>
-              <div className="text-right">
-                <div className="text-lg font-bold text-green-800">
-                  {(batch.pricePerKg * batch.quantity).toFixed(3)} ETH
-                </div>
-                <div className="text-xs text-green-600">
-                  {batch.pricePerKg} ETH/kg × {batch.quantity} kg
-                </div>
-              </div>
+        <div className="mb-4 p-3 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-green-600" />
+              <span className="text-sm font-medium text-green-800">Total Price</span>
             </div>
+            <div className="text-right">
+              <CurrencyDisplay
+                amount={batch.pricePerKg ? batch.pricePerKg * batch.quantity : 0}
+                currency={selectedCurrency}
+                compact={true}
+              />
+              {batch.pricePerKg && (
+                <div className="text-xs text-green-600">
+                  <CurrencyDisplay
+                    amount={batch.pricePerKg}
+                    currency={selectedCurrency}
+                    compact={true}
+                  /> × {batch.quantity} kg
+                </div>
+              )}
+            </div>
+          </div>
 
-            {/* Multi-Currency Display */}
+          {/* Multi-Currency Display */}
+          {batch.pricePerKg && (
             <CurrencyDisplay
               amount={batch.pricePerKg * batch.quantity}
-              currency="ETH"
+              currency={selectedCurrency}
               showAllCurrencies={true}
               className="mt-2"
             />
-          </div>
-        )}
+          )}
+        </div>
         
         {/* Supply Chain & Owner Info */}
         {(batch.owner || batch.lastUpdated) && (
