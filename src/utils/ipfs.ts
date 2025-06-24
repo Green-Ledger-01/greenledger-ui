@@ -22,6 +22,7 @@ export interface CropMetadata {
   attributes: CropMetadataAttribute[];
   cropType: string;
   quantity: number;
+  pricePerKg?: number; // Price per kg in ETH
   originFarm: string;
   harvestDate: number; // Unix timestamp
   notes: string;
@@ -39,6 +40,7 @@ export interface UploadCropBatchParams {
   imageFile: File;
   cropType: string;
   quantity: number;
+  pricePerKg?: number; // Price per kg in ETH
   originFarm: string;
   harvestDate: number;
   notes: string;
@@ -213,11 +215,13 @@ export const fetchMetadataFromIPFS = async (ipfsUri: string): Promise<CropMetada
       attributes: [
         { trait_type: 'Crop Type', value: 'Mock Crop' },
         { trait_type: 'Quantity (kg)', value: 50 },
+        { trait_type: 'Price per kg (ETH)', value: 0.01 },
         { trait_type: 'Origin Farm', value: 'Mock Farm' },
         { trait_type: 'Harvest Date', value: new Date().toLocaleDateString() },
       ],
       cropType: 'Mock Crop',
       quantity: 50,
+      pricePerKg: 0.01,
       originFarm: 'Mock Farm',
       harvestDate: Math.floor(Date.now() / 1000),
       notes: 'Mock data for development',
@@ -311,6 +315,7 @@ const createMetadataObject = (params: UploadCropBatchParams, imageUri: string): 
     attributes: [
       { trait_type: 'Crop Type', value: params.cropType },
       { trait_type: 'Quantity (kg)', value: params.quantity },
+      ...(params.pricePerKg ? [{ trait_type: 'Price per kg (ETH)', value: params.pricePerKg }] : []),
       { trait_type: 'Origin Farm', value: params.originFarm },
       { trait_type: 'Harvest Date', value: new Date(params.harvestDate * 1000).toLocaleDateString() },
       ...(params.notes ? [{ trait_type: 'Notes', value: params.notes }] : []),
@@ -319,6 +324,7 @@ const createMetadataObject = (params: UploadCropBatchParams, imageUri: string): 
     ],
     cropType: params.cropType,
     quantity: params.quantity,
+    pricePerKg: params.pricePerKg,
     originFarm: params.originFarm,
     harvestDate: params.harvestDate,
     notes: params.notes,
