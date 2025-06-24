@@ -11,7 +11,7 @@ import CropBatchCardSkeleton from '../components/CropBatchCardSkeleton';
 const Marketplace: React.FC = () => {
   const { addToast } = useToast();
   const { isConnected } = useWeb3Enhanced();
-  const { getAllBatches, isLoading, error } = useCropBatchToken();
+  const { getAllBatches, isLoading, error, refreshTrigger } = useCropBatchToken();
   const { totalItems, toggleCart } = useCart();
 
   // Real blockchain data with IPFS metadata
@@ -130,6 +130,14 @@ const Marketplace: React.FC = () => {
   useEffect(() => {
     refetchBatches();
   }, [refetchBatches]);
+
+  // Auto-refresh when transfer events are detected
+  useEffect(() => {
+    if (refreshTrigger > 0) {
+      console.log('Auto-refreshing marketplace due to transfer event');
+      refetchBatches();
+    }
+  }, [refreshTrigger, refetchBatches]);
 
   // Format last update time
   const formatLastUpdate = useCallback((timestamp: number) => {
