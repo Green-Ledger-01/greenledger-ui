@@ -33,7 +33,7 @@ const TransferOwnershipPage: React.FC = () => {
 
   // Hooks
   const { data: userRole } = useUserRole(address);
-  const { getUserTokens, transferToken } = useCropBatchToken();
+  const { getUserTokens, transferToken, triggerRefresh } = useCropBatchToken();
   const { writeContract: transferWithProvenance, isPending: isTransferring } = useTransferWithProvenance();
   const { writeAsync: initializeProvenance } = useInitializeProvenance();
 
@@ -253,6 +253,9 @@ const TransferOwnershipPage: React.FC = () => {
 
       form.resetFields();
       setSelectedToken(null);
+
+      // Trigger global refresh for all components
+      triggerRefresh();
 
       // Refresh tokens after transfer
       await fetchEnhancedTokens();
