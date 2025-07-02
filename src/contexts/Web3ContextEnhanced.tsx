@@ -1,4 +1,4 @@
-import { createContext, useContext, useCallback, useState, useEffect } from "react";
+import React, { createContext, useContext, useCallback, useState, useEffect } from "react";
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { CONTRACT_ADDRESSES, DEFAULT_ADMIN_ROLE } from "../config/constants";
 import { useToast } from "./ToastContext";
