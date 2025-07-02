@@ -2,6 +2,8 @@
 
 A modern, responsive React application for tracking agricultural supply chains using blockchain technology. Built with TypeScript, Tailwind CSS, and Web3 integration.
 
+View the Live Deployement [https://greenledger-ui-two.vercel.app/](https://greenledger-ui-two.vercel.app/)
+
 ## 🌟 Features
 
 ### Core Functionality
