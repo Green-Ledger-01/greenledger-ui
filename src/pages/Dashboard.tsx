@@ -4,7 +4,7 @@ import { Activity, MapPin, Zap, TrendingUp, Users, Package, Wifi, WifiOff, Refre
 import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
 import { useCropBatchToken } from '../hooks/useCropBatchToken';
 import { useUserTokenHistory, useTokensByState } from '../hooks/useSupplyChainManager';
-import CartCheckoutSection from '../components/CartCheckoutSection';
+
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -58,8 +58,8 @@ const Dashboard: React.FC = () => {
       path: '/marketplace',
     },
     {
-      title: 'Track Supply Chain',
-      description: 'Monitor batch movements',
+      title: 'Checkout and Track',
+      description: 'Complete purchases and track batches',
       icon: MapPin,
       color: 'bg-yellow-500 hover:bg-yellow-600',
       path: '/track',
@@ -225,6 +225,13 @@ const Dashboard: React.FC = () => {
                 Marketplace
               </button>
               <button
+                onClick={() => navigate('/track')}
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all text-sm"
+              >
+                <MapPin className="h-4 w-4" />
+                Checkout & Track
+              </button>
+              <button
                 onClick={() => navigate('/tokenize')}
                 className="flex items-center gap-2 bg-gray-100 text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-200 transition-all border border-gray-200 text-sm"
               >
@@ -344,10 +351,7 @@ const Dashboard: React.FC = () => {
         </div>
       </section>
 
-      {/* Cart Checkout Section */}
-      <section>
-        <CartCheckoutSection />
-      </section>
+
       </div>
     </div>
   );

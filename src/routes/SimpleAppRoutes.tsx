@@ -17,7 +17,7 @@ import TokenizationPage from '../pages/TokenizationPage';
 import TransferOwnershipPage from '../pages/TransferOwnershipPage';
 import SupplyChainExplorer from '../pages/SupplyChainExplorer';
 import Marketplace from '../pages/Marketplace';
-import SupplyChainTracker from '../pages/SupplyChainTracker';
+import CheckoutAndTrack from '../pages/CheckoutAndTrack';
 
 // Simple Connect Button Component using HybridConnectButton
 const SimpleConnectButton: React.FC = () => {
@@ -120,8 +120,8 @@ const AppContent = () => {
               <Route path="/transfer" element={<TransferOwnershipPage />} />
               <Route path="/explorer" element={<SupplyChainExplorer />} />
               <Route path="/marketplace" element={<Marketplace />} />
-              <Route path="/track" element={<SupplyChainTracker />} />
-              <Route path="/track/:tokenId" element={<SupplyChainTracker />} />
+              <Route path="/track" element={<CheckoutAndTrack />} />
+              <Route path="/track/:tokenId" element={<CheckoutAndTrack />} />
               <Route path="/auth" element={<AuthenticationPage />} />
               <Route path="/auth-test" element={<AuthTestPage />} />
             </Routes>

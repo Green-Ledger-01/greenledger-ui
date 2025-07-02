@@ -14,7 +14,8 @@ import {
   AlertCircle,
   RefreshCw,
   ExternalLink,
-  LoadingOutlined
+  LoadingOutlined,
+  CreditCard
 } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
@@ -22,12 +23,14 @@ import { useProvenanceHistory, useTransferWithProvenance } from '../hooks/useSup
 import { useCropBatchToken } from '../hooks/useCropBatchToken';
 import { fetchMetadataFromIPFS, CropMetadata } from '../utils/ipfs';
 import { CONTRACT_ADDRESSES } from '../config/constants';
+import CartCheckoutSection from '../components/CartCheckoutSection';
+import OwnershipTracker from '../components/OwnershipTracker';
 
-interface SupplyChainTrackerProps {
+interface CheckoutAndTrackProps {
   tokenId?: number;
 }
 
-const SupplyChainTracker: React.FC<SupplyChainTrackerProps> = ({ tokenId: propTokenId }) => {
+const CheckoutAndTrack: React.FC<CheckoutAndTrackProps> = ({ tokenId: propTokenId }) => {
   const { tokenId: paramTokenId } = useParams<{ tokenId: string }>();
   const navigate = useNavigate();
   const { addToast } = useToast();
@@ -49,7 +52,7 @@ const SupplyChainTracker: React.FC<SupplyChainTrackerProps> = ({ tokenId: propTo
   const [batchMetadata, setBatchMetadata] = useState<CropMetadata | null>(null);
 
   // Real blockchain hooks
-  const { getAllBatches } = useCropBatchToken();
+  const { getAllBatches, triggerRefresh, refreshTrigger } = useCropBatchToken();
   const { data: provenanceHistory, refetch: refetchProvenance } = useProvenanceHistory(BigInt(selectedTokenId));
   const { writeAsync: transferWithProvenance, isPending: isTransferring } = useTransferWithProvenance();
 
@@ -133,6 +136,14 @@ const SupplyChainTracker: React.FC<SupplyChainTrackerProps> = ({ tokenId: propTo
     }
   }, [selectedTokenId, getSupplyChainHistory]);
 
+  // Auto-refresh when transfer events are detected
+  useEffect(() => {
+    if (refreshTrigger > 0 && selectedTokenId) {
+      console.log('Auto-refreshing supply chain data due to transfer event');
+      getSupplyChainHistory(selectedTokenId);
+    }
+  }, [refreshTrigger, selectedTokenId, getSupplyChainHistory]);
+
   // Handle transfer submission
   const handleTransfer = async () => {
     if (!transferAddress || !selectedTokenId) {
@@ -165,6 +176,9 @@ const SupplyChainTracker: React.FC<SupplyChainTrackerProps> = ({ tokenId: propTo
       setShowTransferModal(false);
       setTransferAddress('');
       addToast('Transfer initiated successfully', 'success');
+
+      // Trigger global refresh for all components
+      triggerRefresh();
 
       // Refresh the supply chain history after transfer
       setTimeout(() => {
@@ -240,15 +254,27 @@ const SupplyChainTracker: React.FC<SupplyChainTrackerProps> = ({ tokenId: propTo
       {/* Header */}
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Supply Chain Tracker
+          Checkout and Track
         </h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Track your crop batches through the complete supply chain journey
+          Complete your purchases and track crop batches through the supply chain
         </p>
       </div>
 
-      {/* Token ID Selector */}
+      {/* Cart Checkout Section */}
+      <CartCheckoutSection />
+
+      {/* Supply Chain Tracking Section */}
       <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Supply Chain Tracking
+          </h2>
+          <p className="text-gray-600">
+            Track your crop batches through the complete supply chain journey
+          </p>
+        </div>
+
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div>
             <label htmlFor="tokenId" className="block text-sm font-medium text-gray-700 mb-2">
@@ -274,7 +300,7 @@ const SupplyChainTracker: React.FC<SupplyChainTrackerProps> = ({ tokenId: propTo
               <RefreshCw className={`h-4 w-4 ${isLoadingHistory ? 'animate-spin' : ''}`} />
               {isLoadingHistory ? 'Loading...' : 'Track Batch'}
             </button>
-            
+
             {(hasRole('farmer') || hasRole('transporter') || hasRole('buyer')) && (
               <button
                 onClick={() => setShowTransferModal(true)}
@@ -286,6 +312,9 @@ const SupplyChainTracker: React.FC<SupplyChainTrackerProps> = ({ tokenId: propTo
             )}
           </div>
         </div>
+
+        {/* Live Ownership Tracker */}
+        <OwnershipTracker tokenId={selectedTokenId} className="mt-4" />
       </div>
 
       {/* Batch Information */}
@@ -508,4 +537,4 @@ const SupplyChainTracker: React.FC<SupplyChainTrackerProps> = ({ tokenId: propTo
   );
 };
 
-export default SupplyChainTracker;
+export default CheckoutAndTrack;

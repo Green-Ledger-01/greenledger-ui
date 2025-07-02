@@ -59,10 +59,10 @@ const SidebarSimple: React.FC<SidebarSimpleProps> = ({ isOpen, toggleSidebar }) 
       description: 'Browse crop batches'
     },
     {
-      name: 'Track Supply Chain',
+      name: 'Checkout and Track',
       href: '/track',
       icon: Truck,
-      description: 'Track batch journey'
+      description: 'Complete purchases and track batches'
     },
     {
       name: 'Profile',
