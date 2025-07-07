@@ -274,23 +274,9 @@ Ensure all environment variables are properly set in your production environment
 4. Write comprehensive tests
 5. Follow the established code structure
 
-### Code Style
-- Use ESLint and Prettier for code formatting
-- Follow React best practices
-- Use semantic commit messages
-- Document complex functions and components
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-For support and questions:
-1. Check the documentation
-2. Review existing issues
-3. Create a new issue with detailed information
-4. Contact the development team
 
 ## 🔄 Updates and Roadmap
 
@@ -312,4 +298,3 @@ For support and questions:
 
 Built with ❤️ for sustainable agriculture and blockchain technology.
 
-> **Latest Update**: Fixed import.meta.env undefined error in production builds.
