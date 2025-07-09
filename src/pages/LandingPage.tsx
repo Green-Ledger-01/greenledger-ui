@@ -225,10 +225,9 @@ const LandingPage: React.FC = () => {
 
       {/* Hero Section */}
       <section id="hero" className="relative overflow-hidden">
-        {/* Split Background */}
         <div className="absolute inset-0 flex">
           <div className="w-1/2 bg-green-600"></div>
-          <div className="w-1/2 bg-white"></div>
+          <div className="w-1/2 bg-green-600"></div>
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
@@ -349,9 +348,8 @@ const LandingPage: React.FC = () => {
 
       {/* Stats Section */}
       <section id="stats" className="relative overflow-hidden py-16">
-        {/* Split Background - Reversed */}
         <div className="absolute inset-0 flex">
-          <div className="w-1/2 bg-white"></div>
+          <div className="w-1/2 bg-green-600"></div>
           <div className="w-1/2 bg-green-600"></div>
         </div>
 
@@ -380,10 +378,9 @@ const LandingPage: React.FC = () => {
 
       {/* Features Section */}
       <section id="features" className="relative overflow-hidden py-20">
-        {/* Split Background */}
         <div className="absolute inset-0 flex">
           <div className="w-1/2 bg-green-600"></div>
-          <div className="w-1/2 bg-gray-50"></div>
+          <div className="w-1/2 bg-green-600"></div>
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -418,7 +415,7 @@ const LandingPage: React.FC = () => {
       <section id="benefits" className="relative overflow-hidden py-20">
         {/* Split Background - Reversed */}
         <div className="absolute inset-0 flex">
-          <div className="w-1/2 bg-gray-50"></div>
+          <div className="w-1/2 bg-green-600"></div>
           <div className="w-1/2 bg-green-600"></div>
         </div>
 
@@ -486,7 +483,7 @@ const LandingPage: React.FC = () => {
         {/* Split Background */}
         <div className="absolute inset-0 flex">
           <div className="w-1/2 bg-green-600"></div>
-          <div className="w-1/2 bg-white"></div>
+          <div className="w-1/2 bg-green-600"></div>
         </div>
 
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -618,7 +615,7 @@ const LandingPage: React.FC = () => {
           <div className="border-t border-gray-800 mt-12 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <p className="text-gray-400 text-center md:text-left">
-                &copy; 2024 GreenLedger. All rights reserved. Powered by blockchain technology.
+                &copy; 2025 GreenLedger. All rights reserved. Powered by blockchain technology.
               </p>
               <div className="flex items-center space-x-6 mt-4 md:mt-0">
                 <span className="text-gray-400 text-sm">Built with</span>
