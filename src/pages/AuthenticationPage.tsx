@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthState } from '../hooks/useAuthState';
-import HybridConnectButton from '../components/HybridConnectButton';
+import { useAccount } from 'wagmi';
+import ConnectButtonWrapper from '../components/ConnectButtonWrapper';
 import LoadingSpinner from '../components/LoadingSpinner';
 import {
   Shield,
@@ -22,16 +22,16 @@ import {
 
 const AuthenticationPage: React.FC = () => {
   const navigate = useNavigate();
-  const { isAnyConnected, isStable, isConnecting } = useAuthState();
+  const { isConnected } = useAccount();
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  // Redirect to dashboard only when connection is stable and established
+  // Redirect to dashboard when connected
   useEffect(() => {
-    if (isAnyConnected && isStable && !isRedirecting && !isConnecting) {
+    if (isConnected && !isRedirecting) {
       setIsRedirecting(true);
       navigate('/');
     }
-  }, [isAnyConnected, isStable, isRedirecting, isConnecting, navigate]);
+  }, [isConnected, isRedirecting, navigate]);
 
   // Show loading state during connection or redirect
   if (isConnecting || isRedirecting) {
@@ -315,7 +315,7 @@ const AuthenticationPage: React.FC = () => {
               </div>
 
               <div className="max-w-md mx-auto">
-                <HybridConnectButton variant="secondary" />
+                <ConnectButtonWrapper variant="secondary" />
               </div>
 
               <div className="mt-8 pt-6 border-t border-white/20">
