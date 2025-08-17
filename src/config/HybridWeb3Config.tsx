@@ -6,23 +6,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 // Use the existing wagmi config
 import { config } from './wagmiConfig';
 
-// Particle Network imports (updated to use auth-core only)
-import { 
-  AuthCoreContextProvider, 
-  PromptSettingType
-} from '@particle-network/authkit';
-
-import { AuthType } from '@particle-network/auth-core';
-
 // Import RainbowKit styles
 import '@rainbow-me/rainbowkit/styles.css';
 
-// Environment variables validation
+// Environment variables validation (simplified for WalletConnect only)
 const validateEnvVars = () => {
   const requiredVars = {
-    VITE_PARTICLE_PROJECT_ID: import.meta.env.VITE_PARTICLE_PROJECT_ID,
-    VITE_PARTICLE_CLIENT_KEY: import.meta.env.VITE_PARTICLE_CLIENT_KEY,
-    VITE_PARTICLE_APP_ID: import.meta.env.VITE_PARTICLE_APP_ID,
     VITE_WALLETCONNECT_PROJECT_ID: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID,
   };
 
@@ -38,27 +27,7 @@ const validateEnvVars = () => {
   return requiredVars;
 };
 
-// Lisk Sepolia configuration
-const liskSepolia = {
-  id: 4202,
-  name: 'Lisk Sepolia',
-  network: 'lisk-sepolia',
-  nativeCurrency: { 
-    name: 'Sepolia Ether', 
-    symbol: 'ETH', 
-    decimals: 18 
-  },
-  rpcUrls: {
-    default: { http: ['https://rpc.sepolia-api.lisk.com'] },
-    public: { http: ['https://rpc.sepolia-api.lisk.com'] },
-  },
-  blockExplorers: {
-    default: { 
-      name: 'Blockscout', 
-      url: 'https://sepolia-blockscout.lisk.com' 
-    },
-  },
-};
+// Lisk Sepolia configuration is imported from chains/liskSepolia
 
 // React Query client with Web3-optimized settings
 const queryClient = new QueryClient({
@@ -78,93 +47,45 @@ const queryClient = new QueryClient({
   },
 });
 
-interface HybridWeb3ProviderProps {
+interface Web3ProviderProps {
   children: React.ReactNode;
 }
 
 /**
- * Updated Hybrid Web3 Provider with simplified Particle integration
- * 
- * Key Changes:
- * 1. Removed AuthKitProvider dependency (not needed for core functionality)
- * 2. Simplified chain configuration to use single Lisk Sepolia definition
- * 3. Added explicit type for authTypes array
- * 4. Improved environment variable handling with fallbacks
- * 5. Enhanced security configuration
+ * Web3 Provider using RainbowKit and Wagmi
+ *
+ * Provides wallet connection functionality through RainbowKit with:
+ * - MetaMask, Coinbase Wallet, and WalletConnect support
+ * - Lisk Sepolia network configuration
+ * - Custom GreenLedger theme
+ * - React Query integration for caching
  */
-export const HybridWeb3Provider: React.FC<HybridWeb3ProviderProps> = ({ children }) => {
-  const envVars = validateEnvVars();
+export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
+  validateEnvVars();
 
   return (
-    <AuthCoreContextProvider
-      options={{
-        projectId: envVars.VITE_PARTICLE_PROJECT_ID || 'default-project-id',
-        clientKey: envVars.VITE_PARTICLE_CLIENT_KEY || 'default-client-key',
-        appId: envVars.VITE_PARTICLE_APP_ID || 'default-app-id',
-        
-        // Authentication methods
-        authTypes: [
-          AuthType.email,
-          AuthType.google,
-          AuthType.twitter,
-        ] as AuthType[], // Explicit type for TS safety
-        
-        // UI Configuration
-        themeType: 'dark',
-        language: 'en',
-
-        // Chain configuration - focus on Lisk Sepolia
-        chains: [liskSepolia],
-
-        // Security configuration
-        securityAccount: {
-          // Prompt settings
-          promptSettingWhenSign: 1, // First time only
-          promptMasterPasswordSettingWhenLogin: 1 // First time only
-        },
-
-        // Authentication persistence and redirect configuration
-        // Use Particle Network's default redirect handling for better compatibility
-        // redirectUrl: typeof window !== 'undefined' ? `${window.location.origin}/redirect.html` : undefined,
-
-        // Additional OAuth configuration for better redirect handling
-        customStyle: {
-          // Ensure the modal doesn't interfere with OAuth redirects
-          zIndex: 1000,
-        },
-        
-        // Wallet configuration
-        wallet: {
-          visible: true,
-          preload: true,
-          customStyle: {
-            supportChains: [liskSepolia],
-            supportUIModeSwitch: true,
-          }
-        },
-      }}
-    >
-      <WagmiProvider config={config}>
-        <QueryClientProvider client={queryClient}>
-          <RainbowKitProvider
-            theme={darkTheme({
-              accentColor: '#10B981', // green-500
-              accentColorForeground: 'white',
-              borderRadius: 'large',
-              fontStack: 'system',
-              overlayBlur: 'small',
-            })}
-            chains={[liskSepolia]}
-            modalSize="compact"
-            showRecentTransactions={true}
-          >
-            {children}
-          </RainbowKitProvider>
-        </QueryClientProvider>
-      </WagmiProvider>
-    </AuthCoreContextProvider>
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider
+          theme={darkTheme({
+            accentColor: '#10B981', // green-500
+            accentColorForeground: 'white',
+            borderRadius: 'large',
+            fontStack: 'system',
+            overlayBlur: 'small',
+          })}
+          modalSize="compact"
+          showRecentTransactions={true}
+        >
+          {children}
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 };
 
 // Export configurations
 export { config as wagmiConfig, queryClient };
+
+// Backward compatibility export
+export const HybridWeb3Provider = Web3Provider;
