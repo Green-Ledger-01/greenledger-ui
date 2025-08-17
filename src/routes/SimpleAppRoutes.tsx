@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Menu } from 'lucide-react';
-import { useAuthState } from '../hooks/useAuthState';
+import { useAccount } from 'wagmi';
 import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
 import SelfServiceRoleRegistrationSimple from '../components/SelfServiceRoleRegistrationSimple';
 import SidebarSimple from '../components/SidebarSimple';
 import CartSidebar from '../components/CartSidebar';
-import HybridConnectButton from '../components/HybridConnectButton';
+import ConnectButtonWrapper from '../components/ConnectButtonWrapper';
 import LoadingSpinner from '../components/LoadingSpinner';
 import LandingPage from '../pages/LandingPage';
 import AuthenticationPage from '../pages/AuthenticationPage';
-import AuthTestPage from '../pages/AuthTestPage';
+
 import Dashboard from '../pages/Dashboard';
 import UserProfile from '../pages/RegisterUserSimple';
 import TokenizationPage from '../pages/TokenizationPage';
@@ -19,38 +19,24 @@ import SupplyChainExplorer from '../pages/SupplyChainExplorer';
 import Marketplace from '../pages/Marketplace';
 import CheckoutAndTrack from '../pages/CheckoutAndTrack';
 
-// Simple Connect Button Component using HybridConnectButton
+// Simple Connect Button Component using ConnectButtonWrapper
 const SimpleConnectButton: React.FC = () => {
-  return <HybridConnectButton variant="compact" />;
+  return <ConnectButtonWrapper variant="compact" />;
 };
 
 // Main App Content Component
 const AppContent = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { needsRoleRegistration } = useWeb3Enhanced();
-  const { isAnyConnected, isConnecting } = useAuthState();
+  const { isConnected } = useAccount();
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  // Show landing page if not connected, but don't show it during connection process
-  if (!isAnyConnected && !isConnecting) {
+  // Show landing page if not connected
+  if (!isConnected) {
     return <LandingPage />;
-  }
-
-  // Show loading state during connection
-  if (isConnecting) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 flex items-center justify-center">
-        <LoadingSpinner
-          variant="branded"
-          size="xl"
-          text="Connecting to your wallet..."
-          className="p-8"
-        />
-      </div>
-    );
   }
 
   // Show role registration overlay if needed
@@ -123,7 +109,7 @@ const AppContent = () => {
               <Route path="/track" element={<CheckoutAndTrack />} />
               <Route path="/track/:tokenId" element={<CheckoutAndTrack />} />
               <Route path="/auth" element={<AuthenticationPage />} />
-              <Route path="/auth-test" element={<AuthTestPage />} />
+
             </Routes>
           </div>
         </main>
