@@ -1,6 +1,8 @@
 /**
- * OAuth redirect handler utilities
- * Handles OAuth redirect messages from popup windows and iframes
+ * @deprecated OAuth redirect handler utilities
+ * This file is no longer needed after migrating to RainbowKit-only authentication.
+ * RainbowKit handles wallet connections without OAuth flows.
+ * This file will be removed in the next cleanup phase.
  */
 
 export interface OAuthResult {
@@ -14,74 +16,29 @@ export interface OAuthResult {
 }
 
 /**
- * Set up OAuth message listener
+ * @deprecated Set up OAuth message listener - no longer needed with RainbowKit
  */
 export const setupOAuthListener = (): (() => void) => {
-  const handleMessage = (event: MessageEvent) => {
-    // Verify origin for security
-    if (event.origin !== window.location.origin) {
-      return;
-    }
+  console.warn('setupOAuthListener is deprecated - RainbowKit handles wallet connections directly');
 
-    if (event.data?.type === 'PARTICLE_AUTH_RESULT') {
-      const result: OAuthResult = event.data.result;
-      
-      console.log('Received OAuth result:', result);
-      
-      // Handle the OAuth result
-      if (result.error) {
-        console.error('OAuth error:', result.error, result.errorDescription);
-        // You can dispatch a custom event or call a callback here
-        window.dispatchEvent(new CustomEvent('particle-auth-error', {
-          detail: { error: result.error, description: result.errorDescription }
-        }));
-      } else {
-        console.log('OAuth success:', result);
-        // You can dispatch a custom event or call a callback here
-        window.dispatchEvent(new CustomEvent('particle-auth-success', {
-          detail: result
-        }));
-      }
-    }
-  };
-
-  // Add the event listener
-  window.addEventListener('message', handleMessage);
-
-  // Return cleanup function
+  // Return no-op cleanup function
   return () => {
-    window.removeEventListener('message', handleMessage);
+    // No-op
   };
 };
 
 /**
- * Initialize OAuth handling
+ * @deprecated Initialize OAuth handling - no longer needed with RainbowKit
  */
 export const initializeOAuthHandling = (): void => {
-  // Set up the message listener
-  const cleanup = setupOAuthListener();
-
-  // Store cleanup function for later use
-  (window as any).__oauthCleanup = cleanup;
-
-  // Add event listeners for OAuth events
-  window.addEventListener('particle-auth-success', (event: any) => {
-    console.log('OAuth authentication successful:', event.detail);
-    // The Particle Network SDK should handle this automatically
-  });
-
-  window.addEventListener('particle-auth-error', (event: any) => {
-    console.error('OAuth authentication failed:', event.detail);
-    // You can show an error message to the user here
-  });
+  console.warn('initializeOAuthHandling is deprecated - RainbowKit handles wallet connections directly');
+  // No-op
 };
 
 /**
- * Cleanup OAuth handling
+ * @deprecated Cleanup OAuth handling - no longer needed with RainbowKit
  */
 export const cleanupOAuthHandling = (): void => {
-  if ((window as any).__oauthCleanup) {
-    (window as any).__oauthCleanup();
-    delete (window as any).__oauthCleanup;
-  }
+  console.warn('cleanupOAuthHandling is deprecated - RainbowKit handles wallet connections directly');
+  // No-op
 };
