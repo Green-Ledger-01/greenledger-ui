@@ -1,8 +1,10 @@
 /**
- * Authentication persistence utilities
- * Helps maintain authentication state across page reloads and OAuth redirects
+ * @deprecated This file is no longer needed after migrating to RainbowKit-only authentication.
+ * Wagmi handles connection persistence automatically.
+ * This file will be removed in the next cleanup phase.
  */
 
+// Legacy constants - kept for cleanup migration
 const AUTH_STATE_KEY = 'particle_auth_state';
 const AUTH_TIMESTAMP_KEY = 'particle_auth_timestamp';
 const SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours

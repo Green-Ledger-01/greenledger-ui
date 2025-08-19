@@ -34,8 +34,6 @@ export default defineConfig({
   optimizeDeps: {
     include: [
       '@coinbase/wallet-sdk',
-      '@particle-network/authkit',
-      '@particle-network/auth-core',
       'react',
       'react-dom',
       'react-router',
@@ -69,9 +67,8 @@ export default defineConfig({
           vendor: ['react', 'react-dom', 'react-router-dom'],
           web3: ['wagmi', 'viem'],
           rainbowkit: ['@rainbow-me/rainbowkit'],
-          particle: ['@particle-network/authkit', '@particle-network/auth-core'],
           query: ['@tanstack/react-query'],
-          utils: ['lucide-react', 'valtio'],
+          utils: ['lucide-react'],
         },
       },
       onwarn(warning, warn) {

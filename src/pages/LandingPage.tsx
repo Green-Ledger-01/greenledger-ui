@@ -16,17 +16,17 @@ import {
   Menu,
   X
 } from 'lucide-react';
-import HybridConnectButton from '../components/HybridConnectButton';
-import { useAuthState } from '../hooks/useAuthState';
+import ConnectButtonWrapper from '../components/ConnectButtonWrapper';
+import { useAccount } from 'wagmi';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
-  const { isAnyConnected } = useAuthState();
+  const { isConnected } = useAccount();
   const [activeSection, setActiveSection] = useState('hero');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleGetStarted = () => {
-    if (isAnyConnected) {
+    if (isConnected) {
       navigate('/dashboard');
     }
   };
@@ -168,7 +168,7 @@ const LandingPage: React.FC = () => {
 
               {/* Auth Buttons Card */}
               <div className="hidden sm:block">
-                {isAnyConnected ? (
+                {isConnected ? (
                   <button
                     onClick={handleGetStarted}
                     className="bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
@@ -177,7 +177,7 @@ const LandingPage: React.FC = () => {
                   </button>
                 ) : (
                   <div className="bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
-                    <HybridConnectButton variant="compact" />
+                    <ConnectButtonWrapper variant="compact" />
                   </div>
                 )}
               </div>
@@ -204,7 +204,7 @@ const LandingPage: React.FC = () => {
 
                 {/* Mobile Auth Button */}
                 <div className="px-4 pt-4 border-t border-gray-100 sm:hidden">
-                  {isAnyConnected ? (
+                  {isConnected ? (
                     <button
                       onClick={handleGetStarted}
                       className="w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
@@ -213,7 +213,7 @@ const LandingPage: React.FC = () => {
                     </button>
                   ) : (
                     <div className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3">
-                      <HybridConnectButton variant="compact" />
+                      <ConnectButtonWrapper variant="compact" />
                     </div>
                   )}
                 </div>
@@ -246,14 +246,14 @@ const LandingPage: React.FC = () => {
               </div>
 
               {/* Login Options Card */}
-              {!isAnyConnected ? (
+              {!isConnected ? (
                 <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 space-y-4">
                   <div className="flex items-center space-x-3 mb-4">
                     <Shield className="h-6 w-6 text-green-200" />
                     <h3 className="text-lg font-semibold text-white">Connect Your Wallet</h3>
                   </div>
                   <div className="space-y-3">
-                    <HybridConnectButton variant="primary" />
+                    <ConnectButtonWrapper variant="primary" />
                     <p className="text-sm text-green-100 text-center">
                       Secure authentication with blockchain technology
                     </p>
@@ -524,7 +524,7 @@ const LandingPage: React.FC = () => {
                 </p>
               </div>
 
-              {isAnyConnected ? (
+              {isConnected ? (
                 <div className="space-y-4">
                   <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
                     <CheckCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
@@ -541,7 +541,7 @@ const LandingPage: React.FC = () => {
               ) : (
                 <div className="space-y-4">
                   <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                    <HybridConnectButton variant="primary" />
+                    <ConnectButtonWrapper variant="primary" />
                   </div>
                   <p className="text-gray-500 text-sm text-center">
                     Secure authentication with blockchain technology

@@ -92,7 +92,6 @@ src/
 - **Tailwind CSS** for styling
 - **Wagmi 2.15.6** for Web3 integration
 - **RainbowKit 2.2.6** for wallet connections
-- **Particle Network** for account abstraction and social login
 - **React Router 6.28.0** for navigation
 - **Lucide React** for icons
 - **TanStack Query 5.80.10** for data fetching
@@ -101,9 +100,9 @@ src/
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
-- MetaMask or compatible Web3 wallet
+- Web3 wallet (MetaMask, Coinbase Wallet, or WalletConnect compatible)
 
 ### Installation
 
@@ -144,6 +143,28 @@ src/
 
 5. **Open in Browser**
    Navigate to `http://localhost:5173`
+
+## 🔗 Wallet Connection
+
+GreenLedger uses RainbowKit for wallet connections, providing support for multiple wallet providers:
+
+### Supported Wallets
+- **MetaMask** - Browser extension and mobile app
+- **Coinbase Wallet** - Browser extension and mobile app
+- **WalletConnect** - Connect any WalletConnect compatible wallet
+- **Injected Wallets** - Any wallet that injects into the browser
+
+### Connection Steps
+1. Click the "Connect Wallet" button on the landing page
+2. Select your preferred wallet from the RainbowKit modal
+3. Follow the wallet-specific connection prompts
+4. Once connected, you'll be redirected to the dashboard
+
+### Network Configuration
+The application is configured for **Lisk Sepolia Testnet**:
+- Chain ID: 4202
+- RPC URL: https://rpc.sepolia-api.lisk.com
+- Block Explorer: https://sepolia-blockscout.lisk.com
 
 ## 🔧 Configuration
 

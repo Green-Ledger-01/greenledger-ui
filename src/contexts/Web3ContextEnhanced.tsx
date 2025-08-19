@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useCallback, useState, useEffect } from "react";
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useDisconnect } from "wagmi";
 import { CONTRACT_ADDRESSES, DEFAULT_ADMIN_ROLE } from "../config/constants";
 import { useToast } from "./ToastContext";
 
@@ -13,8 +13,9 @@ export interface UserRole {
 
 export interface Web3ContextEnhancedType {
   // Account & Connection
-  account: string | undefined;
+  address: `0x${string}` | undefined;
   isConnected: boolean;
+  disconnect: () => void;
   
   // Role Management
   userRoles: UserRole[];
@@ -48,7 +49,8 @@ const ROLE_MAPPING = {
 
 // Provider Component
 export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { address: account, isConnected } = useAccount();
+  const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
   const { addToast } = useToast();
   
   // Local state
@@ -64,7 +66,7 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
     hash,
   });
 
-  // Read user roles from contract (if available)
+  // Read user roles from contract
   const { data: contractRoles, error: readError, refetch: refetchRoles } = useReadContract({
     address: CONTRACT_ADDRESSES.UserManagement as `0x${string}`,
     abi: [
@@ -74,29 +76,29 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
         outputs: [
           { name: "isFarmer", type: "bool" },
           { name: "isTransporter", type: "bool" },
-          { name: "isBuyer", type: "bool" }
+          { name: "isBuyer", type: "bool" },
         ],
         stateMutability: "view",
         type: "function",
       },
     ],
     functionName: "getUserRolesStatus",
-    args: account ? [account as `0x${string}`] : undefined,
+    args: address ? [address as `0x${string}`] : undefined,
     query: {
-      enabled: !!account && isConnected,
+      enabled: !!address && isConnected,
       retry: 3,
       retryDelay: 1000,
     },
   });
 
-  // Check if user has admin role on-chain
+  // Check admin role
   const { data: hasAdminRole } = useReadContract({
     address: CONTRACT_ADDRESSES.UserManagement as `0x${string}`,
     abi: [
       {
         inputs: [
           { name: "role", type: "bytes32" },
-          { name: "account", type: "address" }
+          { name: "account", type: "address" },
         ],
         name: "hasRole",
         outputs: [{ name: "", type: "bool" }],
@@ -105,21 +107,22 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
       },
     ],
     functionName: "hasRole",
-    args: account ? [DEFAULT_ADMIN_ROLE as `0x${string}`, account as `0x${string}`] : undefined,
+    args: address ? [DEFAULT_ADMIN_ROLE as `0x${string}`, address as `0x${string}`] : undefined,
     query: {
-      enabled: !!account && isConnected,
+      enabled: !!address && isConnected,
     },
   });
 
-  // Load user roles on account change
+  // Load user roles on address change
   useEffect(() => {
-    if (account && isConnected) {
+    if (address && isConnected) {
       loadUserRoles();
     } else {
       setUserRoles([]);
       setNeedsRoleRegistration(false);
+      clearLocalData();
     }
-  }, [account, isConnected]);
+  }, [address, isConnected]);
 
   // Handle contract role data
   useEffect(() => {
@@ -154,22 +157,31 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
         });
       }
 
-      // Merge with local roles
+      if (hasAdminRole) {
+        onChainRoles.push({
+          id: 'admin',
+          title: 'Admin',
+          onChain: true,
+          timestamp: Date.now(),
+        });
+      }
+
+      // Merge with local roles (if any)
       const localRoles = getLocalRoles();
       const mergedRoles = mergeRoles(localRoles, onChainRoles);
       setUserRoles(mergedRoles);
       setNeedsRoleRegistration(mergedRoles.length === 0);
     }
-  }, [contractRoles, account]);
+  }, [contractRoles, hasAdminRole]);
 
   // Handle transaction confirmation
   useEffect(() => {
     if (isConfirmed && hash) {
       addToast('Role registration confirmed on blockchain!', 'success');
       setIsRegistering(false);
-      refreshUserData();
+      refetchRoles(); // Immediately fetch updated roles
     }
-  }, [isConfirmed, hash, addToast]);
+  }, [isConfirmed, hash, addToast, refetchRoles]);
 
   // Handle errors
   useEffect(() => {
@@ -185,18 +197,19 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
     if (readError) {
       console.error('Contract read error:', readError);
       setContractError(readError.message);
+      addToast('Failed to fetch user roles from blockchain', 'error');
     }
-  }, [readError]);
+  }, [readError, addToast]);
 
   // Load user roles from local storage and contract
   const loadUserRoles = useCallback(async () => {
-    if (!account) return;
+    if (!address) return;
 
     try {
       const localRoles = getLocalRoles();
       setUserRoles(localRoles);
       
-      // If no local roles, user needs registration
+      // If no local or on-chain roles, user needs registration
       if (localRoles.length === 0) {
         setNeedsRoleRegistration(true);
       }
@@ -205,15 +218,16 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
       await refetchRoles();
     } catch (error) {
       console.error('Failed to load user roles:', error);
+      addToast('Failed to load user roles', 'error');
     }
-  }, [account, refetchRoles]);
+  }, [address, refetchRoles, addToast]);
 
   // Get local roles from storage
   const getLocalRoles = useCallback((): UserRole[] => {
-    if (!account) return [];
+    if (!address) return [];
 
     try {
-      const stored = localStorage.getItem(`greenledger_user_roles_${account}`);
+      const stored = localStorage.getItem(`greenledger_user_roles_${address}`);
       if (stored) {
         const data = JSON.parse(stored);
         return data.roles || [];
@@ -222,20 +236,22 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
       console.error('Failed to parse stored roles:', error);
     }
     return [];
-  }, [account]);
+  }, [address]);
 
   // Merge local and on-chain roles
   const mergeRoles = useCallback((localRoles: UserRole[], onChainRoles: UserRole[]): UserRole[] => {
     const roleMap = new Map<string, UserRole>();
 
-    // Add local roles first
-    localRoles.forEach(role => {
+    // On-chain roles take precedence
+    onChainRoles.forEach(role => {
       roleMap.set(role.id, role);
     });
 
-    // Override with on-chain roles (they take precedence)
-    onChainRoles.forEach(role => {
-      roleMap.set(role.id, role);
+    // Add local roles only if not overridden by on-chain
+    localRoles.forEach(role => {
+      if (!roleMap.has(role.id)) {
+        roleMap.set(role.id, role);
+      }
     });
 
     return Array.from(roleMap.values());
@@ -243,7 +259,7 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
 
   // Register roles (both locally and on-chain)
   const registerRoles = useCallback(async (roleIds: string[]) => {
-    if (!account || !isConnected) {
+    if (!address || !isConnected) {
       addToast('Please connect your wallet first', 'warning');
       return;
     }
@@ -257,7 +273,7 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
     setContractError(null);
 
     try {
-      // Store roles locally first (immediate access)
+      // Store roles locally
       const newRoles: UserRole[] = roleIds.map(roleId => ({
         id: roleId as UserRole['id'],
         title: roleId.charAt(0).toUpperCase() + roleId.slice(1),
@@ -266,13 +282,13 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
       }));
 
       const roleData = {
-        address: account,
+        address,
         roles: newRoles,
         timestamp: Date.now(),
         isOnChain: false,
       };
 
-      localStorage.setItem(`greenledger_user_roles_${account}`, JSON.stringify(roleData));
+      localStorage.setItem(`greenledger_user_roles_${address}`, JSON.stringify(roleData));
       setUserRoles(newRoles);
       setNeedsRoleRegistration(false);
 
@@ -281,47 +297,39 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
         'success'
       );
 
-      // Try to register on-chain (optional, can fail gracefully)
-      // Note: UserManagement contract only supports single role registration
-      try {
-        // Register the first role on-chain (UserManagement limitation)
-        const primaryRoleId = roleIds[0];
-        const contractRoleId = ROLE_MAPPING[primaryRoleId as keyof typeof ROLE_MAPPING];
+      // Register on-chain
+      const primaryRoleId = roleIds[0];
+      const contractRoleId = ROLE_MAPPING[primaryRoleId as keyof typeof ROLE_MAPPING];
 
-        await writeContract({
-          address: CONTRACT_ADDRESSES.UserManagement as `0x${string}`,
-          abi: [
-            {
-              inputs: [
-                { name: "_user", type: "address" },
-                { name: "_role", type: "uint8" }
-              ],
-              name: "registerUser",
-              outputs: [],
-              stateMutability: "nonpayable",
-              type: "function",
-            },
-          ],
-          functionName: "registerUser",
-          args: [account as `0x${string}`, contractRoleId],
-        });
+      await writeContract({
+        address: CONTRACT_ADDRESSES.UserManagement as `0x${string}`,
+        abi: [
+          {
+            inputs: [
+              { name: "_user", type: "address" },
+              { name: "_role", type: "uint8" },
+            ],
+            name: "registerUser",
+            outputs: [],
+            stateMutability: "nonpayable",
+            type: "function",
+          },
+        ],
+        functionName: "registerUser",
+        args: [address as `0x${string}`, contractRoleId],
+      });
 
-        addToast(`Submitting ${primaryRoleId} role registration to blockchain...`, 'info');
-        if (roleIds.length > 1) {
-          addToast('Note: Only primary role registered on-chain. Additional roles stored locally.', 'warning');
-        }
-      } catch (contractError) {
-        console.warn('On-chain registration failed, but local registration succeeded:', contractError);
-        addToast('Roles registered locally. Blockchain registration will be attempted later.', 'warning');
-        setIsRegistering(false);
+      addToast(`Submitting ${primaryRoleId} role registration to blockchain...`, 'info');
+      if (roleIds.length > 1) {
+        addToast('Note: Only primary role registered on-chain. Additional roles stored locally.', 'warning');
       }
-
     } catch (error: any) {
       console.error('Role registration failed:', error);
       addToast('Failed to register roles. Please try again.', 'error');
       setIsRegistering(false);
+      setContractError(error.message || 'Unknown error');
     }
-  }, [account, isConnected, writeContract, addToast]);
+  }, [address, isConnected, writeContract, addToast]);
 
   // Check if user has specific role
   const hasRole = useCallback((roleId: string): boolean => {
@@ -340,18 +348,19 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
 
   // Clear local data
   const clearLocalData = useCallback(() => {
-    if (account) {
-      localStorage.removeItem(`greenledger_user_roles_${account}`);
+    if (address) {
+      localStorage.removeItem(`greenledger_user_roles_${address}`);
       setUserRoles([]);
       setNeedsRoleRegistration(true);
     }
-  }, [account]);
+  }, [address]);
 
   // Context value
   const contextValue: Web3ContextEnhancedType = {
     // Account & Connection
-    account,
+    address,
     isConnected,
+    disconnect,
     
     // Role Management
     userRoles,
