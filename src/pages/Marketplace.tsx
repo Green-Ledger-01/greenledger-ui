@@ -216,8 +216,6 @@ const Marketplace: React.FC = () => {
         return <Wifi className="h-4 w-4 text-green-600" />;
       case 'disconnected':
         return <WifiOff className="h-4 w-4 text-red-600" />;
-      case 'syncing':
-        return <RefreshCw className="h-4 w-4 text-yellow-600 animate-spin" />;
       default:
         return <WifiOff className="h-4 w-4 text-gray-400" />;
     }
@@ -229,8 +227,6 @@ const Marketplace: React.FC = () => {
         return 'Connected to blockchain';
       case 'disconnected':
         return 'Disconnected from blockchain';
-      case 'syncing':
-        return 'Syncing with blockchain';
       default:
         return 'Unknown connection status';
     }

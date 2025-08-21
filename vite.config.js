@@ -31,6 +31,10 @@ export default defineConfig({
     'process.env.DEBUG': JSON.stringify(process.env.VITE_DEBUG || ''),
     'process.env.NODE_ENV': JSON.stringify(process.env.VITE_NODE_ENV || 'production'),
   },
+  esbuild: {
+    // Handle CommonJS modules
+    target: 'es2020',
+  },
   optimizeDeps: {
     include: [
       '@coinbase/wallet-sdk',
@@ -38,8 +42,18 @@ export default defineConfig({
       'react-dom',
       'react-router',
       'react-router-dom',
+      'eventemitter3',
+      '@web3auth/base',
+      '@web3auth/modal',
+      '@web3auth/ethereum-provider',
+      '@web3auth/openlogin-adapter',
     ],
     exclude: ['@solana/web3.js'],
+    esbuildOptions: {
+      // Handle CommonJS modules
+      target: 'es2020',
+      format: 'esm',
+    },
   },
   resolve: {
     alias: {
@@ -47,6 +61,7 @@ export default defineConfig({
       'util': path.resolve(__dirname, 'src/shims/utils.js'),
       'react': path.resolve(__dirname, 'node_modules/react'),
       'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
+      'eventemitter3': path.resolve(__dirname, 'node_modules/eventemitter3/index.js'),
     },
     dedupe: ['react', 'react-dom'],
   },

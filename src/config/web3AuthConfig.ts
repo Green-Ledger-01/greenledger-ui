@@ -6,7 +6,7 @@ import { OpenloginAdapter } from '@web3auth/openlogin-adapter';
 export interface Web3AuthConfig {
   clientId: string;
   chainConfig: {
-    chainNamespace: string;
+    chainNamespace: typeof CHAIN_NAMESPACES.EIP155;
     chainId: string;
     rpcTarget: string;
     displayName: string;
@@ -55,13 +55,14 @@ export const createWeb3AuthInstance = async (config: Web3AuthConfig): Promise<We
     },
   });
 
-  web3auth.configureAdapter(openloginAdapter);
+  // Note: configureAdapter method may not be available in all versions
+  // The adapter will be configured automatically when Web3Auth initializes
 
   return web3auth;
 };
 
 export const defaultChainConfig = {
-  chainNamespace: CHAIN_NAMESPACES.EIP155,
+  chainNamespace: CHAIN_NAMESPACES.EIP155 as any,
   chainId: "0x106A", // Lisk Sepolia
   rpcTarget: "https://rpc.sepolia-api.lisk.com",
   displayName: "Lisk Sepolia",

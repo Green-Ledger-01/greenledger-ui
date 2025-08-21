@@ -21,7 +21,7 @@ interface LiveStats {
   recentTransactions: number;
 }
 
-type ConnectionStatus = 'connected' | 'disconnected' | 'connecting' | 'reconnecting';
+type ConnectionStatus = 'connected' | 'disconnected';
 
 interface QuickAction {
   title: string;
@@ -35,7 +35,7 @@ interface QuickAction {
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { hasRole, isConnected, account, isConnecting } = useWeb3Enhanced();
+  const { hasRole, isConnected, account } = useWeb3Enhanced();
   const { getAllBatches, isLoading, error } = useCropBatchToken();
 
   // Real-time blockchain data hooks
@@ -53,10 +53,9 @@ const Dashboard: React.FC = () => {
   
   // Fixed connection status handling
   const connectionStatus: ConnectionStatus = React.useMemo(() => {
-    if (isConnecting) return 'connecting';
     if (isConnected) return 'connected';
     return 'disconnected';
-  }, [isConnected, isConnecting]);
+  }, [isConnected]);
 
   const lastUpdateTime = React.useMemo(() => Date.now(), []);
   
@@ -211,10 +210,6 @@ const Dashboard: React.FC = () => {
     switch (connectionStatus) {
       case 'connected':
         return <Wifi className="h-4 w-4 text-green-600" />;
-      case 'connecting':
-        return <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />;
-      case 'reconnecting':
-        return <RefreshCw className="h-4 w-4 text-yellow-600 animate-spin" />;
       case 'disconnected':
       default:
         return <WifiOff className="h-4 w-4 text-red-600" />;
@@ -225,10 +220,6 @@ const Dashboard: React.FC = () => {
     switch (connectionStatus) {
       case 'connected':
         return 'Connected';
-      case 'connecting':
-        return 'Connecting...';
-      case 'reconnecting':
-        return 'Reconnecting...';
       case 'disconnected':
       default:
         return 'Disconnected';

@@ -157,8 +157,8 @@ const SupplyChainExplorer: React.FC = () => {
       const matchesSearch = !searchTerm ||
         token.cropType.toLowerCase().includes(searchTerm.toLowerCase()) ||
         token.tokenId.toString().includes(searchTerm) ||
-        token.farmer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        token.location.toLowerCase().includes(searchTerm.toLowerCase());
+        token.originFarm.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (token.location?.address && token.location.address.toLowerCase().includes(searchTerm.toLowerCase()));
 
       const matchesState = selectedState === undefined || token.currentState === selectedState;
 

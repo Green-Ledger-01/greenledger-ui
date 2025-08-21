@@ -3,7 +3,8 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { Zap, Mail, Wallet, User } from 'lucide-react';
 import { Web3Auth } from '@web3auth/modal';
-import { createWeb3AuthInstance, defaultChainConfig, ADAPTER_EVENTS } from '../config/web3AuthConfig';
+import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK, ADAPTER_EVENTS } from '@web3auth/base';
+import { EthereumPrivateKeyProvider } from '@web3auth/ethereum-provider';
 import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
 
 interface ConnectButtonWrapperProps {
@@ -34,9 +35,34 @@ const ConnectButtonWrapper: React.FC<ConnectButtonWrapperProps> = ({
           return;
         }
 
-        const web3auth = await createWeb3AuthInstance({
+        const chainConfig = {
+          chainNamespace: CHAIN_NAMESPACES.EIP155,
+          chainId: "0x106A", // Lisk Sepolia
+          rpcTarget: "https://rpc.sepolia-api.lisk.com",
+          displayName: "Lisk Sepolia",
+          blockExplorer: "https://sepolia-blockscout.lisk.com",
+          ticker: "ETH",
+          tickerName: "Ethereum",
+        };
+
+        const privateKeyProvider = new EthereumPrivateKeyProvider({
+          config: { chainConfig },
+        });
+
+        const web3auth = new Web3Auth({
           clientId,
-          chainConfig: defaultChainConfig,
+          web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
+          privateKeyProvider: privateKeyProvider as any,
+          uiConfig: {
+            appName: "GreenLedger",
+            appUrl: window.location.origin,
+            logoLight: "https://images.web3auth.io/web3auth-logo-w.svg",
+            logoDark: "https://images.web3auth.io/web3auth-logo-w.svg",
+            mode: "light",
+            theme: {
+              primary: "#10b981"
+            },
+          },
         });
 
         // Set up event listeners

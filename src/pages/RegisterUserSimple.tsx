@@ -53,7 +53,7 @@ const UserProfile: React.FC = () => {
 
         // Find earliest interaction (join date)
         const allUserBatches = [...ownedBatches, ...mintedBatches];
-        const earliestTimestamp = allUserBatches.reduce((earliest, batch) => {
+        const earliestTimestamp = allUserBatches.reduce((earliest: number | null, batch) => {
           return batch.timestamp && (!earliest || batch.timestamp < earliest)
             ? batch.timestamp
             : earliest;
@@ -64,7 +64,7 @@ const UserProfile: React.FC = () => {
           totalBatches: allUserBatches.length,
           ownedBatches: ownedBatches.length,
           mintedBatches: mintedBatches.length,
-          interactedTokens: userTokenHistory ? userTokenHistory.length : 0,
+          interactedTokens: userTokenHistory && Array.isArray(userTokenHistory) ? userTokenHistory.length : 0,
           uniqueFarms: uniqueFarms.size,
           joinDate: earliestTimestamp ? new Date(earliestTimestamp * 1000) : null,
         });

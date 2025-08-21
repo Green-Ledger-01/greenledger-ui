@@ -1,1 +1,13 @@
+echo "🚀 Running pre-push checks..."
+
+# Ensure we're not pushing broken code
+echo "🔧 Final TypeScript check..."
+npm run type-check
+
+echo "🧪 Running tests..."
+npm run test
+
+echo "🏗️  Final build verification..."
 npm run build
+
+echo "✅ All pre-push checks passed! Safe to push."

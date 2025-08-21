@@ -88,7 +88,7 @@ const CheckoutAndTrack: React.FC<CheckoutAndTrackProps> = ({ tokenId: propTokenI
       await refetchProvenance();
 
       // Process provenance data into history format
-      if (provenanceHistory && provenanceHistory.length > 0) {
+      if (provenanceHistory && Array.isArray(provenanceHistory) && provenanceHistory.length > 0) {
         const processedHistory = {
           currentStep: provenanceHistory.length - 1,
           isComplete: provenanceHistory.length >= 3, // farmer -> transporter -> buyer

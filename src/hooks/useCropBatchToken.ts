@@ -3,6 +3,7 @@ import { useAccount, useReadContract, useWriteContract, useWaitForTransactionRec
 import { parseEther, formatEther, getAddress } from 'viem';
 import { CONTRACT_ADDRESSES } from '../config/constants';
 import { useToast } from '../contexts/ToastContext';
+import { liskSepolia } from '../chains/liskSepolia';
 import CropBatchTokenABI from '../contracts/CropBatchToken.json';
 
 export interface CropBatch {
@@ -111,16 +112,18 @@ export const useCropBatchToken = () => {
               { name: 'value', type: 'uint256', indexed: false },
             ],
           },
-          args: {
-            id: BigInt(tokenId),
-          },
           fromBlock: 'earliest',
           toBlock: 'latest',
         });
 
+        // Filter logs for the specific token ID
+        const filteredLogs = transferLogs.filter(log =>
+          log.args?.id === BigInt(tokenId)
+        );
+
         // Find the most recent transfer to get current owner
-        if (transferLogs.length > 0) {
-          const latestTransfer = transferLogs[transferLogs.length - 1];
+        if (filteredLogs.length > 0) {
+          const latestTransfer = filteredLogs[filteredLogs.length - 1];
           currentOwner = latestTransfer.args?.to || currentOwner;
         }
       } catch (error) {
@@ -260,6 +263,8 @@ export const useCropBatchToken = () => {
           params.notes,
           params.metadataUri,
         ],
+        chain: liskSepolia,
+        account: address,
       });
 
     } catch (err) {
@@ -290,6 +295,8 @@ export const useCropBatchToken = () => {
           BigInt(params.amount),
           '0x', // data
         ],
+        chain: liskSepolia,
+        account: address,
       });
 
     } catch (err) {

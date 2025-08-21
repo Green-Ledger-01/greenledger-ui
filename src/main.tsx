@@ -46,10 +46,27 @@ if (!globalThis.process) {
       ...env
     },
     version: '18.0.0',
-    versions: { node: '18.0.0' },
-    platform: 'browser',
+    versions: {
+      node: '18.0.0',
+      v8: '10.2.154.26',
+      uv: '1.43.0',
+      zlib: '1.2.11',
+      brotli: '1.0.9',
+      ares: '1.18.1',
+      modules: '108',
+      nghttp2: '1.47.0',
+      napi: '8',
+      llhttp: '6.0.4',
+      openssl: '3.0.3+quic',
+      cldr: '41.0',
+      icu: '71.1',
+      tz: '2022a',
+      unicode: '14.0',
+      http_parser: '2.9.4'
+    },
+    platform: 'linux' as any,
     nextTick: (cb: Function) => setTimeout(cb, 0),
-  };
+  } as any;
 }
 
 import React from 'react';

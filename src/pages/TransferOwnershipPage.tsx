@@ -34,7 +34,7 @@ const TransferOwnershipPage: React.FC = () => {
   // Hooks
   const { data: userRole } = useUserRole(address);
   const { getUserTokens, transferToken, triggerRefresh } = useCropBatchToken();
-  const { writeContract: transferWithProvenance, isPending: isTransferring } = useTransferWithProvenance();
+  const { writeAsync: transferWithProvenance, isPending: isTransferring } = useTransferWithProvenance();
   const { writeAsync: initializeProvenance } = useInitializeProvenance();
 
   // Fetch enhanced token data with IPFS metadata
@@ -127,8 +127,8 @@ const TransferOwnershipPage: React.FC = () => {
 
       // Filter successful results and check transfer eligibility
       const successfulTokens = enhancedTokens
-        .filter((result): result is PromiseFulfilledResult<TokenOption> => result.status === 'fulfilled')
-        .map(result => result.value);
+        .filter((result) => result.status === 'fulfilled')
+        .map(result => (result as PromiseFulfilledResult<TokenOption>).value);
 
       console.log('All successful tokens:', successfulTokens);
       console.log('User role:', userRole);
@@ -234,8 +234,8 @@ const TransferOwnershipPage: React.FC = () => {
         // Use supply chain transfer for tokens with provenance
         await transferWithProvenance({
           tokenId: BigInt(selectedToken.tokenId),
-          from: address,
           to: values.recipientAddress,
+          newState: selectedToken.currentState + 1, // Move to next state
           location: values.location || '',
           notes: values.notes || ''
         });
@@ -435,7 +435,6 @@ const TransferOwnershipPage: React.FC = () => {
             name="notes"
           >
             <TextArea
-              prefix={<FileTextOutlined />}
               placeholder="Additional notes about this transfer"
               rows={3}
               disabled={!selectedToken}

@@ -105,15 +105,17 @@ export const useSupplyChainFlow = () => {
             { name: 'value', type: 'uint256', indexed: false },
           ],
         },
-        args: {
-          id: BigInt(tokenId),
-        },
         fromBlock: 'earliest',
         toBlock: 'latest',
       });
 
+      // Filter logs for the specific token ID
+      const filteredTransferLogs = transferLogs.filter(log =>
+        log.args?.id === BigInt(tokenId)
+      );
+
       // Process transfer events (excluding mints)
-      for (const log of transferLogs) {
+      for (const log of filteredTransferLogs) {
         if (log.args && log.blockNumber && log.args.from !== '0x0000000000000000000000000000000000000000') {
           const block = await publicClient.getBlock({ blockNumber: log.blockNumber });
           events.push({
