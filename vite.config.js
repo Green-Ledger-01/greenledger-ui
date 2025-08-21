@@ -53,15 +53,18 @@ export default defineConfig({
       // Handle CommonJS modules
       target: 'es2020',
       format: 'esm',
+      define: {
+        global: 'globalThis',
+      },
     },
   },
   resolve: {
     alias: {
       '@coinbase/wallet-sdk/dist/vendor-js/eth-eip712-util/index.cjs': 'eth-eip712-util',
       'util': path.resolve(__dirname, 'src/shims/utils.js'),
+      'eventemitter3': path.resolve(__dirname, 'src/shims/eventemitter3.js'),
       'react': path.resolve(__dirname, 'node_modules/react'),
       'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
-      'eventemitter3': path.resolve(__dirname, 'node_modules/eventemitter3/index.js'),
     },
     dedupe: ['react', 'react-dom'],
   },
