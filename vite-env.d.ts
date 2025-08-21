@@ -28,6 +28,7 @@ interface ImportMetaEnv {
 
   // Web3Auth Configuration
   readonly VITE_WEB3AUTH_CLIENT_ID: string;
+  readonly VITE_GOOGLE_CLIENT_ID: string;
   
   // App Configuration 
   readonly VITE_APP_NAME: string;
