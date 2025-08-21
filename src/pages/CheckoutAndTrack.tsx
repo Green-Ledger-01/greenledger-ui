@@ -14,7 +14,7 @@ import {
   AlertCircle,
   RefreshCw,
   ExternalLink,
-  LoadingOutlined,
+  Loader2,
   CreditCard
 } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';

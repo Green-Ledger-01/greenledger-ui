@@ -1,10 +1,10 @@
-import { Chain } from 'wagmi';
+import { Chain } from 'viem';
 // import { liskSepolia, chains } from '../chains/liskSepolia';
 
 export const liskSepolia: Chain = {
   id: 4202,
-  name: 'Lisk Sepolia',
-  network: 'lisk-sepolia',
+  name: 'Lisk Sepolia Testnet',
+  // network: 'lisk-sepolia',
   nativeCurrency: {
     name: 'Sepolia Ether',
     symbol: 'ETH',
@@ -14,6 +14,10 @@ export const liskSepolia: Chain = {
     default: { http: ['https://rpc.sepolia-api.lisk.com'] },
     public: { http: ['https://rpc.sepolia-api.lisk.com'] },
   },
+  // public: {
+  //    http: ['https://rpc.sepolia-api.lisk.com'],
+  //     webSocket: ['wss://ws.sepolia-api.lisk.com'],
+  //   },
   blockExplorers: {
     default: {
       name: 'Blockscout',

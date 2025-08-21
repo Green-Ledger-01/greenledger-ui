@@ -2,6 +2,8 @@ import React, { createContext, useContext, useCallback, useState, useEffect } fr
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useDisconnect } from "wagmi";
 import { CONTRACT_ADDRESSES, DEFAULT_ADMIN_ROLE } from "../config/constants";
 import { useToast } from "./ToastContext";
+import { IProvider } from "@web3auth/base";
+import { liskSepolia } from "../chains/liskSepolia"; // Add this import
 
 // Types
 export interface UserRole {
@@ -14,8 +16,15 @@ export interface UserRole {
 export interface Web3ContextEnhancedType {
   // Account & Connection
   address: `0x${string}` | undefined;
+  account: `0x${string}` | undefined;
   isConnected: boolean;
   disconnect: () => void;
+  
+  // Web3Auth Integration
+  web3authProvider: IProvider | null;
+  web3authConnected: boolean;
+  setWeb3authProvider: (provider: IProvider | null) => void;
+  setWeb3authConnected: (connected: boolean) => void;
   
   // Role Management
   userRoles: UserRole[];
@@ -58,6 +67,10 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
   const [isRegistering, setIsRegistering] = useState(false);
   const [contractError, setContractError] = useState<string | null>(null);
   const [needsRoleRegistration, setNeedsRoleRegistration] = useState(false);
+  
+  // Web3Auth state
+  const [web3authProvider, setWeb3authProvider] = useState<IProvider | null>(null);
+  const [web3authConnected, setWeb3authConnected] = useState(false);
 
   // Contract hooks
   const { writeContract, data: hash, error: writeError, isPending: isWritePending } = useWriteContract();
@@ -317,6 +330,8 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
         ],
         functionName: "registerUser",
         args: [address as `0x${string}`, contractRoleId],
+        chain: liskSepolia, // Add this
+        account: address, // Add this
       });
 
       addToast(`Submitting ${primaryRoleId} role registration to blockchain...`, 'info');
@@ -359,8 +374,15 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
   const contextValue: Web3ContextEnhancedType = {
     // Account & Connection
     address,
-    isConnected,
+    account: address, // Add this line to fix the missing account property
+    isConnected: isConnected || web3authConnected,
     disconnect,
+    
+    // Web3Auth Integration
+    web3authProvider,
+    web3authConnected,
+    setWeb3authProvider,
+    setWeb3authConnected,
     
     // Role Management
     userRoles,

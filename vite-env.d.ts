@@ -25,8 +25,11 @@ interface ImportMetaEnv {
   readonly VITE_APP_PINATA_SECRET_KEY: string;
   readonly VITE_PINATA_GATEWAY: string;
   readonly VITE_APP_IPFS_ENDPOINT: string;
+
+  // Web3Auth Configuration
+  readonly VITE_WEB3AUTH_CLIENT_ID: string;
   
-  // App Configuration - Missing from your current file
+  // App Configuration 
   readonly VITE_APP_NAME: string;
   readonly VITE_APP_DESCRIPTION: string;
 }

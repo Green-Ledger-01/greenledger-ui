@@ -23,6 +23,7 @@ import {
 const AuthenticationPage: React.FC = () => {
   const navigate = useNavigate();
   const { isConnected } = useAccount();
+  const [isConnecting, setIsConnecting] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Redirect to dashboard when connected

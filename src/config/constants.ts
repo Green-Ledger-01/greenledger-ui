@@ -22,7 +22,9 @@ export const CONTRACT_ADDRESSES = {
 } as const;
 
 // WalletConnect Configuration
-export const WALLETCONNECT_PROJECT_ID = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'a2b252199b53298a09b4344c2ae77d33';
+export const WALLETCONNECT_PROJECT_ID = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID ;
+export const VITE_WEB3AUTH_CLIENT_ID = import.meta.env.VITE_WEB3AUTH_CLIENT_ID ;
+
 
 // IPFS Configuration
 export const IPFS_CONFIG = {

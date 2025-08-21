@@ -1,14 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, MapPin, Zap, TrendingUp, Users, Package, Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { Activity, MapPin, Zap, TrendingUp, Users, Package, Wifi, WifiOff, RefreshCw, Loader2 } from 'lucide-react';
 import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
 import { useCropBatchToken } from '../hooks/useCropBatchToken';
 import { useUserTokenHistory, useTokensByState } from '../hooks/useSupplyChainManager';
 
+// Type definitions for better type safety
+interface Batch {
+  owner?: string;
+  minter?: string;
+  originFarm?: string;
+  timestamp?: number;
+  // Add other batch properties as needed
+}
+
+interface LiveStats {
+  totalBatches: number;
+  activeFarms: number;
+  registeredUsers: number;
+  recentTransactions: number;
+}
+
+type ConnectionStatus = 'connected' | 'disconnected' | 'connecting' | 'reconnecting';
+
+interface QuickAction {
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  path: string;
+  requiresRole?: 'admin' | 'farmer';
+  disabled?: boolean;
+}
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { hasRole, isConnected, account } = useWeb3Enhanced();
+  const { hasRole, isConnected, account, isConnecting } = useWeb3Enhanced();
   const { getAllBatches, isLoading, error } = useCropBatchToken();
 
   // Real-time blockchain data hooks
@@ -21,26 +48,33 @@ const Dashboard: React.FC = () => {
   const canPerformAction = React.useCallback((role: string) => hasRole(role), [hasRole]);
 
   // Real blockchain data
-  const [batches, setBatches] = useState<any[]>([]);
+  const [batches, setBatches] = useState<Batch[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const connectionStatus = isConnected ? 'connected' : 'disconnected';
+  
+  // Fixed connection status handling
+  const connectionStatus: ConnectionStatus = React.useMemo(() => {
+    if (isConnecting) return 'connecting';
+    if (isConnected) return 'connected';
+    return 'disconnected';
+  }, [isConnected, isConnecting]);
+
   const lastUpdateTime = React.useMemo(() => Date.now(), []);
   
-  const [liveStats, setLiveStats] = useState({
+  const [liveStats, setLiveStats] = useState<LiveStats>({
     totalBatches: 0,
     activeFarms: 0,
     registeredUsers: 0,
     recentTransactions: 0,
   });
 
-  const quickActions = [
+  const quickActions: QuickAction[] = [
     {
       title: 'Register Role',
       description: 'Manage user roles and permissions',
       icon: Users,
       color: 'bg-green-500 hover:bg-green-600',
       path: '/register',
-      requiresRole: 'admin' as const,
+      requiresRole: 'admin',
     },
     {
       title: 'Tokenize Crop',
@@ -48,7 +82,7 @@ const Dashboard: React.FC = () => {
       icon: Package,
       color: 'bg-blue-500 hover:bg-blue-600',
       path: '/tokenize',
-      requiresRole: 'farmer' as const,
+      requiresRole: 'farmer',
     },
     {
       title: 'Browse Marketplace',
@@ -66,12 +100,21 @@ const Dashboard: React.FC = () => {
     },
   ];
 
+  // Type guard for validating batch data
+  const isValidBatch = (batch: unknown): batch is Batch => {
+    return typeof batch === 'object' && batch !== null;
+  };
+
   // Load batches from blockchain
   const refetchBatches = React.useCallback(async () => {
     setIsRefreshing(true);
     try {
       const allBatches = await getAllBatches();
-      setBatches(allBatches);
+      // Type guard to ensure we have valid batch data
+      const validBatches = Array.isArray(allBatches) 
+        ? allBatches.filter(isValidBatch)
+        : [];
+      setBatches(validBatches);
     } catch (error) {
       console.error('Failed to fetch batches:', error);
     } finally {
@@ -110,7 +153,7 @@ const Dashboard: React.FC = () => {
 
     // Calculate real-time stats from blockchain data per connected address
     const totalSupplyChainTokens = Number(producedTokens || 0) + Number(inTransitTokens || 0) + Number(deliveredTokens || 0);
-    const userInteractionCount = userTokenHistory ? userTokenHistory.length : 0;
+    const userInteractionCount = Array.isArray(userTokenHistory) ? userTokenHistory.length : 0;
 
     setLiveStats({
       totalBatches: userBatches.length, // User's batches only
@@ -163,20 +206,36 @@ const Dashboard: React.FC = () => {
     return `${seconds}s ago`;
   }, []);
 
+  // Fixed connection icon handling
   const getConnectionIcon = React.useCallback(() => {
     switch (connectionStatus) {
       case 'connected':
         return <Wifi className="h-4 w-4 text-green-600" />;
-      case 'disconnected':
-        return <WifiOff className="h-4 w-4 text-red-600" />;
-      case 'syncing':
+      case 'connecting':
+        return <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />;
+      case 'reconnecting':
         return <RefreshCw className="h-4 w-4 text-yellow-600 animate-spin" />;
+      case 'disconnected':
       default:
-        return <WifiOff className="h-4 w-4 text-gray-400" />;
+        return <WifiOff className="h-4 w-4 text-red-600" />;
     }
   }, [connectionStatus]);
 
-  const handleQuickAction = React.useCallback((action: typeof quickActions[0]) => {
+  const getConnectionText = React.useCallback(() => {
+    switch (connectionStatus) {
+      case 'connected':
+        return 'Connected';
+      case 'connecting':
+        return 'Connecting...';
+      case 'reconnecting':
+        return 'Reconnecting...';
+      case 'disconnected':
+      default:
+        return 'Disconnected';
+    }
+  }, [connectionStatus]);
+
+  const handleQuickAction = React.useCallback((action: QuickAction) => {
     if (action.disabled) return;
     if (action.requiresRole && !canPerformAction(action.requiresRole)) {
       return; // Button should be disabled, but just in case
@@ -196,9 +255,7 @@ const Dashboard: React.FC = () => {
                 <div className="flex items-center gap-2">
                   {getConnectionIcon()}
                   <span className="text-sm text-gray-600">
-                    {connectionStatus === 'connected' ? 'Connected' :
-                     connectionStatus === 'disconnected' ? 'Disconnected' :
-                     'Syncing'}
+                    {getConnectionText()}
                   </span>
                   {connectionStatus === 'connected' && account && (
                     <>
@@ -234,8 +291,13 @@ const Dashboard: React.FC = () => {
               <button
                 onClick={() => navigate('/tokenize')}
                 className="flex items-center gap-2 bg-gray-100 text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-200 transition-all border border-gray-200 text-sm"
+                disabled={isRefreshing}
               >
-                <Package className="h-4 w-4" />
+                {isRefreshing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Package className="h-4 w-4" />
+                )}
                 Create Batch
               </button>
             </div>
@@ -271,87 +333,85 @@ const Dashboard: React.FC = () => {
           })}
         </section>
 
-      {/* Compact Data Visualizations */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-white rounded-lg shadow p-4 border border-gray-100">
+        {/* Compact Data Visualizations */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-white rounded-lg shadow p-4 border border-gray-100">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center">
+                <Activity className="h-4 w-4 text-green-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">Recent Activity</h3>
+            </div>
+            <div className="h-48 bg-gray-50 rounded-lg flex items-center justify-center text-gray-500">
+              <div className="text-center">
+                <TrendingUp className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                <p className="font-medium text-sm">Chart Coming Soon</p>
+                <p className="text-xs text-gray-600">Latest crop batch tokenizations</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-4 border border-gray-100">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center">
+                <MapPin className="h-4 w-4 text-green-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">Supply Chain Map</h3>
+            </div>
+            <div className="h-48 bg-gray-50 rounded-lg flex items-center justify-center text-gray-500">
+              <div className="text-center">
+                <MapPin className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                <p className="font-medium text-sm">Interactive Map Coming Soon</p>
+                <p className="text-xs text-gray-600">Global movement tracking</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Compact Quick Actions */}
+        <section className="bg-white rounded-lg shadow p-4 border border-gray-100">
           <div className="flex items-center gap-3 mb-4">
             <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center">
-              <Activity className="h-4 w-4 text-green-600" />
+              <Zap className="h-4 w-4 text-green-600" />
             </div>
-            <h3 className="text-lg font-bold text-gray-900">Recent Activity</h3>
+            <h3 className="text-lg font-bold text-gray-900">Quick Actions</h3>
           </div>
-          <div className="h-48 bg-gray-50 rounded-lg flex items-center justify-center text-gray-500">
-            <div className="text-center">
-              <TrendingUp className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-              <p className="font-medium text-sm">Chart Coming Soon</p>
-              <p className="text-xs text-gray-600">Latest crop batch tokenizations</p>
-            </div>
-          </div>
-        </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {quickActions.map((action, index) => {
+              const Icon = action.icon;
+              const canPerform = !action.requiresRole || canPerformAction(action.requiresRole);
+              const isDisabled = action.disabled || !canPerform;
 
-        <div className="bg-white rounded-lg shadow p-4 border border-gray-100">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center">
-              <MapPin className="h-4 w-4 text-green-600" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-900">Supply Chain Map</h3>
-          </div>
-          <div className="h-48 bg-gray-50 rounded-lg flex items-center justify-center text-gray-500">
-            <div className="text-center">
-              <MapPin className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-              <p className="font-medium text-sm">Interactive Map Coming Soon</p>
-              <p className="text-xs text-gray-600">Global movement tracking</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Compact Quick Actions */}
-      <section className="bg-white rounded-lg shadow p-4 border border-gray-100">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center">
-            <Zap className="h-4 w-4 text-green-600" />
-          </div>
-          <h3 className="text-lg font-bold text-gray-900">Quick Actions</h3>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {quickActions.map((action, index) => {
-            const Icon = action.icon;
-            const canPerform = !action.requiresRole || canPerformAction(action.requiresRole);
-            const isDisabled = action.disabled || !canPerform;
-
-            return (
-              <button
-                key={index}
-                onClick={() => handleQuickAction(action)}
-                disabled={isDisabled}
-                className={`
-                  bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg transition-all text-center
-                  ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100 hover:shadow-md'}
-                `}
-              >
-                <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                  <Icon className="h-4 w-4 text-green-600" />
-                </div>
-                <div className="text-xs font-bold text-gray-900">{action.title}</div>
-                <div className="text-xs text-gray-600 mt-1">{action.description}</div>
-                {action.requiresRole && !canPerform && (
-                  <div className="text-xs mt-1 text-orange-600">
-                    Requires {action.requiresRole}
+              return (
+                <button
+                  key={index}
+                  onClick={() => handleQuickAction(action)}
+                  disabled={isDisabled}
+                  className={`
+                    bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg transition-all text-center
+                    ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100 hover:shadow-md'}
+                  `}
+                >
+                  <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                    <Icon className="h-4 w-4 text-green-600" />
                   </div>
-                )}
-                {action.disabled && (
-                  <div className="text-xs mt-1 text-gray-500">
-                    Coming Soon
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-
+                  <div className="text-xs font-bold text-gray-900">{action.title}</div>
+                  <div className="text-xs text-gray-600 mt-1">{action.description}</div>
+                  {action.requiresRole && !canPerform && (
+                    <div className="text-xs mt-1 text-orange-600">
+                      Requires {action.requiresRole}
+                    </div>
+                  )}
+                  {action.disabled && (
+                    <div className="text-xs mt-1 text-gray-500">
+                      Coming Soon
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </section>
       </div>
     </div>
   );
