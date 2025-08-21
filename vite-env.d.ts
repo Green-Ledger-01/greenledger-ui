@@ -1,30 +1,50 @@
+/// <reference types="vite/client" />
+
 interface ImportMetaEnv {
-    // Add declarations for your VITE_ prefixed environment variables here
-    // For example, based on your HybridWeb3Config.tsx:
-    readonly VITE_PARTICLE_PROJECT_ID: string;
-    readonly VITE_PARTICLE_CLIENT_KEY: string;
-    readonly VITE_PARTICLE_APP_ID: string;
-    readonly VITE_WALLETCONNECT_PROJECT_ID: string;
-    readonly VITE_DEBUG: string;
-    readonly VITE_NODE_ENV: string;
-    // Add any other VITE_ variables you use
-  }
+  // Existing Particle and WalletConnect config
+  readonly VITE_PARTICLE_PROJECT_ID: string;
+  readonly VITE_PARTICLE_CLIENT_KEY: string;
+  readonly VITE_PARTICLE_APP_ID: string;
+  readonly VITE_WALLETCONNECT_PROJECT_ID: string;
+  readonly VITE_DEBUG: string;
+  readonly VITE_NODE_ENV: string;
   
-  interface ImportMeta {
-    readonly env: ImportMetaEnv;
-  }
+  // Contract Addresses - Missing from your current file
+  readonly VITE_GREENLEDGER_USER_MANAGEMENT_CONTRACT_ADDRESS: string;
+  readonly VITE_CROPBATCH_TOKEN_CONTRACT_ADDRESS: string;
+  readonly VITE_MARKETPLACE_CONTRACT_ADDRESS: string;
+  readonly VITE_TRANSPORTATION_MANAGER_CONTRACT_ADDRESS: string;
+  readonly VITE_PAYMENT_PROCESSOR_CONTRACT_ADDRESS: string;
+  readonly VITE_ORDER_MANAGER_CONTRACT_ADDRESS: string;
+  readonly VITE_GREENLEDGER_ACCESS_CONTRACT_ADDRESS: string;
+  readonly VITE_GREENLEDGER_PAYMASTER_CONTRACT_ADDRESS: string;
+  readonly VITE_SUPPLY_CHAIN_MANAGER_CONTRACT_ADDRESS: string;
+  
+  // IPFS/Pinata Configuration - Missing from your current file
+  readonly VITE_APP_PINATA_API_KEY: string;
+  readonly VITE_APP_PINATA_SECRET_KEY: string;
+  readonly VITE_PINATA_GATEWAY: string;
+  readonly VITE_APP_IPFS_ENDPOINT: string;
+  
+  // App Configuration - Missing from your current file
+  readonly VITE_APP_NAME: string;
+  readonly VITE_APP_DESCRIPTION: string;
+}
 
-  // Global process type for browser polyfill
-  declare global {
-    interface Window {
-      Buffer: typeof Buffer;
-    }
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
 
-    var process: {
-      env: Record<string, string>;
-      version: string;
-      versions: { node: string };
-      platform: string;
-      nextTick: (cb: Function) => void;
-    };
+// Global process type for browser polyfill
+declare global {
+  interface Window {
+    Buffer: typeof Buffer;
   }
+  var process: {
+    env: Record<string, string>;
+    version: string;
+    versions: { node: string };
+    platform: string;
+    nextTick: (cb: Function) => void;
+  };
+}
