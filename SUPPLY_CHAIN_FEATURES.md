@@ -5,6 +5,7 @@ This document describes the new supply chain management features implemented in 
 ## 🚀 New Features
 
 ### 1. Enhanced Tokenization Page (`/tokenize`)
+
 - **Real IPFS Integration**: Stores crop batch metadata and images on IPFS using Pinata
 - **Automatic Provenance Initialization**: Creates supply chain tracking record upon token minting
 - **Comprehensive Form Validation**: Validates all input fields with proper error handling
@@ -12,12 +13,14 @@ This document describes the new supply chain management features implemented in 
 - **Role-Based Access**: Only farmers can tokenize crop batches
 
 **Key Improvements:**
+
 - Integrated with SupplyChainManager contract for automatic provenance setup
 - Enhanced error handling with specific guidance for different error types
 - Real-time status indicators showing wallet connection, transaction progress, and provenance initialization
 - Comprehensive metadata collection including certifications, location, and detailed notes
 
 ### 2. Transfer Ownership Page (`/transfer`)
+
 - **Role-Based Transfers**: Validates transfers based on user roles and current token state
 - **Smart State Management**: Automatically updates supply chain state based on recipient role
 - **Token Selection**: Shows only transferable tokens based on user's role and token state
@@ -25,11 +28,13 @@ This document describes the new supply chain management features implemented in 
 - **Real-Time Validation**: Validates recipient addresses and transfer eligibility
 
 **Transfer Rules:**
+
 - **Farmers** → Can transfer to Transporters or Buyers (from Produced state)
-- **Transporters** → Can transfer to Buyers (from InTransit state)  
+- **Transporters** → Can transfer to Buyers (from InTransit state)
 - **Buyers** → Can transfer to other Buyers (from Delivered state - resale)
 
 ### 3. Supply Chain Explorer (`/explorer`)
+
 - **Real Provenance Data**: Displays actual blockchain data from SupplyChainManager
 - **Advanced Filtering**: Filter by supply chain state, search by multiple criteria
 - **Interactive Timeline**: Visual representation of token journey through supply chain
@@ -37,6 +42,7 @@ This document describes the new supply chain management features implemented in 
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
 
 **Features:**
+
 - Search by token ID, crop type, farmer address, or location
 - Filter tokens by supply chain state (Produced, InTransit, Delivered, Consumed)
 - View complete provenance history with timestamps and actor information
@@ -45,6 +51,7 @@ This document describes the new supply chain management features implemented in 
 ## 🔗 Smart Contract Integration
 
 ### SupplyChainManager Contract
+
 The new `SupplyChainManager` contract provides comprehensive supply chain tracking:
 
 ```solidity
@@ -56,13 +63,16 @@ function getProvenanceStep(uint256 tokenId, uint256 stepIndex) returns (Provenan
 ```
 
 **Supply Chain States:**
+
 - `PRODUCED` (0): Initial state when minted by farmer
 - `IN_TRANSIT` (1): Being transported
 - `DELIVERED` (2): Delivered to buyer
 - `CONSUMED` (3): Final state
 
 ### Contract Addresses
+
 Update your `.env` file with the deployed contract address:
+
 ```env
 VITE_SUPPLY_CHAIN_MANAGER_CONTRACT_ADDRESS=0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9
 ```
@@ -70,18 +80,21 @@ VITE_SUPPLY_CHAIN_MANAGER_CONTRACT_ADDRESS=0xDc64a140Aa3E981100a9becA4E685f962f0
 ## 🛠️ Technical Implementation
 
 ### Real IPFS Integration
+
 - Uses Pinata API for reliable IPFS storage
 - Stores both images and metadata on IPFS
 - Generates proper IPFS URIs for blockchain storage
 - Handles upload progress and error states
 
 ### Blockchain Integration
+
 - Real contract interactions using wagmi hooks
 - Proper error handling and transaction status tracking
 - Gas estimation and transaction confirmation
 - Event listening for real-time updates
 
 ### State Management
+
 - React hooks for contract interactions
 - Local state management for UI updates
 - Proper loading states and error handling
@@ -90,18 +103,22 @@ VITE_SUPPLY_CHAIN_MANAGER_CONTRACT_ADDRESS=0xDc64a140Aa3E981100a9becA4E685f962f0
 ## 📱 User Interface
 
 ### Navigation
+
 The sidebar now includes dedicated sections for:
+
 - **Tokenize Crop**: Create NFTs with full provenance tracking
 - **Transfer Ownership**: Role-based token transfers
 - **Supply Chain Explorer**: Comprehensive provenance viewing
 
 ### Responsive Design
+
 - Mobile-first design approach
 - Touch-friendly interfaces
 - Responsive tables and modals
 - Optimized for various screen sizes
 
 ### User Experience
+
 - Clear visual feedback for all actions
 - Progress indicators for long-running operations
 - Comprehensive error messages with actionable guidance
@@ -110,6 +127,7 @@ The sidebar now includes dedicated sections for:
 ## 🔧 Setup and Configuration
 
 ### 1. Environment Variables
+
 ```env
 # IPFS Configuration
 VITE_PINATA_API_KEY=your_pinata_api_key
@@ -122,7 +140,9 @@ VITE_CROP_BATCH_TOKEN_CONTRACT_ADDRESS=0xA065205364784B3D7e830D0EB2681EB218e3aD2
 ```
 
 ### 2. Contract Deployment
+
 Deploy the SupplyChainManager contract:
+
 ```bash
 # Set environment variables
 export PRIVATE_KEY=your_private_key
@@ -135,11 +155,13 @@ node scripts/deploy-supply-chain-manager.js
 ```
 
 ### 3. Frontend Integration
+
 The frontend automatically integrates with the deployed contracts using the configured addresses.
 
 ## 🧪 Testing
 
 ### Manual Testing Workflow
+
 1. **Connect Wallet**: Ensure you have a wallet connected with appropriate role
 2. **Tokenize Crop**: Create a new crop batch token with full metadata
 3. **Verify Provenance**: Check that provenance was initialized in the explorer
@@ -147,6 +169,7 @@ The frontend automatically integrates with the deployed contracts using the conf
 5. **Track Journey**: View the complete supply chain journey in the explorer
 
 ### Role-Based Testing
+
 - Test with different user roles (Farmer, Transporter, Buyer)
 - Verify role-based access controls work correctly
 - Test invalid transfer scenarios to ensure proper validation
@@ -154,12 +177,14 @@ The frontend automatically integrates with the deployed contracts using the conf
 ## 🚀 Production Deployment
 
 ### Prerequisites
+
 - Deployed UserManagement contract
 - Deployed CropBatchToken contract
 - Pinata API keys for IPFS storage
 - Sufficient ETH for contract deployment and transactions
 
 ### Deployment Steps
+
 1. Deploy SupplyChainManager contract with correct dependency addresses
 2. Update environment variables with deployed contract address
 3. Configure Pinata API keys for IPFS storage
@@ -168,26 +193,37 @@ The frontend automatically integrates with the deployed contracts using the conf
 
 ## 📊 Features Summary
 
-| Feature | Status | Description |
-|---------|--------|-------------|
-| ✅ Enhanced Tokenization | Complete | Real IPFS + automatic provenance |
-| ✅ Transfer Ownership | Complete | Role-based transfers with tracking |
-| ✅ Supply Chain Explorer | Complete | Real provenance data visualization |
-| ✅ SupplyChainManager Contract | Complete | Comprehensive tracking contract |
-| ✅ Real IPFS Integration | Complete | Pinata-based storage |
-| ✅ Role-Based Access Control | Complete | Proper permission validation |
-| ✅ Responsive UI | Complete | Mobile-friendly design |
-| ✅ Error Handling | Complete | Comprehensive error management |
+| Feature                        | Status   | Description                        |
+| ------------------------------ | -------- | ---------------------------------- |
+| ✅ Enhanced Tokenization       | Complete | Real IPFS + automatic provenance   |
+| ✅ Transfer Ownership          | Complete | Role-based transfers with tracking |
+| ✅ Supply Chain Explorer       | Complete | Real provenance data visualization |
+| ✅ SupplyChainManager Contract | Complete | Comprehensive tracking contract    |
+| ✅ Real IPFS Integration       | Complete | Pinata-based storage               |
+| ✅ Role-Based Access Control   | Complete | Proper permission validation       |
+| ✅ Responsive UI               | Complete | Mobile-friendly design             |
+| ✅ Error Handling              | Complete | Comprehensive error management     |
+| ✅ Marketplace Integration     | Complete | Cart system and purchasing         |
+| ✅ Dashboard Analytics         | Complete | Real-time blockchain stats         |
+| ✅ Production Deployment       | Complete | Live on Vercel                     |
 
 ## 🔮 Future Enhancements
 
+### Immediate Roadmap (Phase 4)
+
 - **QR Code Generation**: Generate QR codes for easy token tracking
+- **Enhanced Analytics**: More detailed charts and insights
 - **Batch Operations**: Support for bulk token operations
-- **Analytics Dashboard**: Supply chain analytics and insights
+- **Performance Optimization**: Improve IPFS call efficiency
+
+### Long-term Vision (Phase 5)
+
 - **Mobile App**: Native mobile application
 - **API Integration**: REST API for third-party integrations
 - **Advanced Filtering**: More sophisticated search and filter options
+- **Multi-language Support**: Internationalization
+- **Dark Mode**: Theme switching capabilities
 
 ---
 
-This implementation provides a complete, production-ready supply chain management system with real blockchain integration, IPFS storage, and comprehensive provenance tracking.
+**Current Status**: Production-ready supply chain management system (85% complete) with real blockchain integration, IPFS storage, and comprehensive provenance tracking deployed on Lisk Sepolia testnet.
