@@ -55,8 +55,8 @@ export const createWeb3AuthInstance = async (config: Web3AuthConfig): Promise<We
     },
   });
 
-  // Note: configureAdapter method may not be available in all versions
-  // The adapter will be configured automatically when Web3Auth initializes
+  // Actually configure the adapter - this was missing!
+  web3auth.configureAdapter(openloginAdapter);
 
   return web3auth;
 };
