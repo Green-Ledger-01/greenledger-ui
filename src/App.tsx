@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Web3Provider } from './config/HybridWeb3Config';
 import { Web3ContextEnhancedProvider } from './contexts/Web3ContextEnhanced';
 import { ToastProvider } from './contexts/ToastContext';

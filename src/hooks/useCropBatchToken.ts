@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, usePublicClient, useWatchContractEvent } from 'wagmi';
-import { parseEther, formatEther, getAddress } from 'viem';
+import { getAddress } from 'viem';
 import { CONTRACT_ADDRESSES } from '../config/constants';
 import { useToast } from '../contexts/ToastContext';
 import { liskSepolia } from '../chains/liskSepolia';
@@ -124,7 +124,7 @@ export const useCropBatchToken = () => {
         // Find the most recent transfer to get current owner
         if (filteredLogs.length > 0) {
           const latestTransfer = filteredLogs[filteredLogs.length - 1];
-          currentOwner = latestTransfer.args?.to || currentOwner;
+          currentOwner = latestTransfer?.args?.to || currentOwner;
         }
       } catch (error) {
         console.warn('Failed to fetch transfer events for ownership:', error);

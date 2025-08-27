@@ -308,7 +308,7 @@ const shouldUseMockIPFS = (): boolean => {
  * Create metadata object from upload parameters
  */
 const createMetadataObject = (params: UploadCropBatchParams, imageUri: string): CropMetadata => {
-  return {
+  const metadata: CropMetadata = {
     name: params.name,
     description: params.description,
     image: imageUri,
@@ -324,13 +324,23 @@ const createMetadataObject = (params: UploadCropBatchParams, imageUri: string): 
     ],
     cropType: params.cropType,
     quantity: params.quantity,
-    pricePerKg: params.pricePerKg,
     originFarm: params.originFarm,
     harvestDate: params.harvestDate,
     notes: params.notes,
-    certifications: params.certifications,
-    location: params.location,
   };
+
+  // Only add optional properties if they exist
+  if (params.pricePerKg !== undefined) {
+    metadata.pricePerKg = params.pricePerKg;
+  }
+  if (params.certifications !== undefined) {
+    metadata.certifications = params.certifications;
+  }
+  if (params.location !== undefined) {
+    metadata.location = params.location;
+  }
+
+  return metadata;
 };
 
 /**

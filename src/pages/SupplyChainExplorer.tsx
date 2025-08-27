@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Input, Table, Tag, Typography, Space, Button, Modal, Timeline, Descriptions, Alert, Select, Spin, Row, Col } from 'antd';
+import { Card, Input, Table, Tag, Typography, Space, Button, Modal, Timeline, Descriptions, Select, Spin, Row, Col } from 'antd';
 import { SearchOutlined, EyeOutlined, EnvironmentOutlined, UserOutlined, ClockCircleOutlined, FilterOutlined, ReloadOutlined } from '@ant-design/icons';
-import { useAccount } from 'wagmi';
+// import { useAccount } from 'wagmi';
 import {
-  useTokensInState,
+
   useProvenanceHistory,
-  useProvenanceStep,
+
   getStateLabel,
   getStateColor,
   formatTimestamp,
   formatAddress,
-  ProvenanceRecord,
+
   ProvenanceStep
 } from '../hooks/useSupplyChainManager';
 import { useCropBatchToken } from '../hooks/useCropBatchToken';
 import { fetchMetadataFromIPFS, CropMetadata } from '../utils/ipfs';
-import { SUPPLY_CHAIN_STATES, SUPPLY_CHAIN_STATE_LABELS } from '../config/constants';
+import { SUPPLY_CHAIN_STATE_LABELS } from '../config/constants';
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -38,7 +38,7 @@ interface ProvenanceModalData {
 }
 
 const SupplyChainExplorer: React.FC = () => {
-  const { address } = useAccount();
+  // const { address } = useAccount();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedState, setSelectedState] = useState<number | undefined>(undefined);
   const [filteredTokens, setFilteredTokens] = useState<TokenData[]>([]);
@@ -181,14 +181,15 @@ const SupplyChainExplorer: React.FC = () => {
     setLoadingSteps(true);
     try {
       const steps: ProvenanceStep[] = [];
-      const totalSteps = Number(provenanceHistory[5]); // totalSteps from getProvenanceHistory
+      const historyArray = provenanceHistory as any[];
+      const totalSteps = Number(historyArray[5]); // totalSteps from getProvenanceHistory
 
       // If no steps in provenance, show basic token info
       if (totalSteps === 0) {
         const basicStep: ProvenanceStep = {
-          actor: provenanceHistory[1] as string, // originalFarmer
+          actor: historyArray[1] as string, // originalFarmer
           state: 0, // Produced state
-          timestamp: provenanceHistory[2] as bigint, // creationTime
+          timestamp: historyArray[2] as bigint, // creationTime
           location: 'Farm Location',
           notes: 'Token minted but not yet in supply chain',
           transactionHash: '0x0000000000000000000000000000000000000000000000000000000000000000'
@@ -201,9 +202,9 @@ const SupplyChainExplorer: React.FC = () => {
             // Note: We would need to implement useProvenanceStep hook call here
             // For now, create a basic step structure with available data
             const step: ProvenanceStep = {
-              actor: i === 0 ? provenanceHistory[1] as string : provenanceHistory[4] as string, // originalFarmer or currentOwner
+              actor: i === 0 ? historyArray[1] as string : historyArray[4] as string, // originalFarmer or currentOwner
               state: i, // Step index as state approximation
-              timestamp: provenanceHistory[2] as bigint, // creationTime
+              timestamp: historyArray[2] as bigint, // creationTime
               location: `Step ${i + 1} Location`,
               notes: `Supply chain step ${i + 1}`,
               transactionHash: '0x0000000000000000000000000000000000000000000000000000000000000000'

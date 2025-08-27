@@ -1,7 +1,7 @@
 import { Web3Auth } from '@web3auth/modal';
 import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK, ADAPTER_EVENTS } from '@web3auth/base';
 import { EthereumPrivateKeyProvider } from '@web3auth/ethereum-provider';
-import { OpenloginAdapter } from '@web3auth/openlogin-adapter';
+// import { OpenloginAdapter } from '@web3auth/openlogin-adapter';
 
 export interface Web3AuthConfig {
   clientId: string;
@@ -39,24 +39,23 @@ export const createWeb3AuthInstance = async (config: Web3AuthConfig): Promise<We
     },
   });
 
-  // Configure OpenLogin adapter for social logins
-  const openloginAdapter = new OpenloginAdapter({
-    loginSettings: {
-      mfaLevel: "optional",
-    },
-    adapterSettings: {
-      uxMode: "popup",
-      whiteLabel: {
-        appName: "GreenLedger",
-        appUrl: window.location.origin,
-        logoLight: "https://images.web3auth.io/web3auth-logo-w.svg",
-        logoDark: "https://images.web3auth.io/web3auth-logo-w.svg",
-      },
-    },
-  });
-
-  // Actually configure the adapter - this was missing!
-  web3auth.configureAdapter(openloginAdapter);
+  // TODO: Configure OpenLogin adapter for social logins
+  // Temporarily removed due to configureAdapter method not being available
+  // const openloginAdapter = new OpenloginAdapter({
+  //   loginSettings: {
+  //     mfaLevel: "optional",
+  //   },
+  //   adapterSettings: {
+  //     uxMode: "popup",
+  //     whiteLabel: {
+  //       appName: "GreenLedger",
+  //       appUrl: window.location.origin,
+  //       logoLight: "https://images.web3auth.io/web3auth-logo-w.svg",
+  //       logoDark: "https://images.web3auth.io/web3auth-logo-w.svg",
+  //     },
+  //   },
+  // });
+  // web3auth.configureAdapter(openloginAdapter);
 
   return web3auth;
 };

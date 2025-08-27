@@ -1,9 +1,9 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { usePublicClient } from 'wagmi';
 import { getAddress } from 'viem';
 import { CONTRACT_ADDRESSES } from '../config/constants';
 import { useToast } from '../contexts/ToastContext';
-import CropBatchTokenABI from '../contracts/CropBatchToken.json';
+// import CropBatchTokenABI from '../contracts/CropBatchToken.json';
 import { useCropBatchToken } from './useCropBatchToken';
 
 export interface SupplyChainEvent {
@@ -135,13 +135,13 @@ export const useSupplyChainFlow = () => {
       events.sort((a, b) => a.timestamp - b.timestamp);
 
       const minter = events.find(e => e.eventType === 'minted')?.to || '0x0000000000000000000000000000000000000000';
-      const currentOwner = events.length > 0 ? events[events.length - 1].to : minter;
+      const currentOwner = events.length > 0 ? events[events.length - 1]?.to : minter;
       const totalTransfers = events.filter(e => e.eventType === 'transferred').length;
 
       return {
         tokenId,
         events,
-        currentOwner,
+        currentOwner: currentOwner || minter,
         minter,
         totalTransfers,
       };
@@ -202,7 +202,7 @@ export const useSupplyChainFlow = () => {
   }, [transferToken, addToast]);
 
   // Validate transfer recipient (check if address has required role)
-  const validateTransferRecipient = useCallback(async (address: string, expectedRole: string): Promise<boolean> => {
+  const validateTransferRecipient = useCallback(async (address: string, _expectedRole: string): Promise<boolean> => {
     try {
       // For now, we'll do basic address validation
       // In a full implementation, this would check the UserManagement contract for roles
@@ -224,7 +224,7 @@ export const useSupplyChainFlow = () => {
   }, []);
 
   // Check if user can transfer to specific role
-  const canTransferTo = useCallback((role: string): boolean => {
+  const canTransferTo = useCallback((_role: string): boolean => {
     // This would typically check the current user's role and the supply chain rules
     // For now, we'll allow all transfers for demonstration
     return true;

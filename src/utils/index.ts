@@ -221,7 +221,7 @@ export const formatTxHash = (hash: string): string => {
  */
 export const getBlockExplorerUrl = (hash: string): string => {
   // Default to Lisk Sepolia testnet explorer
-  const baseUrl = import.meta.env.VITE_BLOCK_EXPLORER_URL || 'https://sepolia-blockscout.lisk.com';
+  const baseUrl = import.meta.env['VITE_BLOCK_EXPLORER_URL'] || 'https://sepolia-blockscout.lisk.com';
   return `${baseUrl}/tx/${hash}`;
 };
 
@@ -229,7 +229,7 @@ export const getBlockExplorerUrl = (hash: string): string => {
  * Get block explorer URL for address
  */
 export const getAddressExplorerUrl = (address: string): string => {
-  const baseUrl = import.meta.env.VITE_BLOCK_EXPLORER_URL || 'https://sepolia-blockscout.lisk.com';
+  const baseUrl = import.meta.env['VITE_BLOCK_EXPLORER_URL'] || 'https://sepolia-blockscout.lisk.com';
   return `${baseUrl}/address/${address}`;
 };
 
@@ -237,6 +237,6 @@ export const getAddressExplorerUrl = (address: string): string => {
  * Get block explorer URL for token
  */
 export const getTokenExplorerUrl = (contractAddress: string, tokenId: string): string => {
-  const baseUrl = import.meta.env.VITE_BLOCK_EXPLORER_URL || 'https://sepolia-blockscout.lisk.com';
+  const baseUrl = import.meta.env['VITE_BLOCK_EXPLORER_URL'] || 'https://sepolia-blockscout.lisk.com';
   return `${baseUrl}/token/${contractAddress}/instance/${tokenId}`;
 };

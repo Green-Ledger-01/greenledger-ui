@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronRight, Calendar, MapPin, Scale, Sprout, User, Truck, ShoppingCart, Clock, Plus, Check, DollarSign, X, Info } from 'lucide-react';
+import { Calendar, MapPin, Scale, Sprout, User, Truck, Clock, Plus, Check, DollarSign, X, Info } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 import { useCart } from '../contexts/CartContext';
 import { ipfsToHttp, CropMetadata } from '../utils/ipfs';
@@ -55,7 +55,7 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
       return;
     }
 
-    addToCart({
+    const cartItem: Parameters<typeof addToCart>[0] = {
       tokenId: batch.tokenId,
       name: batch.name || `Batch #${batch.tokenId}`,
       cropType: batch.cropType || 'Unknown',
@@ -63,9 +63,15 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
       originFarm: batch.originFarm || 'Unknown Farm',
       harvestDate: batch.harvestDate || 0,
       image: batch.image,
-      price: batch.pricePerKg,
       owner: batch.owner || '',
-    });
+    };
+
+    // Only add price if it exists
+    if (batch.pricePerKg !== undefined) {
+      cartItem.price = batch.pricePerKg;
+    }
+
+    addToCart(cartItem);
   };
 
   const formatDate = (timestamp: number) => {
@@ -82,31 +88,7 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
     return `https://placehold.co/400x200/${color}/000000?text=${encodeURIComponent(batch.cropType || 'Crop')}`;
   };
 
-  const getSupplyChainIcon = (status?: 'farmer' | 'transporter' | 'buyer') => {
-    switch (status) {
-      case 'farmer':
-        return <Sprout className="h-4 w-4 text-green-600" />;
-      case 'transporter':
-        return <Truck className="h-4 w-4 text-blue-600" />;
-      case 'buyer':
-        return <ShoppingCart className="h-4 w-4 text-purple-600" />;
-      default:
-        return <User className="h-4 w-4 text-gray-600" />;
-    }
-  };
 
-  const getSupplyChainColor = (status?: 'farmer' | 'transporter' | 'buyer') => {
-    switch (status) {
-      case 'farmer':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'transporter':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'buyer':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
 
   const formatLastUpdated = (timestamp?: number) => {
     if (!timestamp) return '';

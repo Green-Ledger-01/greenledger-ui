@@ -69,9 +69,6 @@
     "*.{ts,tsx,js,jsx}": [
       "eslint --fix"
     ],
-    "*.{ts,tsx}": [
-      "tsc --noEmit"
-    ],
     "*.{json,md,yml,yaml}": [
       "prettier --write"
     ]

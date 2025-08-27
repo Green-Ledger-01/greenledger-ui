@@ -69,7 +69,6 @@ const CurrencyDisplay: React.FC<CurrencyDisplayProps> = ({
     })}`;
   };
 
-  const primaryConfig = CURRENCY_CONFIG[currency];
   const primaryFormatted = formatCurrency(amount, currency);
 
   if (compact) {

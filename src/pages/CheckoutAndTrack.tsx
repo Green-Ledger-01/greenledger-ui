@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import {
   ArrowRight,
   Package,
   Truck,
   ShoppingCart,
-  MapPin,
-  Calendar,
+
   User,
   Clock,
   CheckCircle,
@@ -14,15 +13,14 @@ import {
   AlertCircle,
   RefreshCw,
   ExternalLink,
-  Loader2,
-  CreditCard
+
 } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
 import { useProvenanceHistory, useTransferWithProvenance } from '../hooks/useSupplyChainManager';
 import { useCropBatchToken } from '../hooks/useCropBatchToken';
 import { fetchMetadataFromIPFS, CropMetadata } from '../utils/ipfs';
-import { CONTRACT_ADDRESSES } from '../config/constants';
+// import { CONTRACT_ADDRESSES } from '../config/constants';
 import CartCheckoutSection from '../components/CartCheckoutSection';
 import OwnershipTracker from '../components/OwnershipTracker';
 
@@ -32,12 +30,12 @@ interface CheckoutAndTrackProps {
 
 const CheckoutAndTrack: React.FC<CheckoutAndTrackProps> = ({ tokenId: propTokenId }) => {
   const { tokenId: paramTokenId } = useParams<{ tokenId: string }>();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const { addToast } = useToast();
   const { hasRole } = useWeb3Enhanced();
 
   // Helper function to check if user can perform action
-  const canPerformAction = (role: string) => hasRole(role);
+  // const canPerformAction = (role: string) => hasRole(role);
 
   const tokenId = propTokenId || (paramTokenId ? parseInt(paramTokenId) : null);
 
@@ -115,12 +113,12 @@ const CheckoutAndTrack: React.FC<CheckoutAndTrackProps> = ({ tokenId: propTokenI
     }
   }, [getAllBatches, refetchProvenance, provenanceHistory, addToast]);
 
-  const canTransferTo = useCallback((role: string) => {
-    // Check if user has permission to transfer to this role
-    return hasRole('farmer') || hasRole('transporter') || hasRole('buyer');
-  }, [hasRole]);
+  // const canTransferTo = useCallback((_role: string) => {
+  //   // Check if user has permission to transfer to this role
+  //   return hasRole('farmer') || hasRole('transporter') || hasRole('buyer');
+  // }, [hasRole]);
 
-  const validateTransferRecipient = useCallback(async (address: string, role: string) => {
+  const validateTransferRecipient = useCallback(async (address: string, _role: string) => {
     // Basic address validation
     if (!address || !address.startsWith('0x') || address.length !== 42) {
       return false;
@@ -239,7 +237,7 @@ const CheckoutAndTrack: React.FC<CheckoutAndTrackProps> = ({ tokenId: propTokenI
     return 'pending';
   };
 
-  const getStepIcon = (stepId: number, status: string) => {
+  const getStepIcon = (_stepId: number, status: string) => {
     if (status === 'completed') {
       return <CheckCircle className="h-6 w-6 text-green-600" />;
     } else if (status === 'active') {
@@ -357,10 +355,10 @@ const CheckoutAndTrack: React.FC<CheckoutAndTrackProps> = ({ tokenId: propTokenI
             
             {/* Steps */}
             <div className="relative flex justify-between">
-              {supplyChainSteps.map((step, index) => {
+              {supplyChainSteps.map((step) => {
                 const status = getStepStatus(step.id);
-                const StepIcon = step.icon;
-                const historyStep = currentHistory.steps.find(s => s.role === step.role);
+                // const StepIcon = step.icon;
+                const historyStep = currentHistory.steps.find((s: any) => s.role === step.role);
                 
                 return (
                   <div key={step.id} className="flex flex-col items-center max-w-xs">
@@ -402,7 +400,7 @@ const CheckoutAndTrack: React.FC<CheckoutAndTrackProps> = ({ tokenId: propTokenI
                             <div className="flex items-center gap-2 text-sm mt-1">
                               <ExternalLink className="h-3 w-3" />
                               <a 
-                                href={`${import.meta.env.VITE_APP_EXPLORER_URL}/tx/${historyStep.transactionHash}`}
+                                href={`${import.meta.env['VITE_APP_EXPLORER_URL']}/tx/${historyStep.transactionHash}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-blue-600 hover:text-blue-800 underline"

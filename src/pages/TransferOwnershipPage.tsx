@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Form, Select, Input, Button, message, Typography, Space, Divider, Tag, Alert, Avatar } from 'antd';
-import { SendOutlined, UserOutlined, EnvironmentOutlined, FileTextOutlined, LoadingOutlined } from '@ant-design/icons';
+import { SendOutlined, UserOutlined, EnvironmentOutlined, LoadingOutlined } from '@ant-design/icons';
 import { useAccount } from 'wagmi';
-import { useTransferWithProvenance, useInitializeProvenance, useProvenanceHistory, getStateLabel, getStateColor } from '../hooks/useSupplyChainManager';
+import { useTransferWithProvenance, useInitializeProvenance, getStateLabel, getStateColor } from '../hooks/useSupplyChainManager';
 import { useCropBatchToken } from '../hooks/useCropBatchToken';
 import { useUserRole } from '../hooks/useUserManagement';
 import { fetchMetadataFromIPFS, CropMetadata, ipfsToHttp } from '../utils/ipfs';
-import { CONTRACT_ADDRESSES, SUPPLY_CHAIN_STATES } from '../config/constants';
-import SupplyChainManagerABI from '../contracts/SupplyChainManager.json';
+import { SUPPLY_CHAIN_STATES } from '../config/constants';
+// import SupplyChainManagerABI from '../contracts/SupplyChainManager.json';
 
 const { Title, Text } = Typography;
 const { Option } = Select;

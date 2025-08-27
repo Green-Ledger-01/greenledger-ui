@@ -21,7 +21,6 @@ export const config = createConfig({
     injected(),
     coinbaseWallet({
       appName: APP_NAME,
-      appLogoUrl: undefined,
     }),
     walletConnect({
       projectId: WALLETCONNECT_PROJECT_ID,
@@ -39,7 +38,7 @@ export const config = createConfig({
   
   // Transport configuration (RPC providers)
   transports: {
-    [liskSepolia.id]: http(import.meta.env.VITE_APP_RPC_URL || 'https://rpc.sepolia-api.lisk.com'),
+    [liskSepolia.id]: http(import.meta.env['VITE_APP_RPC_URL'] || 'https://rpc.sepolia-api.lisk.com'),
   },
   ssr: false,
 })

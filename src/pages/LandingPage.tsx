@@ -5,7 +5,7 @@ import {
   Shield,
   Truck,
   Users,
-  ArrowRight,
+
   CheckCircle,
   Globe,
   Zap,

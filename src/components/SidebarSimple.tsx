@@ -3,7 +3,6 @@ import { NavLink } from 'react-router-dom';
 import {
   Home,
   ShoppingCart,
-  Package,
   Truck,
   UserPlus,
   X,

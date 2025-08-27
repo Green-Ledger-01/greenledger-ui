@@ -19,7 +19,7 @@ import { uploadCropBatch } from '../utils/ipfs';
 import { getErrorMessage, formatTxHash, getBlockExplorerUrl } from '../utils';
 import { VALIDATION_LIMITS } from '../config/constants';
 import LoadingSpinner from '../components/LoadingSpinner';
-import ErrorMessage from '../components/ErrorMessage';
+// import ErrorMessage from '../components/ErrorMessage';
 import CurrencyDisplay, { CURRENCY_CONFIG, convertCurrency } from '../components/CurrencyDisplay';
 
 interface TokenizationPageProps {
@@ -64,7 +64,7 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string | null>>({});
   const [uploadProgress, setUploadProgress] = useState<string>('');
-  const [mintedTokenId, setMintedTokenId] = useState<number | null>(null);
+  const [_mintedTokenId, setMintedTokenId] = useState<number | null>(null);
   const [provenanceInitialized, setProvenanceInitialized] = useState(false);
 
   const canMint = hasRole('farmer');
@@ -135,7 +135,7 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
       errors[key] = validateField(key, formData[key as keyof typeof formData]);
     });
     if (!imageFile) {
-      errors.imageFile = 'Image file is required.';
+      errors['imageFile'] = 'Image file is required.';
     }
     setFormErrors(errors);
     return !Object.values(errors).some(error => error !== null);
@@ -159,19 +159,29 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
         convertCurrency(parseFloat(formData.pricePerKg), formData.priceCurrency, 'ETH') :
         undefined;
 
-      const { metadataUri } = await uploadCropBatch({
+      const uploadParams: Parameters<typeof uploadCropBatch>[0] = {
         name: formData.name,
         description: formData.description,
         imageFile: imageFile!,
         cropType: formData.cropType,
         quantity,
-        pricePerKg: priceInEth,
         originFarm: formData.originFarm,
         harvestDate: Math.floor(harvestDate.getTime() / 1000),
         notes: formData.notes,
-        certifications: formData.certifications ? formData.certifications.split(',').map(c => c.trim()) : undefined,
-        location: formData.location ? { address: formData.location } : undefined,
-      });
+      };
+
+      // Only add optional properties if they exist
+      if (priceInEth !== undefined) {
+        uploadParams.pricePerKg = priceInEth;
+      }
+      if (formData.certifications) {
+        uploadParams.certifications = formData.certifications.split(',').map(c => c.trim());
+      }
+      if (formData.location) {
+        uploadParams.location = { address: formData.location };
+      }
+
+      const { metadataUri } = await uploadCropBatch(uploadParams);
 
       setUploadProgress('IPFS upload complete. Initiating blockchain transaction...');
       addToast('IPFS upload complete. Initiating blockchain transaction...', 'info');
@@ -433,11 +443,11 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
                 onChange={handleInputChange}
                 placeholder="e.g., Organic Heirloom Tomatoes"
                 className={`w-full px-4 py-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors ${
-                  formErrors.name ? 'border-red-400 bg-red-50' : 'border-gray-300'
+                  formErrors['name'] ? 'border-red-400 bg-red-50' : 'border-gray-300'
                 }`}
                 disabled={isProcessing}
               />
-              {formErrors.name && <p className="mt-1 text-xs text-red-600">{formErrors.name}</p>}
+              {formErrors['name'] && <p className="mt-1 text-xs text-red-600">{formErrors['name']}</p>}
             </div>
 
             <div>
@@ -451,7 +461,7 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
                 value={formData.cropType}
                 onChange={handleInputChange}
                 className={`w-full px-4 py-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors ${
-                  formErrors.cropType ? 'border-red-400 bg-red-50' : 'border-gray-300'
+                  formErrors['cropType'] ? 'border-red-400 bg-red-50' : 'border-gray-300'
                 }`}
                 disabled={isProcessing}
               >
@@ -466,7 +476,7 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
                 <option value="Fiber Crops">Fiber Crops</option>
                 <option value="Other">Other</option>
               </select>
-              {formErrors.cropType && <p className="mt-1 text-xs text-red-600">{formErrors.cropType}</p>}
+              {formErrors['cropType'] && <p className="mt-1 text-xs text-red-600">{formErrors['cropType']}</p>}
             </div>
           </div>
 
@@ -504,11 +514,11 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
                 max={VALIDATION_LIMITS.MAX_QUANTITY_KG}
                 placeholder="e.g., 50"
                 className={`w-full px-4 py-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors ${
-                  formErrors.quantity ? 'border-red-400 bg-red-50' : 'border-gray-300'
+                  formErrors['quantity'] ? 'border-red-400 bg-red-50' : 'border-gray-300'
                 }`}
                 disabled={isProcessing}
               />
-              {formErrors.quantity && <p className="mt-1 text-xs text-red-600">{formErrors.quantity}</p>}
+              {formErrors['quantity'] && <p className="mt-1 text-xs text-red-600">{formErrors['quantity']}</p>}
             </div>
 
             <div>
@@ -527,7 +537,7 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
                   step="0.01"
                   min="0"
                   className={`flex-1 px-4 py-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors ${
-                    formErrors.pricePerKg ? 'border-red-400 bg-red-50' : 'border-gray-300'
+                    formErrors['pricePerKg'] ? 'border-red-400 bg-red-50' : 'border-gray-300'
                   }`}
                   disabled={isProcessing}
                 />
@@ -544,7 +554,7 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
                   <option value="ETH">Ξ (ETH)</option>
                 </select>
               </div>
-              {formErrors.pricePerKg && <p className="mt-1 text-xs text-red-600">{formErrors.pricePerKg}</p>}
+              {formErrors['pricePerKg'] && <p className="mt-1 text-xs text-red-600">{formErrors['pricePerKg']}</p>}
               <p className="mt-1 text-xs text-gray-500">
                 Set your price per kilogram in {CURRENCY_CONFIG[formData.priceCurrency].name}
               </p>
@@ -585,11 +595,11 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
               onChange={handleInputChange}
               placeholder="e.g., Green Valley Farm"
               className={`w-full px-4 py-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors ${
-                formErrors.originFarm ? 'border-red-400 bg-red-50' : 'border-gray-300'
+                formErrors['originFarm'] ? 'border-red-400 bg-red-50' : 'border-gray-300'
               }`}
               disabled={isProcessing}
             />
-            {formErrors.originFarm && <p className="mt-1 text-xs text-red-600">{formErrors.originFarm}</p>}
+            {formErrors['originFarm'] && <p className="mt-1 text-xs text-red-600">{formErrors['originFarm']}</p>}
           </div>
 
           {/* Harvest Date and Location */}
@@ -606,11 +616,11 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
                 value={formData.harvestDate}
                 onChange={handleInputChange}
                 className={`w-full px-4 py-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors ${
-                  formErrors.harvestDate ? 'border-red-400 bg-red-50' : 'border-gray-300'
+                  formErrors['harvestDate'] ? 'border-red-400 bg-red-50' : 'border-gray-300'
                 }`}
                 disabled={isProcessing}
               />
-              {formErrors.harvestDate && <p className="mt-1 text-xs text-red-600">{formErrors.harvestDate}</p>}
+              {formErrors['harvestDate'] && <p className="mt-1 text-xs text-red-600">{formErrors['harvestDate']}</p>}
             </div>
 
             <div>
@@ -700,7 +710,7 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
                 <p>Selected: <span className="font-medium">{imageFile.name}</span></p>
               </div>
             )}
-            {formErrors.imageFile && <p className="mt-1 text-xs text-red-600">{formErrors.imageFile}</p>}
+            {formErrors['imageFile'] && <p className="mt-1 text-xs text-red-600">{formErrors['imageFile']}</p>}
           </div>
 
           {/* Submit Button */}

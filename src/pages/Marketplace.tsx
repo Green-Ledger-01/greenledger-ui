@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { Filter, Search, Info, RefreshCw, Wifi, WifiOff, Clock, AlertCircle, ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react';
+import { Filter, Search, Info, RefreshCw, Wifi, WifiOff, AlertCircle, ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react';
 import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
 import { useCropBatchToken } from '../hooks/useCropBatchToken';
 import { useToast } from '../contexts/ToastContext';
@@ -22,7 +22,7 @@ const Marketplace: React.FC = () => {
     lastUpdated?: number;
   })[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const lastUpdateTime = Date.now();
+  // const lastUpdateTime = Date.now();
   const connectionStatus = isConnected ? 'connected' : 'disconnected';
   
   const [filterCropType, setFilterCropType] = useState('');
@@ -55,7 +55,7 @@ const Marketplace: React.FC = () => {
         const chunk = batchChunks[i];
 
         const chunkResults = await Promise.allSettled(
-          chunk.map(async (batch) => {
+          (chunk || []).map(async (batch) => {
             try {
               if (!batch.metadataUri) {
                 // If no metadata URI, create a basic metadata object
@@ -106,7 +106,8 @@ const Marketplace: React.FC = () => {
         // Extract successful results from this chunk
         const successfulChunkBatches = chunkResults
           .filter((result): result is PromiseFulfilledResult<any> => result.status === 'fulfilled')
-          .map(result => result.value);
+          .map(result => result.status === 'fulfilled' ? result.value : null)
+          .filter(Boolean);
 
         allBatchesWithMetadata.push(...successfulChunkBatches);
 
@@ -140,17 +141,17 @@ const Marketplace: React.FC = () => {
   }, [refreshTrigger, refetchBatches]);
 
   // Format last update time
-  const formatLastUpdate = useCallback((timestamp: number) => {
-    const now = Date.now();
-    const diff = now - timestamp;
-    const minutes = Math.floor(diff / 60000);
-    const seconds = Math.floor((diff % 60000) / 1000);
-    
-    if (minutes > 0) {
-      return `${minutes}m ${seconds}s ago`;
-    }
-    return `${seconds}s ago`;
-  }, []);
+  // const formatLastUpdate = useCallback((timestamp: number) => {
+  //   const now = Date.now();
+  //   const diff = now - timestamp;
+  //   const minutes = Math.floor(diff / 60000);
+  //   const seconds = Math.floor((diff % 60000) / 1000);
+
+  //   if (minutes > 0) {
+  //     return `${minutes}m ${seconds}s ago`;
+  //   }
+  //   return `${seconds}s ago`;
+  // }, []);
 
   // Handle manual refresh
   const handleRefresh = useCallback(async () => {
@@ -221,16 +222,16 @@ const Marketplace: React.FC = () => {
     }
   };
 
-  const getConnectionStatusText = () => {
-    switch (connectionStatus) {
-      case 'connected':
-        return 'Connected to blockchain';
-      case 'disconnected':
-        return 'Disconnected from blockchain';
-      default:
-        return 'Unknown connection status';
-    }
-  };
+  // const getConnectionStatusText = () => {
+  //   switch (connectionStatus) {
+  //     case 'connected':
+  //       return 'Connected to blockchain';
+  //     case 'disconnected':
+  //       return 'Disconnected from blockchain';
+  //     default:
+  //       return 'Unknown connection status';
+  //   }
+  // };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -355,7 +356,7 @@ const Marketplace: React.FC = () => {
             <option value="">All Stages</option>
             {uniqueSupplyChainStatuses.map(status => (
               <option key={status} value={status}>
-                {status.charAt(0).toUpperCase() + status.slice(1)}
+                {status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Unknown'}
               </option>
             ))}
           </select>

@@ -7,7 +7,7 @@ import SelfServiceRoleRegistrationSimple from '../components/SelfServiceRoleRegi
 import SidebarSimple from '../components/SidebarSimple';
 import CartSidebar from '../components/CartSidebar';
 import ConnectButtonWrapper from '../components/ConnectButtonWrapper';
-import LoadingSpinner from '../components/LoadingSpinner';
+// import LoadingSpinner from '../components/LoadingSpinner';
 import LandingPage from '../pages/LandingPage';
 import AuthenticationPage from '../pages/AuthenticationPage';
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, MapPin, Zap, TrendingUp, Users, Package, Wifi, WifiOff, RefreshCw, Loader2 } from 'lucide-react';
+import { Activity, MapPin, Zap, TrendingUp, Users, Package, Wifi, WifiOff, Loader2 } from 'lucide-react';
 import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
 import { useCropBatchToken } from '../hooks/useCropBatchToken';
 import { useUserTokenHistory, useTokensByState } from '../hooks/useSupplyChainManager';
@@ -26,7 +26,7 @@ type ConnectionStatus = 'connected' | 'disconnected';
 interface QuickAction {
   title: string;
   description: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<any>;
   color: string;
   path: string;
   requiresRole?: 'admin' | 'farmer';
@@ -36,7 +36,7 @@ interface QuickAction {
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { hasRole, isConnected, account } = useWeb3Enhanced();
-  const { getAllBatches, isLoading, error } = useCropBatchToken();
+  const { getAllBatches } = useCropBatchToken();
 
   // Real-time blockchain data hooks
   const { data: userTokenHistory } = useUserTokenHistory(account);
@@ -57,7 +57,7 @@ const Dashboard: React.FC = () => {
     return 'disconnected';
   }, [isConnected]);
 
-  const lastUpdateTime = React.useMemo(() => Date.now(), []);
+  // const lastUpdateTime = React.useMemo(() => Date.now(), []);
   
   const [liveStats, setLiveStats] = useState<LiveStats>({
     totalBatches: 0,
@@ -193,17 +193,17 @@ const Dashboard: React.FC = () => {
     },
   ], [liveStats]);
 
-  const formatLastUpdate = React.useCallback((timestamp: number) => {
-    const now = Date.now();
-    const diff = now - timestamp;
-    const minutes = Math.floor(diff / 60000);
-    const seconds = Math.floor((diff % 60000) / 1000);
+  // const formatLastUpdate = React.useCallback((timestamp: number) => {
+  //   const now = Date.now();
+  //   const diff = now - timestamp;
+  //   const minutes = Math.floor(diff / 60000);
+  //   const seconds = Math.floor((diff % 60000) / 1000);
 
-    if (minutes > 0) {
-      return `${minutes}m ${seconds}s ago`;
-    }
-    return `${seconds}s ago`;
-  }, []);
+  //   if (minutes > 0) {
+  //     return `${minutes}m ${seconds}s ago`;
+  //   }
+  //   return `${seconds}s ago`;
+  // }, []);
 
   // Fixed connection icon handling
   const getConnectionIcon = React.useCallback(() => {

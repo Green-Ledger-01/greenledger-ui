@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShoppingCart, CreditCard, Package, Calendar, MapPin, Scale, Trash2, ChevronDown, ChevronUp, CheckCircle, AlertCircle } from 'lucide-react';
+import { ShoppingCart, CreditCard, Package, MapPin, Scale, Trash2, ChevronDown, ChevronUp, CheckCircle, AlertCircle } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useToast } from '../contexts/ToastContext';
 import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
@@ -12,13 +12,7 @@ const CartCheckoutSection: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const formatDate = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+
 
   const getPlaceholderImage = (tokenId: number, cropType: string) => {
     const colors = ['B0D9B1', 'A8E6A3', '88D982', '6BCF7F'];
