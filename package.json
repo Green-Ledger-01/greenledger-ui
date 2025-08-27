@@ -11,10 +11,11 @@
     "preview": "vite preview",
     "postinstall": "patch-package",
     "prepare": "husky",
-    "type-check": "tsc --noEmit",
+    "type-check": "tsc --noEmit --skipLibCheck",
+    "type-check:strict": "tsc --noEmit",
     "test": "echo \"No tests specified\" && exit 0",
     "pre-commit": "lint-staged",
-    "validate": "npm run type-check && npm run lint && npm run build"
+    "validate": "npm run type-check:strict && npm run lint && npm run build"
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.0",
