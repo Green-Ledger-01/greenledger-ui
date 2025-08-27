@@ -4,8 +4,8 @@ import { injected, walletConnect, coinbaseWallet } from 'wagmi/connectors';
 import { liskSepolia } from '../chains/liskSepolia';
 
 // Environment variables for better security
-const WALLETCONNECT_PROJECT_ID = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID;
-const APP_NAME = import.meta.env.VITE_APP_NAME || 'GreenLedger';
+const WALLETCONNECT_PROJECT_ID = import.meta.env['VITE_WALLETCONNECT_PROJECT_ID'];
+const APP_NAME = import.meta.env['VITE_APP_NAME'] || 'GreenLedger';
 
 // Validate environment variables at build time
 if (!WALLETCONNECT_PROJECT_ID) {
