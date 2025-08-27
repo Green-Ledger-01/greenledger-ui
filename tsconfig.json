@@ -24,6 +24,8 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+
+    /* Output + source maps */
     "declaration": false,
     "declarationMap": false,
     "sourceMap": true,
@@ -35,8 +37,11 @@
     "noImplicitOverride": true,
     "noImplicitReturns": true,
     "noPropertyAccessFromIndexSignature": true,
-    "noUncheckedIndexedAccess": true
+    "noUncheckedIndexedAccess": true,
+
+    /* Prevent unwanted type libs (fixes prop-types issue) */
+    "types": []
   },
   "include": ["src", "vite-env.d.ts"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "exclude": ["node_modules/@types/prop-types"]
 }
