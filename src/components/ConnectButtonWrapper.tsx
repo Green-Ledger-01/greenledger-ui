@@ -3,9 +3,10 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { Zap, Mail, Wallet, User } from 'lucide-react';
 import { Web3Auth } from '@web3auth/modal';
-import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK, ADAPTER_EVENTS } from '@web3auth/base';
-import { EthereumPrivateKeyProvider } from '@web3auth/ethereum-provider';
+import { ADAPTER_EVENTS } from '@web3auth/base';
+// import { EthereumPrivateKeyProvider } from '@web3auth/ethereum-provider';
 import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
+import {  createWeb3AuthInstance, defaultChainConfig } from '../config/web3AuthConfig';
 
 interface ConnectButtonWrapperProps {
   variant?: 'default' | 'compact' | 'minimal' | 'primary' | 'secondary';
@@ -20,8 +21,8 @@ const ConnectButtonWrapper: React.FC<ConnectButtonWrapperProps> = ({
   variant = 'default',
   showBalance = false
 }) => {
-  const { address, isConnected } = useAccount();
-  const { web3authProvider, web3authConnected, setWeb3authProvider, setWeb3authConnected } = useWeb3Enhanced();
+  const { isConnected } = useAccount();
+  const { web3authConnected, setWeb3authProvider, setWeb3authConnected } = useWeb3Enhanced();
   const [web3auth, setWeb3auth] = useState<Web3Auth | null>(null);
   const [showOptions, setShowOptions] = useState(false);
   const [userInfo, setUserInfo] = useState<any>(null);
@@ -35,35 +36,11 @@ const ConnectButtonWrapper: React.FC<ConnectButtonWrapperProps> = ({
           return;
         }
 
-        const chainConfig = {
-          chainNamespace: CHAIN_NAMESPACES.EIP155,
-          chainId: "0x106A", // Lisk Sepolia
-          rpcTarget: "https://rpc.sepolia-api.lisk.com",
-          displayName: "Lisk Sepolia",
-          blockExplorer: "https://sepolia-blockscout.lisk.com",
-          ticker: "ETH",
-          tickerName: "Ethereum",
-        };
-
-        const privateKeyProvider = new EthereumPrivateKeyProvider({
-          config: { chainConfig },
-        });
-
-        const web3auth = new Web3Auth({
-          clientId,
-          web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
-          privateKeyProvider: privateKeyProvider as any,
-          uiConfig: {
-            appName: "GreenLedger",
-            appUrl: window.location.origin,
-            logoLight: "https://images.web3auth.io/web3auth-logo-w.svg",
-            logoDark: "https://images.web3auth.io/web3auth-logo-w.svg",
-            mode: "light",
-            theme: {
-              primary: "#10b981"
-            },
-          },
-        });
+        // Uses centralized config
+        const  web3auth = await createWeb3AuthInstance({
+          clientId, 
+          chainConfig: defaultChainConfig
+        })
 
         // Set up event listeners
         web3auth.on(ADAPTER_EVENTS.CONNECTED, (data: unknown) => {
@@ -185,6 +162,7 @@ const ConnectButtonWrapper: React.FC<ConnectButtonWrapperProps> = ({
     }
 
     return (
+      <div className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-2xl p-6 shadow-lg">
       <div className="space-y-3">
         <div className="flex flex-col space-y-3">
           <button
@@ -214,6 +192,7 @@ const ConnectButtonWrapper: React.FC<ConnectButtonWrapperProps> = ({
           ← Back
         </button>
       </div>
+      </div>
     );
   }
 
@@ -229,7 +208,7 @@ const ConnectButtonWrapper: React.FC<ConnectButtonWrapperProps> = ({
     }
 
     return (
-      <div className="flex space-x-3">
+      <div className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl p-4 shadow-md flex space-x-3">
         <button
           onClick={connectWeb3Auth}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all flex items-center font-medium"
@@ -237,7 +216,9 @@ const ConnectButtonWrapper: React.FC<ConnectButtonWrapperProps> = ({
           <Mail className="mr-2 h-4 w-4" />
           Social Login
         </button>
+        <div className="bg-gray-50 border broder-gray-200 rounded-lg px-3 py-2 flex items-center">
         <ConnectButton />
+      </div>
       </div>
     );
   }
