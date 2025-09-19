@@ -49,13 +49,16 @@ export const shouldUseWalletConnect = (): boolean => {
 };
 
 export const getMobileConnectionStrategy = () => {
-  if (isMetaMaskMobile() || isCoinbaseMobile() || isTrustWallet()) {
-    return 'injected'; // Use injected connector
+  // Only return mobile strategies if actually on mobile
+  if (!isMobile()) {
+    return 'auto';
   }
   
-  if (isMobile()) {
-    return 'walletconnect'; // Use WalletConnect for mobile browsers
+  // If in a wallet browser, use injected
+  if (isMetaMaskMobile() || isCoinbaseMobile() || isTrustWallet() || hasInjectedWallet()) {
+    return 'injected';
   }
   
-  return 'auto'; // Let RainbowKit decide
+  // Regular mobile browser without wallet, use WalletConnect
+  return 'walletconnect';
 };
