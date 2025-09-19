@@ -4,7 +4,7 @@ import { Web3ContextEnhancedProvider } from './contexts/Web3ContextEnhanced';
 import { ToastProvider } from './contexts/ToastContext';
 import { CartProvider } from './contexts/CartContext';
 import ErrorBoundary from './components/ErrorBoundary';
-import SimpleAppRoutes from './routes/SimpleAppRoutes';
+import SimpleAppRoutes from './routes/AppRoutes';
 
 export default function App() {
   return (
