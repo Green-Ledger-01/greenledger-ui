@@ -11,8 +11,14 @@ export const liskSepolia: Chain = {
     decimals: 18,
   },
   rpcUrls: {
-    default: { http: ['https://rpc.sepolia-api.lisk.com'] },
-    public: { http: ['https://rpc.sepolia-api.lisk.com'] },
+    default: { 
+      http: ['https://rpc.sepolia-api.lisk.com'],
+      webSocket: ['wss://ws.sepolia-api.lisk.com']
+    },
+    public: { 
+      http: ['https://rpc.sepolia-api.lisk.com'],
+      webSocket: ['wss://ws.sepolia-api.lisk.com']
+    },
   },
   blockExplorers: {
     default: {
@@ -22,11 +28,15 @@ export const liskSepolia: Chain = {
   },
   testnet: true,
   
-  // Optional: Contract addresses for better wallet support
+  // Contract addresses for better wallet support
   contracts: {
     multicall3: {
       address: '0xcA11bde05977b3631167028862bE2a173976CA11',
       blockCreated: 502046,
     },
   },
+  
+  // Mobile-specific configurations
+  iconUrl: 'https://sepolia-blockscout.lisk.com/favicon.ico',
+  iconBackground: '#fff',
 };
