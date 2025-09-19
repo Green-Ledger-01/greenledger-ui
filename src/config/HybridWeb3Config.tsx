@@ -76,6 +76,11 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
           })}
           modalSize="compact"
           showRecentTransactions={true}
+          coolMode={false}
+          appInfo={{
+            appName: 'GreenLedger',
+            learnMoreUrl: 'https://greenledger.app',
+          }}
         >
           {children}
         </RainbowKitProvider>
