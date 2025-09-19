@@ -250,10 +250,19 @@ const LandingPage: React.FC = () => {
                 <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 space-y-4">
                   <div className="flex items-center space-x-3 mb-4">
                     <Shield className="h-6 w-6 text-green-200" />
-                    <h3 className="text-lg font-semibold text-white">Connect Your Wallet</h3>
+                    <h3 className="text-lg font-semibold text-white">Get Started</h3>
                   </div>
                   <div className="space-y-3">
                     <ConnectButtonWrapper variant="primary" />
+                    <div className="text-center text-green-100">
+                      <span className="text-sm">or</span>
+                    </div>
+                    <button
+                      onClick={() => navigate('/waitlist')}
+                      className="w-full bg-white/20 hover:bg-white/30 text-white border border-white/30 px-6 py-3 rounded-lg transition-all duration-200 font-medium"
+                    >
+                      Join Our Waitlist
+                    </button>
                     <p className="text-sm text-green-100 text-center">
                       Secure authentication with blockchain technology
                     </p>
@@ -543,6 +552,16 @@ const LandingPage: React.FC = () => {
                   <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
                     <ConnectButtonWrapper variant="primary" />
                   </div>
+                  <div className="text-center text-gray-400">
+                    <span className="text-sm">or</span>
+                  </div>
+                  <button
+                    onClick={() => navigate('/waitlist')}
+                    className="w-full bg-white border-2 border-green-600 text-green-600 px-8 py-4 rounded-xl hover:bg-green-50 transition-all duration-200 font-semibold text-lg flex items-center justify-center"
+                  >
+                    <Users className="mr-2 h-5 w-5" />
+                    Join Our Waitlist
+                  </button>
                   <p className="text-gray-500 text-sm text-center">
                     Secure authentication with blockchain technology
                   </p>
