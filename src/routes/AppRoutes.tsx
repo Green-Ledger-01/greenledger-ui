@@ -18,6 +18,7 @@ import TransferOwnershipPage from '../pages/TransferOwnershipPage';
 import SupplyChainExplorer from '../pages/SupplyChainExplorer';
 import Marketplace from '../pages/Marketplace';
 import CheckoutAndTrack from '../pages/CheckoutAndTrack';
+import WaitlistPage from '../pages/WaitlistPage';
 
 // Simple Connect Button Component using ConnectButtonWrapper
 const SimpleConnectButton: React.FC = () => {
@@ -109,6 +110,7 @@ const AppContent = () => {
               <Route path="/track" element={<CheckoutAndTrack />} />
               <Route path="/track/:tokenId" element={<CheckoutAndTrack />} />
               <Route path="/auth" element={<AuthenticationPage />} />
+              <Route path="/waitlist" element={<WaitlistPage />} />
 
             </Routes>
           </div>
@@ -122,9 +124,9 @@ const AppContent = () => {
 };
 
 /**
- * Simple App Routes Component
+ *  App Routes Component
  *
- * Now uses the hybrid Web3 setup with both WalletConnect (for Lisk blockchain)
+ * Uses the hybrid Web3 setup with both WalletConnect (for Lisk blockchain)
  * and Particle Network (for account abstraction). The providers are configured
  * in App.tsx for proper layering.
  *
@@ -135,7 +137,7 @@ const AppContent = () => {
  * - All core app functionality
  * - Clean, maintainable architecture
  */
-const SimpleAppRoutes = () => {
+const AppRoutes = () => {
   return (
     <Router
       future={{
@@ -145,10 +147,11 @@ const SimpleAppRoutes = () => {
     >
       <Routes>
         <Route path="/landing" element={<LandingPage />} />
+        <Route path="/waitlist" element={<WaitlistPage />} />
         <Route path="/*" element={<AppContent />} />
       </Routes>
     </Router>
   );
 };
 
-export default SimpleAppRoutes;
+export default AppRoutes;
