@@ -3,6 +3,8 @@ import { Mail, CheckCircle } from 'lucide-react';
 
 const WaitlistForm: React.FC = () => {
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [role, setRole] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -18,6 +20,8 @@ const WaitlistForm: React.FC = () => {
     setIsSubmitted(true);
     setIsLoading(false);
     setEmail('');
+    setName('');
+    setRole('');
   };
 
   if (isSubmitted) {
@@ -40,6 +44,13 @@ const WaitlistForm: React.FC = () => {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Your name (optional)"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+        />
+        <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -47,6 +58,17 @@ const WaitlistForm: React.FC = () => {
           required
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
         />
+        <select
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+        >
+          <option value="">Select your role (optional)</option>
+          <option value="Farmer">Farmer</option>
+          <option value="Transporter">Transporter</option>
+          <option value="Buyer">Buyer</option>
+          <option value="Other">Other</option>
+        </select>
         <button
           type="submit"
           disabled={isLoading || !email}
