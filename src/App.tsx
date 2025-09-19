@@ -5,6 +5,7 @@ import { ToastProvider } from './contexts/ToastContext';
 import { CartProvider } from './contexts/CartContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import SimpleAppRoutes from './routes/AppRoutes';
+import WalletDebugInfo from './components/WalletDebugInfo';
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
           <CartProvider>
             <Web3ContextEnhancedProvider>
               <SimpleAppRoutes />
+              <WalletDebugInfo />
             </Web3ContextEnhancedProvider>
           </CartProvider>
         </ToastProvider>
