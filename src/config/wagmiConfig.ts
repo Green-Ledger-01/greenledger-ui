@@ -17,12 +17,15 @@ export const chains = [liskSepolia] as const;
 
 export const config = createConfig({
   connectors: [
-    // 1. Injected connector (MetaMask, etc.)
-    injected(),
-    coinbaseWallet({
-      appName: APP_NAME,
-      appLogoUrl: undefined,
+    // 1. Injected connector with mobile-specific detection
+    injected({
+      target: () => ({
+        id: 'injected',
+        name: 'Injected',
+        provider: typeof window !== 'undefined' ? window.ethereum : undefined,
+      }),
     }),
+    // 2. WalletConnect with mobile optimization
     walletConnect({
       projectId: WALLETCONNECT_PROJECT_ID,
       metadata: {
@@ -30,7 +33,13 @@ export const config = createConfig({
         description: 'Blockchain-based Agricultural Supply Chain Tracker',
         url: typeof window !== 'undefined' ? window.location.origin : 'https://greenledger.app',
         icons: []
-      }
+      },
+      showQrModal: true,
+    }),
+    // 3. Coinbase Wallet
+    coinbaseWallet({
+      appName: APP_NAME,
+      appLogoUrl: undefined,
     }),
   ],
   
