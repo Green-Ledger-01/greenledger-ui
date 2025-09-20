@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Form, Select, Input, Button, message, Typography, Space, Divider, Tag, Alert, Avatar, Modal } from 'antd';
 import { SendOutlined, UserOutlined, EnvironmentOutlined, FileTextOutlined, LoadingOutlined, QrcodeOutlined, ScanOutlined } from '@ant-design/icons';
 import { QRScanner } from '../components/QRScanner';
-import { QRCodeGenerator } from '../components/QRCodeGenerator';
+import QRGenerator from '../components/QRCodeGenerator';
+import TransferQRGenerator from '../components/TransferQRGenerator';
 import { qrService } from '../services/qr.service';
 import { useAccount } from 'wagmi';
 import { useTransferWithProvenance, useInitializeProvenance, useProvenanceHistory, getStateLabel, getStateColor } from '../hooks/useSupplyChainManager';
@@ -608,7 +609,7 @@ const TransferOwnershipPage: React.FC = () => {
               type="info"
               style={{ marginBottom: '16px', textAlign: 'left' }}
             />
-            <QRCodeGenerator
+            <TransferQRGenerator
               data={generateTransferQR()}
               size={256}
             />
