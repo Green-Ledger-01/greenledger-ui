@@ -1,7 +1,11 @@
 import { VerificationResult, QRPayload, TokenMetadata, ProvenanceStep } from '../types/verification';
+import { FraudDetectionService } from './fraud-detection.service';
+import { PWAService } from './pwa.service';
 
 export class VerificationService {
   private static instance: VerificationService;
+  private fraudDetection = FraudDetectionService.getInstance();
+  private pwa = PWAService.getInstance();
 
   static getInstance(): VerificationService {
     if (!VerificationService.instance) {
@@ -13,25 +17,44 @@ export class VerificationService {
   async verify(tokenId: string): Promise<VerificationResult> {
     const startTime = performance.now();
     
+    // Record scan for fraud detection
+    const fraudAlerts = this.fraudDetection.recordScan(tokenId);
+    
     try {
+      // Try offline cache first
+      if (!this.pwa.isOnline()) {
+        const cached = await this.pwa.getCachedVerification(tokenId);
+        if (cached) {
+          return { ...cached, offline: true, fraudAlerts };
+        }
+        throw new Error('Offline - no cached data');
+      }
+
       const [metadata, provenance] = await Promise.all([
         this.fetchMetadata(tokenId),
         this.fetchProvenance(tokenId)
       ]);
 
-      return {
+      const result = {
         tokenId,
         isValid: true,
         metadata,
         provenance,
-        verificationTime: performance.now() - startTime
+        verificationTime: performance.now() - startTime,
+        fraudAlerts
       };
+
+      // Cache for offline use
+      await this.pwa.cacheVerification(tokenId, result);
+      
+      return result;
     } catch (error) {
       return {
         tokenId,
         isValid: false,
         verificationTime: performance.now() - startTime,
-        error: error instanceof Error ? error.message : 'Verification failed'
+        error: error instanceof Error ? error.message : 'Verification failed',
+        fraudAlerts
       };
     }
   }
@@ -70,7 +93,7 @@ export class VerificationService {
     };
   }
 
-  private async fetchProvenance(tokenId: string): Promise<ProvenanceStep[]> {
+  private async fetchProvenance(_tokenId: string): Promise<ProvenanceStep[]> {
     await new Promise(resolve => setTimeout(resolve, 150));
     return [
       {

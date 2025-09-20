@@ -23,6 +23,16 @@ export interface VerificationResult {
   provenance?: ProvenanceStep[];
   verificationTime: number;
   error?: string;
+  offline?: boolean;
+  fraudAlerts?: FraudAlert[];
+}
+
+export interface FraudAlert {
+  type: 'RAPID_SCANNING' | 'INVALID_TOKEN' | 'SUSPICIOUS_PATTERN' | 'DUPLICATE_SCAN';
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  tokenId: string;
+  details: string;
+  timestamp: number;
 }
 
 export interface QRPayload {

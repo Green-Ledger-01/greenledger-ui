@@ -53,11 +53,15 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
           text: 'Verify this product',
           url: qrData
         });
-      } catch {}
+      } catch (error) {
+        console.log('Share failed:', error);
+      }
     } else {
       try {
         await navigator.clipboard.writeText(qrData);
-      } catch {}
+      } catch (error) {
+        console.log('Copy failed:', error);
+      }
     }
   };
 

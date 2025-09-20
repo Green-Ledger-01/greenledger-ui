@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Camera, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { Camera, X, CheckCircle, AlertCircle, Wifi, WifiOff, Shield } from 'lucide-react';
 import { useVerification } from '../hooks/useVerification';
 import { VerificationResult } from '../types/verification';
+import { PWAService } from '../services/pwa.service';
 
 interface QRScannerProps {
-  onResult?: (result: VerificationResult) => void;
+  onResult?: (_result: VerificationResult) => void;
   className?: string;
 }
 
@@ -12,8 +13,23 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onResult, className = '' }
   const [isScanning, setIsScanning] = useState(false);
   const [result, setResult] = useState<VerificationResult | null>(null);
   const [manualInput, setManualInput] = useState('');
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   
   const { verify, decodeQR, isLoading } = useVerification();
+  const pwaService = PWAService.getInstance();
+
+  React.useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const handleScan = async (qrData: string) => {
     const payload = decodeQR(qrData);
@@ -23,7 +39,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onResult, className = '' }
       const verificationResult = await verify(payload.tokenId);
       setResult(verificationResult);
       onResult?.(verificationResult);
-    } catch (error) {
+    } catch (_error) {
       setResult({
         tokenId: payload.tokenId,
         isValid: false,
@@ -64,6 +80,31 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onResult, className = '' }
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Connection Status */}
+        <div className="flex items-center gap-2 mb-3 text-sm">
+          {isOnline ? (
+            <><Wifi className="w-4 h-4 text-green-600" /><span className="text-green-600">Online</span></>
+          ) : (
+            <><WifiOff className="w-4 h-4 text-orange-600" /><span className="text-orange-600">Offline</span></>
+          )}
+          {result.offline && <span className="text-orange-600">(Cached data)</span>}
+        </div>
+
+        {/* Fraud Alerts */}
+        {result.fraudAlerts && result.fraudAlerts.length > 0 && (
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="w-4 h-4 text-yellow-600" />
+              <span className="font-medium text-yellow-800">Security Alerts</span>
+            </div>
+            {result.fraudAlerts.map((alert, index) => (
+              <div key={index} className="text-sm text-yellow-700">
+                {alert.type}: {alert.details}
+              </div>
+            ))}
+          </div>
+        )}
 
         {result.isValid && result.metadata && (
           <div className="space-y-3">
@@ -106,6 +147,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onResult, className = '' }
 
         <div className="mt-4 text-xs text-gray-500">
           Verified in {result.verificationTime.toFixed(0)}ms
+          {result.offline && ' (offline mode)'}
         </div>
       </div>
     );

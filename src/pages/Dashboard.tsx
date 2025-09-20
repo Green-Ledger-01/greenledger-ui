@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, MapPin, Zap, TrendingUp, Users, Package, Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { Activity, MapPin, Zap, TrendingUp, Users, Package, Wifi, WifiOff, RefreshCw, QrCode, Scan } from 'lucide-react';
 import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
 import { useCropBatchToken } from '../hooks/useCropBatchToken';
 import { useUserTokenHistory, useTokensByState } from '../hooks/useSupplyChainManager';
@@ -218,6 +218,13 @@ const Dashboard: React.FC = () => {
             {/* Quick Action Buttons */}
             <div className="flex items-center gap-3">
               <button
+                onClick={() => navigate('/qr')}
+                className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-blue-700 transition-all text-sm font-medium shadow-lg"
+              >
+                <QrCode className="h-4 w-4" />
+                QR Verify
+              </button>
+              <button
                 onClick={() => navigate('/marketplace')}
                 className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all text-sm"
               >
@@ -269,6 +276,46 @@ const Dashboard: React.FC = () => {
               </div>
             );
           })}
+        </section>
+
+        {/* QR Verification Highlight */}
+        <section className="bg-gradient-to-r from-green-600 to-blue-600 rounded-lg shadow-lg p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="h-12 w-12 bg-white/20 rounded-lg flex items-center justify-center">
+                  <Scan className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold">🚀 Revolutionary QR Verification</h3>
+                  <p className="text-green-100">Our key competitive advantage - instant blockchain verification</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <div className="text-2xl font-bold">⚡ &lt;2s</div>
+                  <div className="text-sm text-green-100">Verification Time</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold">🔗 100%</div>
+                  <div className="text-sm text-green-100">Blockchain Proof</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold">📱 Mobile</div>
+                  <div className="text-sm text-green-100">Optimized</div>
+                </div>
+              </div>
+            </div>
+            <div className="ml-6">
+              <button
+                onClick={() => navigate('/qr')}
+                className="bg-white text-green-600 px-6 py-3 rounded-lg hover:bg-gray-100 transition-all font-semibold flex items-center gap-2 shadow-lg"
+              >
+                <QrCode className="h-5 w-5" />
+                Try QR Scanner
+              </button>
+            </div>
+          </div>
         </section>
 
       {/* Compact Data Visualizations */}

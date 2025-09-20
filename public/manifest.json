@@ -1,0 +1,49 @@
+{
+  "name": "GreenLedger - Agricultural Supply Chain",
+  "short_name": "GreenLedger",
+  "description": "Instant QR verification for agricultural products",
+  "start_url": "/qr",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#10b981",
+  "orientation": "portrait-primary",
+  "categories": ["food", "agriculture", "business"],
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/greenledger-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Scan QR Code",
+      "short_name": "Scan",
+      "description": "Instantly verify agricultural products",
+      "url": "/qr",
+      "icons": [{ "src": "/greenledger-logo.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Generate QR",
+      "short_name": "Generate",
+      "description": "Create QR codes for products",
+      "url": "/qr?tab=generate",
+      "icons": [{ "src": "/greenledger-logo.svg", "sizes": "96x96" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/greenledger-logo.svg",
+      "sizes": "1280x720",
+      "type": "image/svg+xml",
+      "form_factor": "wide"
+    }
+  ]
+}
