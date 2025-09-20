@@ -4,7 +4,7 @@ import { SendOutlined, UserOutlined, EnvironmentOutlined, FileTextOutlined, Load
 import { QRScanner } from '../components/QRScanner';
 import QRGenerator from '../components/QRCodeGenerator';
 import TransferQRGenerator from '../components/TransferQRGenerator';
-import { qrService } from '../services/qr.service';
+import { QRService } from '../services/qr.service';
 import { useAccount } from 'wagmi';
 import { useTransferWithProvenance, useInitializeProvenance, useProvenanceHistory, getStateLabel, getStateColor } from '../hooks/useSupplyChainManager';
 import { useCropBatchToken } from '../hooks/useCropBatchToken';
@@ -271,7 +271,7 @@ const TransferOwnershipPage: React.FC = () => {
   const generateTransferQR = () => {
     if (!selectedToken || !address) return null;
     
-    return qrService.generateTransferQR({
+    return QRService.getInstance().generateTransferQR({
       tokenId: selectedToken.tokenId,
       currentOwner: address,
       tokenDetails: {
