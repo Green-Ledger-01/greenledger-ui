@@ -35,7 +35,6 @@ const WaitlistPage: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {

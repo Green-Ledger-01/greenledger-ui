@@ -1,0 +1,36 @@
+#!/bin/sh
+# Commit message hook for GreenLedger UI
+# Validates commit message format
+
+commit_regex='^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?: .{1,50}'
+
+error_msg="❌ Invalid commit message format!
+
+Commit message should follow conventional commits:
+  feat: add new feature
+  fix: bug fix
+  docs: documentation changes
+  style: formatting changes
+  refactor: code refactoring
+  test: adding tests
+  chore: maintenance tasks
+  perf: performance improvements
+  ci: CI/CD changes
+  build: build system changes
+  revert: revert previous commit
+
+Examples:
+  ✅ feat: implement waitlist page with Formspree integration
+  ✅ fix: resolve wallet connection issue
+  ✅ docs: update README with setup instructions
+  ✅ refactor(auth): simplify authentication flow
+
+Current message: $(cat $1)"
+
+if ! grep -qE "$commit_regex" "$1"; then
+    echo "$error_msg"
+    exit 1
+fi
+
+echo "✅ Commit message format is valid!"
+exit 0

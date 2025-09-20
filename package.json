@@ -1,13 +1,32 @@
 {
-  "name": "greenledger",
+  "name": "greenledger-ui",
+  "version": "1.0.0",
+  "description": "Blockchain Agricultural Supply Chain Platform with QR Verification",
   "private": true,
-  "version": "0.0.0",
   "type": "module",
+  "keywords": [
+    "blockchain",
+    "agriculture",
+    "supply-chain",
+    "nft",
+    "qr-verification",
+    "web3",
+    "react",
+    "typescript"
+  ],
+  "homepage": "https://greenledger-ui-two.vercel.app/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Green-Ledger-01/greenledger-ui"
+  },
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
-    "lint": "eslint .",
     "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext ts,tsx --fix",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist node_modules/.vite",
     "postinstall": "patch-package"
   },
   "dependencies": {
@@ -24,11 +43,6 @@
     "react-router-dom": "6.28.0",
     "viem": "^2.31.3",
     "wagmi": "^2.15.6"
-  },
-  "overrides": {
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "util": "^0.12.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
@@ -47,7 +61,29 @@
     "postcss": "^8.4.24",
     "postinstall-postinstall": "^2.1.0",
     "tailwindcss": "^3.3.2",
+    "typescript": "^5.6.3",
     "vite": "^6.3.5",
     "vite-plugin-node-polyfills": "^0.23.0"
+  },
+  "overrides": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "util": "^0.12.5"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
