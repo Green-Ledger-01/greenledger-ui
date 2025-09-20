@@ -24,7 +24,7 @@ import { useCropBatchToken } from '../hooks/useCropBatchToken';
 import { fetchMetadataFromIPFS, CropMetadata } from '../utils/ipfs';
 import { CONTRACT_ADDRESSES } from '../config/constants';
 import CartCheckoutSection from '../components/CartCheckoutSection';
-import OwnershipTracker from '../components/OwnershipTracker';
+import { QROwnershipManager } from '../components/QROwnershipManager';
 import { secureLog, secureError, secureWarn } from '../utils/secureLogger';
 
 interface CheckoutAndTrackProps {
@@ -315,7 +315,7 @@ const CheckoutAndTrack: React.FC<CheckoutAndTrackProps> = ({ tokenId: propTokenI
         </div>
 
         {/* Live Ownership Tracker */}
-        <OwnershipTracker tokenId={selectedTokenId} className="mt-4" />
+        <QROwnershipManager tokenId={selectedTokenId} className="mt-4" />
       </div>
 
       {/* Batch Information */}
