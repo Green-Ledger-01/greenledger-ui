@@ -8,7 +8,7 @@ const WalletDebugInfo: React.FC = () => {
   const { connectors } = useConnect();
 
   // Only render in development mode
-  if (import.meta.env.PROD) {
+  if (!import.meta.env.DEV) {
     return null;
   }
 
