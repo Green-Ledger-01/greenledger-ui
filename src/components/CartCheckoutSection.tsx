@@ -8,7 +8,7 @@ import { ipfsToHttp } from '../utils/ipfs';
 const CartCheckoutSection: React.FC = () => {
   const { items, totalItems, removeFromCart, clearCart } = useCart();
   const { addToast } = useToast();
-  const { account, isConnected } = useWeb3Enhanced();
+  const { address, isConnected } = useWeb3Enhanced();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -27,7 +27,7 @@ const CartCheckoutSection: React.FC = () => {
   };
 
   const handleCheckout = async () => {
-    if (!isConnected || !account) {
+    if (!isConnected || !address) {
       addToast('Please connect your wallet to proceed with checkout', 'warning');
       return;
     }
@@ -170,7 +170,7 @@ const CartCheckoutSection: React.FC = () => {
             <div className="flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-green-600" />
               <p className="text-sm text-green-800">
-                Wallet connected: {account?.slice(0, 6)}...{account?.slice(-4)}
+                Wallet connected: {address?.slice(0, 6)}...{address?.slice(-4)}
               </p>
             </div>
           </div>
