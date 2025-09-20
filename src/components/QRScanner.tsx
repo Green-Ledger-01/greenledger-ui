@@ -3,6 +3,8 @@ import { Camera, X, CheckCircle, AlertCircle, Wifi, WifiOff, Shield } from 'luci
 import { useVerification } from '../hooks/useVerification';
 import { VerificationResult } from '../types/verification';
 import { PWAService } from '../services/pwa.service';
+import { QRTransactionFlow } from './QRTransactionFlow';
+import { QROwnershipManager } from './QROwnershipManager';
 
 interface QRScannerProps {
   onResult?: (_result: VerificationResult) => void;
@@ -142,6 +144,25 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onResult, className = '' }
         {!result.isValid && (
           <div className="text-red-600 text-sm">
             {result.error || 'Token could not be verified'}
+          </div>
+        )}
+
+        {/* Ownership History */}
+        {result.isValid && (
+          <div className="mt-4">
+            <QROwnershipManager verificationResult={result} />
+          </div>
+        )}
+
+        {/* Supply Chain Transaction Flow */}
+        {result.isValid && (
+          <div className="mt-4">
+            <QRTransactionFlow 
+              verificationResult={result}
+              onTransactionComplete={(txResult) => {
+                console.log('Transaction completed:', txResult);
+              }}
+            />
           </div>
         )}
 
