@@ -58,6 +58,7 @@ Strategic planning and roadmaps
 - [Implementation Roadmap](./planning/IMPLEMENTATION_ROADMAP.md) - Development timeline
 - [Systems Design](./planning/SYSTEMS_DESIGN.md) - Design methodology
 - [Technical Guide](./planning/TECHNICAL_GUIDE.md) - Technical planning
+- [DePIN Evolution Strategy](./planning/DEPIN_EVOLUTION_STRATEGY.md) - 🌐 **NEW** Decentralized Physical Infrastructure Network transformation
 
 ### **🔧 Implementation**
 Quick start and setup guides
