@@ -24,7 +24,7 @@ const Marketplace: React.FC = () => {
   })[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const lastUpdateTime = Date.now();
-  const connectionStatus = isConnected ? 'connected' : 'disconnected';
+  const connectionStatus: 'connected' | 'disconnected' | 'syncing' = isConnected ? 'connected' : 'disconnected';
   
   const [filterCropType, setFilterCropType] = useState('');
   const [filterFarmName, setFilterFarmName] = useState('');
