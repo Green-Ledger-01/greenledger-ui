@@ -5,6 +5,7 @@
 
 import { IPFS_CONFIG } from '../config/constants';
 import { areCredentialsConfigured } from './secureComparison';
+import { secureLog, secureError, secureWarn } from './secureLogger';
 
 // Simple in-memory cache for IPFS metadata
 const metadataCache = new Map<string, { data: CropMetadata; timestamp: number }>();
@@ -116,7 +117,7 @@ export const uploadFileToIPFS = async (file: File): Promise<string> => {
     const data = await response.json();
     return `ipfs://${data.IpfsHash}`;
   } catch (error) {
-    console.error('Error uploading file to IPFS:', error);
+    secureError('Error uploading file to IPFS:', error);
     throw error;
   }
 };
@@ -176,7 +177,7 @@ export const uploadMetadataToIPFS = async (metadata: CropMetadata): Promise<stri
     const data = await response.json();
     return `ipfs://${data.IpfsHash}`;
   } catch (error) {
-    console.error('Error uploading metadata to IPFS:', error);
+    secureError('Error uploading metadata to IPFS:', error);
     throw error;
   }
 };
@@ -194,7 +195,7 @@ export const fetchMetadataFromIPFS = async (ipfsUri: string): Promise<CropMetada
   // Check cache first
   const cached = metadataCache.get(hash);
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    console.log(`Using cached metadata for ${hash}`);
+    secureLog('Using cached metadata for hash:', hash);
     return cached.data;
   }
 
@@ -205,10 +206,10 @@ export const fetchMetadataFromIPFS = async (ipfsUri: string): Promise<CropMetada
       const metadata = JSON.parse(mockMetadata);
       // Cache the mock result
       metadataCache.set(hash, { data: metadata, timestamp: Date.now() });
-      console.log(`Using mock metadata for ${hash}`);
+      secureLog('Using mock metadata for hash:', hash);
       return metadata;
     } catch (error) {
-      console.warn('Failed to parse mock metadata:', error);
+      secureWarn('Failed to parse mock metadata:', error);
     }
   }
 
@@ -275,18 +276,18 @@ export const fetchMetadataFromIPFS = async (ipfsUri: string): Promise<CropMetada
         timestamp: Date.now()
       });
 
-      console.log(`Successfully fetched metadata from ${gateway}`);
+      secureLog('Successfully fetched metadata from gateway:', gateway);
       return cropMetadata;
 
     } catch (error) {
       lastError = error instanceof Error ? error : new Error('Unknown error');
-      console.warn(`Failed to fetch from ${gateway}:`, lastError.message);
+      secureWarn('Failed to fetch from gateway:', gateway, lastError.message);
       // Continue to next gateway
     }
   }
 
   // If all gateways failed, throw the last error
-  console.error('All IPFS gateways failed for hash:', hash);
+  secureError('All IPFS gateways failed for hash:', hash);
   throw lastError || new Error('Failed to fetch metadata from all IPFS gateways');
 };
 
@@ -295,7 +296,7 @@ export const fetchMetadataFromIPFS = async (ipfsUri: string): Promise<CropMetada
  */
 export const clearMetadataCache = (): void => {
   metadataCache.clear();
-  console.log('IPFS metadata cache cleared');
+  secureLog('IPFS metadata cache cleared');
 };
 
 
@@ -341,7 +342,7 @@ export const uploadCropBatch = async (params: UploadCropBatchParams): Promise<{ 
     let metadataUri: string;
 
     if (shouldUseMockIPFS()) {
-      console.warn('Using mock IPFS service. Configure Pinata API keys for production use.');
+      secureWarn('Using mock IPFS service. Configure Pinata API keys for production use.');
 
       // Mock file upload
       imageUri = await mockUploadFile(params.imageFile);
@@ -360,7 +361,7 @@ export const uploadCropBatch = async (params: UploadCropBatchParams): Promise<{ 
 
     return { metadataUri };
   } catch (error) {
-    console.error('Error uploading crop batch to IPFS:', error);
+    secureError('Error uploading crop batch to IPFS:', error);
     throw error;
   }
 };

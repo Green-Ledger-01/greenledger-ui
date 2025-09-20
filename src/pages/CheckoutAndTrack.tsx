@@ -25,6 +25,7 @@ import { fetchMetadataFromIPFS, CropMetadata } from '../utils/ipfs';
 import { CONTRACT_ADDRESSES } from '../config/constants';
 import CartCheckoutSection from '../components/CartCheckoutSection';
 import OwnershipTracker from '../components/OwnershipTracker';
+import { secureLog, secureError, secureWarn } from '../utils/secureLogger';
 
 interface CheckoutAndTrackProps {
   tokenId?: number;
@@ -69,7 +70,7 @@ const CheckoutAndTrack: React.FC<CheckoutAndTrackProps> = ({ tokenId: propTokenI
           const metadata = await fetchMetadataFromIPFS(batch.metadataUri);
           setBatchMetadata(metadata);
         } catch (error) {
-          console.warn('Failed to fetch metadata:', error);
+          secureWarn('Failed to fetch metadata:', error);
           setBatchMetadata({
             name: `Batch #${tokenId}`,
             description: `${batch.cropType} from ${batch.originFarm}`,
@@ -108,7 +109,7 @@ const CheckoutAndTrack: React.FC<CheckoutAndTrackProps> = ({ tokenId: propTokenI
 
       addToast('Supply chain history loaded', 'success');
     } catch (error) {
-      console.error('Failed to fetch supply chain history:', error);
+      secureError('Failed to fetch supply chain history:', error);
       addToast('Failed to load supply chain history', 'error');
     } finally {
       setIsLoadingHistory(false);
@@ -139,7 +140,7 @@ const CheckoutAndTrack: React.FC<CheckoutAndTrackProps> = ({ tokenId: propTokenI
   // Auto-refresh when transfer events are detected
   useEffect(() => {
     if (refreshTrigger > 0 && selectedTokenId) {
-      console.log('Auto-refreshing supply chain data due to transfer event');
+      secureLog('Auto-refreshing supply chain data due to transfer event');
       getSupplyChainHistory(selectedTokenId);
     }
   }, [refreshTrigger, selectedTokenId, getSupplyChainHistory]);
@@ -185,7 +186,7 @@ const CheckoutAndTrack: React.FC<CheckoutAndTrackProps> = ({ tokenId: propTokenI
         getSupplyChainHistory(selectedTokenId);
       }, 2000);
     } catch (error) {
-      console.error('Transfer failed:', error);
+      secureError('Transfer failed:', error);
       addToast('Transfer failed', 'error');
     }
   };

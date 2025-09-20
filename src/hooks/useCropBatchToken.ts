@@ -4,6 +4,7 @@ import { parseEther, formatEther, getAddress } from 'viem';
 import { CONTRACT_ADDRESSES } from '../config/constants';
 import { useToast } from '../contexts/ToastContext';
 import CropBatchTokenABI from '../contracts/CropBatchToken.json';
+import { secureLog, secureError, secureWarn } from '../utils/secureLogger';
 
 export interface CropBatch {
   tokenId: number;
@@ -124,7 +125,7 @@ export const useCropBatchToken = () => {
           currentOwner = latestTransfer.args?.to || currentOwner;
         }
       } catch (error) {
-        console.warn('Failed to fetch transfer events for ownership:', error);
+        secureWarn('Failed to fetch transfer events for ownership:', error);
         // Fallback: check if current user owns it
         const balance = await publicClient.readContract({
           address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
@@ -178,7 +179,7 @@ export const useCropBatchToken = () => {
       };
 
     } catch (err) {
-      console.error('Error fetching batch details:', err);
+      secureError('Error fetching batch details:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch batch details');
       return null;
     } finally {
@@ -230,7 +231,7 @@ export const useCropBatchToken = () => {
       return tokens.sort((a, b) => b.timestamp - a.timestamp);
 
     } catch (err) {
-      console.error('Error fetching user tokens:', err);
+      secureError('Error fetching user tokens:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch user tokens');
       return [];
     } finally {
@@ -263,7 +264,7 @@ export const useCropBatchToken = () => {
       });
 
     } catch (err) {
-      console.error('Error minting batch:', err);
+      secureError('Error minting batch:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to mint batch';
       setError(errorMessage);
       throw err;
@@ -293,7 +294,7 @@ export const useCropBatchToken = () => {
       });
 
     } catch (err) {
-      console.error('Error transferring token:', err);
+      secureError('Error transferring token:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to transfer token';
       setError(errorMessage);
       throw err;
@@ -341,7 +342,7 @@ export const useCropBatchToken = () => {
       return batches.sort((a, b) => b.timestamp - a.timestamp);
 
     } catch (err) {
-      console.error('Error fetching all batches:', err);
+      secureError('Error fetching all batches:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch batches');
       return [];
     } finally {
@@ -385,7 +386,7 @@ export const useCropBatchToken = () => {
     abi: CropBatchTokenABI,
     eventName: 'TransferSingle',
     onLogs(logs) {
-      console.log('Transfer event detected:', logs);
+      secureLog('Transfer event detected:', logs);
       // Trigger refresh for components using this hook
       setRefreshTrigger(prev => prev + 1);
       addToast('Ownership transfer detected - updating data...', 'info');
@@ -398,7 +399,7 @@ export const useCropBatchToken = () => {
     abi: CropBatchTokenABI,
     eventName: 'TransferBatch',
     onLogs(logs) {
-      console.log('Batch transfer event detected:', logs);
+      secureLog('Batch transfer event detected:', logs);
       setRefreshTrigger(prev => prev + 1);
       addToast('Batch transfer detected - updating data...', 'info');
     },

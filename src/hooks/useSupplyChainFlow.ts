@@ -5,6 +5,7 @@ import { CONTRACT_ADDRESSES } from '../config/constants';
 import { useToast } from '../contexts/ToastContext';
 import CropBatchTokenABI from '../contracts/CropBatchToken.json';
 import { useCropBatchToken } from './useCropBatchToken';
+import { secureError } from '../utils/secureLogger';
 
 export interface SupplyChainEvent {
   id: string;
@@ -145,7 +146,7 @@ export const useSupplyChainFlow = () => {
       };
 
     } catch (err) {
-      console.error('Error fetching supply chain history:', err);
+      secureError('Error fetching supply chain history:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch supply chain history');
       return null;
     } finally {
@@ -168,7 +169,7 @@ export const useSupplyChainFlow = () => {
       addToast('Transfer to transporter initiated', 'info');
       
     } catch (err) {
-      console.error('Error transferring to transporter:', err);
+      secureError('Error transferring to transporter:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to transfer to transporter';
       setError(errorMessage);
       addToast(`Transfer failed: ${errorMessage}`, 'error');
@@ -191,7 +192,7 @@ export const useSupplyChainFlow = () => {
       addToast('Transfer to buyer initiated', 'info');
       
     } catch (err) {
-      console.error('Error transferring to buyer:', err);
+      secureError('Error transferring to buyer:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to transfer to buyer';
       setError(errorMessage);
       addToast(`Transfer failed: ${errorMessage}`, 'error');
@@ -216,7 +217,7 @@ export const useSupplyChainFlow = () => {
         return false;
       }
     } catch (err) {
-      console.error('Error validating transfer recipient:', err);
+      secureError('Error validating transfer recipient:', err);
       return false;
     }
   }, []);
@@ -315,7 +316,7 @@ export const useSupplyChainFlow = () => {
       return events.sort((a, b) => b.timestamp - a.timestamp).slice(0, limit);
 
     } catch (err) {
-      console.error('Error fetching recent activity:', err);
+      secureError('Error fetching recent activity:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch recent activity');
       return [];
     } finally {
