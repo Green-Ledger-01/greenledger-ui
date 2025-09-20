@@ -89,7 +89,8 @@ const UserProfile: React.FC = () => {
   };
 
   // Format address helper
-  const formatAddress = (address: string) => {
+  const formatAddress = (address: string | undefined) => {
+    if (!address) return 'Unknown';
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
@@ -138,7 +139,7 @@ const UserProfile: React.FC = () => {
           <div className="flex items-center gap-4 text-sm text-gray-600">
             <div className="flex items-center gap-2">
               <Hash className="h-4 w-4" />
-              <span className="font-mono">{formatAddress(account!)}</span>
+              <span className="font-mono">{formatAddress(account)}</span>
             </div>
             {profileStats.joinDate && (
               <div className="flex items-center gap-2">
