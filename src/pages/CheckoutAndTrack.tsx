@@ -14,7 +14,7 @@ import {
   AlertCircle,
   RefreshCw,
   ExternalLink,
-  LoadingOutlined,
+
   CreditCard
 } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
@@ -89,7 +89,7 @@ const CheckoutAndTrack: React.FC<CheckoutAndTrackProps> = ({ tokenId: propTokenI
       await refetchProvenance();
 
       // Process provenance data into history format
-      if (provenanceHistory && provenanceHistory.length > 0) {
+      if (provenanceHistory && Array.isArray(provenanceHistory) && provenanceHistory.length > 0) {
         const processedHistory = {
           currentStep: provenanceHistory.length - 1,
           isComplete: provenanceHistory.length >= 3, // farmer -> transporter -> buyer
@@ -403,7 +403,7 @@ const CheckoutAndTrack: React.FC<CheckoutAndTrackProps> = ({ tokenId: propTokenI
                             <div className="flex items-center gap-2 text-sm mt-1">
                               <ExternalLink className="h-3 w-3" />
                               <a 
-                                href={`${import.meta.env.VITE_APP_EXPLORER_URL}/tx/${historyStep.transactionHash}`}
+                                href={`https://sepolia-blockscout.lisk.com/tx/${historyStep.transactionHash}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-blue-600 hover:text-blue-800 underline"
