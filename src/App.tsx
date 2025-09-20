@@ -15,7 +15,7 @@ export default function App() {
           <CartProvider>
             <Web3ContextEnhancedProvider>
               <SimpleAppRoutes />
-              <WalletDebugInfo />
+              {import.meta.env.DEV && <WalletDebugInfo />}
             </Web3ContextEnhancedProvider>
           </CartProvider>
         </ToastProvider>

@@ -27,7 +27,9 @@
     "lint:fix": "eslint . --ext ts,tsx --fix",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist node_modules/.vite",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "security:check": "npm audit && npm run lint",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.0",
@@ -50,13 +52,16 @@
     "@types/node": "^22.15.30",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
+    "@typescript-eslint/parser": "^8.44.0",
     "@vitejs/plugin-react": "^4.6.0",
     "autoprefixer": "^10.4.14",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
+    "eslint-plugin-security": "^3.0.1",
     "eth-eip712-util": "^2.3.1",
     "globals": "^16.0.0",
+    "husky": "^9.1.7",
     "patch-package": "^8.0.0",
     "postcss": "^8.4.24",
     "postinstall-postinstall": "^2.1.0",

@@ -12,9 +12,9 @@ import { useUserTokenHistory } from '../hooks/useSupplyChainManager';
  * roles, and platform statistics specific to the user.
  */
 const UserProfile: React.FC = () => {
-  const { account, isConnected, userRoles, hasRole } = useWeb3Enhanced();
+  const { address, isConnected, userRoles, hasRole } = useWeb3Enhanced();
   const { getAllBatches } = useCropBatchToken();
-  const { data: userTokenHistory } = useUserTokenHistory(account);
+  const { data: userTokenHistory } = useUserTokenHistory(address);
 
   // State for user-specific data
   const [userBatches, setUserBatches] = useState<any[]>([]);
@@ -30,7 +30,7 @@ const UserProfile: React.FC = () => {
 
   // Fetch user-specific data
   useEffect(() => {
-    if (!account || !isConnected) return;
+    if (!address || !isConnected) return;
 
     const fetchUserData = async () => {
       setIsLoading(true);
@@ -39,10 +39,10 @@ const UserProfile: React.FC = () => {
 
         // Filter batches for this user
         const ownedBatches = allBatches.filter(batch =>
-          batch.owner?.toLowerCase() === account.toLowerCase()
+          batch.owner?.toLowerCase() === address.toLowerCase()
         );
         const mintedBatches = allBatches.filter(batch =>
-          batch.minter?.toLowerCase() === account.toLowerCase()
+          batch.minter?.toLowerCase() === address.toLowerCase()
         );
 
         // Calculate unique farms user has interacted with
@@ -53,7 +53,7 @@ const UserProfile: React.FC = () => {
 
         // Find earliest interaction (join date)
         const allUserBatches = [...ownedBatches, ...mintedBatches];
-        const earliestTimestamp = allUserBatches.reduce((earliest, batch) => {
+        const earliestTimestamp = allUserBatches.reduce((earliest: number | null, batch) => {
           return batch.timestamp && (!earliest || batch.timestamp < earliest)
             ? batch.timestamp
             : earliest;
@@ -64,7 +64,7 @@ const UserProfile: React.FC = () => {
           totalBatches: allUserBatches.length,
           ownedBatches: ownedBatches.length,
           mintedBatches: mintedBatches.length,
-          interactedTokens: userTokenHistory ? userTokenHistory.length : 0,
+          interactedTokens: Array.isArray(userTokenHistory) ? userTokenHistory.length : 0,
           uniqueFarms: uniqueFarms.size,
           joinDate: earliestTimestamp ? new Date(earliestTimestamp * 1000) : null,
         });
@@ -76,7 +76,7 @@ const UserProfile: React.FC = () => {
     };
 
     fetchUserData();
-  }, [account, isConnected, getAllBatches, userTokenHistory]);
+  }, [address, isConnected, getAllBatches, userTokenHistory]);
 
   // Format date helper
   const formatDate = (date: Date | null) => {
@@ -89,7 +89,8 @@ const UserProfile: React.FC = () => {
   };
 
   // Format address helper
-  const formatAddress = (address: string) => {
+  const formatAddress = (address: string | undefined) => {
+    if (!address) return 'Unknown';
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
@@ -138,7 +139,7 @@ const UserProfile: React.FC = () => {
           <div className="flex items-center gap-4 text-sm text-gray-600">
             <div className="flex items-center gap-2">
               <Hash className="h-4 w-4" />
-              <span className="font-mono">{formatAddress(account!)}</span>
+              <span className="font-mono">{formatAddress(address)}</span>
             </div>
             {profileStats.joinDate && (
               <div className="flex items-center gap-2">
@@ -278,7 +279,7 @@ const UserProfile: React.FC = () => {
                       {batch.timestamp ? new Date(batch.timestamp * 1000).toLocaleDateString() : 'Unknown date'}
                     </div>
                     <div className="text-xs text-gray-400">
-                      {batch.owner?.toLowerCase() === account?.toLowerCase() ? 'Owned' : 'Minted'}
+                      {batch.owner?.toLowerCase() === address?.toLowerCase() ? 'Owned' : 'Minted'}
                     </div>
                   </div>
                 </div>
@@ -316,7 +317,7 @@ const UserProfile: React.FC = () => {
               <div>
                 <label className="text-sm font-medium text-gray-700">Wallet Address</label>
                 <div className="mt-1 p-3 bg-gray-50 rounded-lg border">
-                  <code className="text-sm font-mono text-gray-900">{account}</code>
+                  <code className="text-sm font-mono text-gray-900">{address}</code>
                 </div>
               </div>
 

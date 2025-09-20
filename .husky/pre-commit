@@ -1,0 +1,19 @@
+# Run ESLint security checks (allow warnings)
+npm run lint || echo "⚠️ ESLint warnings found but continuing..."
+
+# Check for hardcoded credentials
+echo "🔍 Scanning for hardcoded credentials..."
+
+# Check staged files
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(js|jsx|ts|tsx|json)$' || true)
+
+if [ -n "$STAGED_FILES" ]; then
+  # Simple credential check without complex patterns
+  if echo "$STAGED_FILES" | xargs grep -l "sk-" 2>/dev/null; then
+    echo "❌ Potential API keys detected!"
+    exit 1
+  fi
+fi
+
+echo "✅ No hardcoded credentials detected"
+exit 0

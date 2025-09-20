@@ -18,7 +18,7 @@ const ConnectButtonWrapper: React.FC<ConnectButtonWrapperProps> = ({
   variant = 'default',
   showBalance = false
 }) => {
-  const { address, isConnected } = useAccount();
+  const { isConnected } = useAccount();
   const { connectors, connect } = useConnect();
   const isOnMobile = isMobile();
 

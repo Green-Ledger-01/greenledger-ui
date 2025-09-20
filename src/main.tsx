@@ -14,9 +14,9 @@ try {
       SSR: false
     };
   }
-} catch (e) {
+} catch {
   // import.meta might not be available in some environments
-  console.warn('import.meta.env not available:', e);
+  console.warn('import.meta.env not available');
 }
 
 // Ensure TextEncoder/TextDecoder are available globally
@@ -35,7 +35,7 @@ if (!globalThis.process) {
     if (typeof import.meta !== 'undefined' && import.meta.env) {
       env = import.meta.env;
     }
-  } catch (e) {
+  } catch {
     env = {};
   }
 

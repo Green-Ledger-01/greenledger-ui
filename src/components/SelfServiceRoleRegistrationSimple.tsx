@@ -120,7 +120,7 @@ const SelfServiceRoleRegistrationSimple: React.FC<SelfServiceRoleRegistrationSim
   showSkipOption = true,
   isModal = true
 }) => {
-  const { account, isConnected, registerRoles, isRegistering } = useWeb3Enhanced();
+  const { address, isConnected, registerRoles, isRegistering } = useWeb3Enhanced();
   const { addToast } = useToast();
 
   // Local state
@@ -146,8 +146,8 @@ const SelfServiceRoleRegistrationSimple: React.FC<SelfServiceRoleRegistrationSim
 
   // Check if user already has roles
   useEffect(() => {
-    if (account) {
-      const stored = localStorage.getItem(`greenledger_user_roles_${account}`);
+    if (address) {
+      const stored = localStorage.getItem(`greenledger_user_roles_${address}`);
       if (stored) {
         try {
           const data = JSON.parse(stored);
@@ -161,7 +161,7 @@ const SelfServiceRoleRegistrationSimple: React.FC<SelfServiceRoleRegistrationSim
         }
       }
     }
-  }, [account, onRegistrationComplete]);
+  }, [address, onRegistrationComplete]);
 
   // Toggle role selection
   const toggleRole = useCallback((roleId: UserRole) => {

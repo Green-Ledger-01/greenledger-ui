@@ -26,8 +26,8 @@ export const WALLETCONNECT_PROJECT_ID = import.meta.env.VITE_WALLETCONNECT_PROJE
 
 // IPFS Configuration
 export const IPFS_CONFIG = {
-  PINATA_API_KEY: import.meta.env.VITE_APP_PINATA_API_KEY || '00836d9f3424f97bd518',
-  PINATA_SECRET_API_KEY: import.meta.env.VITE_APP_PINATA_SECRET_KEY || '57b7a83bf68e4db532076d1110673c602a57b3744e1df91baf8755e245bcff5a',
+  PINATA_API_KEY: import.meta.env.VITE_APP_PINATA_API_KEY,
+  PINATA_SECRET_API_KEY: import.meta.env.VITE_APP_PINATA_SECRET_KEY,
   GATEWAY: import.meta.env.VITE_PINATA_GATEWAY || 'https://ipfs.io/ipfs',
   PINATA_ENDPOINT: import.meta.env.VITE_APP_IPFS_ENDPOINT || 'https://api.pinata.cloud/pinning/pinFileToIPFS',
   // Fallback gateways for better reliability and CORS support

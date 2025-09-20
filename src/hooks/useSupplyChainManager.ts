@@ -1,6 +1,7 @@
 import { useReadContract, useWriteContract } from 'wagmi';
 import { CONTRACT_ADDRESSES, SUPPLY_CHAIN_STATES } from '../config/constants';
 import SupplyChainManagerABI from '../contracts/SupplyChainManager.json';
+import { secureLog, secureError } from '../utils/secureLogger';
 
 export interface ProvenanceRecord {
   tokenId: bigint;
@@ -46,13 +47,7 @@ export const useInitializeProvenance = () => {
       throw new Error('Notes are required');
     }
 
-    console.log('Calling initializeProvenance with:', {
-      address: CONTRACT_ADDRESSES.SupplyChainManager,
-      tokenId: args.tokenId.toString(),
-      farmer: args.farmer,
-      location: args.location,
-      notes: args.notes
-    });
+    secureLog('Calling initializeProvenance with tokenId:', args.tokenId.toString(), 'farmer:', args.farmer, 'location:', args.location, 'notes:', args.notes);
 
     try {
       const result = await writeContractAsync({
@@ -62,10 +57,10 @@ export const useInitializeProvenance = () => {
         args: [args.tokenId, args.farmer, args.location, args.notes],
       });
 
-      console.log('initializeProvenance transaction result:', result);
+      secureLog('initializeProvenance transaction result:', result);
       return result;
     } catch (error: any) {
-      console.error('initializeProvenance contract call failed:', error);
+      secureError('initializeProvenance contract call failed:', error);
       throw error;
     }
   };

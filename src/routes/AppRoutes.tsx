@@ -12,7 +12,7 @@ import LandingPage from '../pages/LandingPage';
 import AuthenticationPage from '../pages/AuthenticationPage';
 
 import Dashboard from '../pages/Dashboard';
-import UserProfile from '../pages/RegisterUserSimple';
+import UserProfile from '../pages/UserProfile';
 import TokenizationPage from '../pages/TokenizationPage';
 import TransferOwnershipPage from '../pages/TransferOwnershipPage';
 import SupplyChainExplorer from '../pages/SupplyChainExplorer';

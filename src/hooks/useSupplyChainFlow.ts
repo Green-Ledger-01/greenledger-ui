@@ -1,10 +1,11 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { usePublicClient } from 'wagmi';
 import { getAddress } from 'viem';
 import { CONTRACT_ADDRESSES } from '../config/constants';
 import { useToast } from '../contexts/ToastContext';
 import CropBatchTokenABI from '../contracts/CropBatchToken.json';
 import { useCropBatchToken } from './useCropBatchToken';
+import { secureError } from '../utils/secureLogger';
 
 export interface SupplyChainEvent {
   id: string;
@@ -106,7 +107,7 @@ export const useSupplyChainFlow = () => {
           ],
         },
         args: {
-          id: BigInt(tokenId),
+          // TransferSingle event uses 'id' as a non-indexed parameter
         },
         fromBlock: 'earliest',
         toBlock: 'latest',
@@ -145,7 +146,7 @@ export const useSupplyChainFlow = () => {
       };
 
     } catch (err) {
-      console.error('Error fetching supply chain history:', err);
+      secureError('Error fetching supply chain history:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch supply chain history');
       return null;
     } finally {
@@ -168,7 +169,7 @@ export const useSupplyChainFlow = () => {
       addToast('Transfer to transporter initiated', 'info');
       
     } catch (err) {
-      console.error('Error transferring to transporter:', err);
+      secureError('Error transferring to transporter:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to transfer to transporter';
       setError(errorMessage);
       addToast(`Transfer failed: ${errorMessage}`, 'error');
@@ -191,7 +192,7 @@ export const useSupplyChainFlow = () => {
       addToast('Transfer to buyer initiated', 'info');
       
     } catch (err) {
-      console.error('Error transferring to buyer:', err);
+      secureError('Error transferring to buyer:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to transfer to buyer';
       setError(errorMessage);
       addToast(`Transfer failed: ${errorMessage}`, 'error');
@@ -200,7 +201,7 @@ export const useSupplyChainFlow = () => {
   }, [transferToken, addToast]);
 
   // Validate transfer recipient (check if address has required role)
-  const validateTransferRecipient = useCallback(async (address: string, expectedRole: string): Promise<boolean> => {
+  const validateTransferRecipient = useCallback(async (address: string): Promise<boolean> => {
     try {
       // For now, we'll do basic address validation
       // In a full implementation, this would check the UserManagement contract for roles
@@ -216,13 +217,13 @@ export const useSupplyChainFlow = () => {
         return false;
       }
     } catch (err) {
-      console.error('Error validating transfer recipient:', err);
+      secureError('Error validating transfer recipient:', err);
       return false;
     }
   }, []);
 
   // Check if user can transfer to specific role
-  const canTransferTo = useCallback((role: string): boolean => {
+  const canTransferTo = useCallback((): boolean => {
     // This would typically check the current user's role and the supply chain rules
     // For now, we'll allow all transfers for demonstration
     return true;
@@ -315,7 +316,7 @@ export const useSupplyChainFlow = () => {
       return events.sort((a, b) => b.timestamp - a.timestamp).slice(0, limit);
 
     } catch (err) {
-      console.error('Error fetching recent activity:', err);
+      secureError('Error fetching recent activity:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch recent activity');
       return [];
     } finally {

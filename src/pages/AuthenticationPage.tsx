@@ -33,14 +33,14 @@ const AuthenticationPage: React.FC = () => {
     }
   }, [isConnected, isRedirecting, navigate]);
 
-  // Show loading state during connection or redirect
-  if (isConnecting || isRedirecting) {
+  // Show loading state during redirect
+  if (isRedirecting) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 flex items-center justify-center">
         <LoadingSpinner
           variant="branded"
           size="xl"
-          text={isConnecting ? 'Connecting to your wallet...' : 'Redirecting to dashboard...'}
+          text="Redirecting to dashboard..."
           className="p-8"
         />
       </div>

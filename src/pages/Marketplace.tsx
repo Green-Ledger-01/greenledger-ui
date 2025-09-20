@@ -7,6 +7,7 @@ import { useCart } from '../contexts/CartContext';
 import { fetchMetadataFromIPFS, CropMetadata } from '../utils/ipfs';
 import CropBatchCard from '../components/CropBatchCard';
 import CropBatchCardSkeleton from '../components/CropBatchCardSkeleton';
+import { secureLog, secureError, secureWarn } from '../utils/secureLogger';
 
 const Marketplace: React.FC = () => {
   const { addToast } = useToast();
@@ -83,7 +84,7 @@ const Marketplace: React.FC = () => {
                 lastUpdated: batch.timestamp,
               };
             } catch (error) {
-              console.warn(`Failed to fetch metadata for batch ${batch.tokenId}:`, error);
+              secureWarn('Failed to fetch metadata for batch:', batch.tokenId, error);
               // Return basic metadata if IPFS fetch fails
               return {
                 tokenId: batch.tokenId,
@@ -119,7 +120,7 @@ const Marketplace: React.FC = () => {
       setBatches(allBatchesWithMetadata);
       addToast('Marketplace data refreshed', 'success');
     } catch (error) {
-      console.error('Failed to fetch batches:', error);
+      secureError('Failed to fetch batches:', error);
       addToast('Failed to refresh marketplace data', 'error');
     } finally {
       setIsRefreshing(false);
@@ -134,7 +135,7 @@ const Marketplace: React.FC = () => {
   // Auto-refresh when transfer events are detected
   useEffect(() => {
     if (refreshTrigger > 0) {
-      console.log('Auto-refreshing marketplace due to transfer event');
+      secureLog('Auto-refreshing marketplace due to transfer event');
       refetchBatches();
     }
   }, [refreshTrigger, refetchBatches]);
@@ -216,8 +217,6 @@ const Marketplace: React.FC = () => {
         return <Wifi className="h-4 w-4 text-green-600" />;
       case 'disconnected':
         return <WifiOff className="h-4 w-4 text-red-600" />;
-      case 'syncing':
-        return <RefreshCw className="h-4 w-4 text-yellow-600 animate-spin" />;
       default:
         return <WifiOff className="h-4 w-4 text-gray-400" />;
     }
@@ -229,8 +228,6 @@ const Marketplace: React.FC = () => {
         return 'Connected to blockchain';
       case 'disconnected':
         return 'Disconnected from blockchain';
-      case 'syncing':
-        return 'Syncing with blockchain';
       default:
         return 'Unknown connection status';
     }

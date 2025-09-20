@@ -4,10 +4,19 @@
  */
 
 import { IPFS_CONFIG } from '../config/constants';
+import { areCredentialsConfigured } from './secureComparison';
+import { secureLog, secureError, secureWarn } from './secureLogger';
 
 // Simple in-memory cache for IPFS metadata
 const metadataCache = new Map<string, { data: CropMetadata; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Check if we should use mock IPFS (when API keys are not configured)
+ */
+const shouldUseMockIPFS = (): boolean => {
+  return !areCredentialsConfigured(IPFS_CONFIG.PINATA_API_KEY, IPFS_CONFIG.PINATA_SECRET_API_KEY);
+};
 
 // Types
 export interface CropMetadataAttribute {
@@ -57,9 +66,8 @@ export interface UploadCropBatchParams {
  */
 export const uploadFileToIPFS = async (file: File): Promise<string> => {
   // Check if API keys are configured
-  if (IPFS_CONFIG.PINATA_API_KEY === 'YOUR_PINATA_API_KEY' || 
-      IPFS_CONFIG.PINATA_SECRET_API_KEY === 'YOUR_PINATA_SECRET_API_KEY') {
-    throw new Error('Pinata API keys not configured. Please set VITE_PINATA_API_KEY and VITE_PINATA_SECRET_API_KEY in your .env file.');
+  if (!areCredentialsConfigured(IPFS_CONFIG.PINATA_API_KEY, IPFS_CONFIG.PINATA_SECRET_API_KEY)) {
+    throw new Error('Pinata API keys not configured. Please set VITE_APP_PINATA_API_KEY and VITE_APP_PINATA_SECRET_KEY in your .env file.');
   }
 
   try {
@@ -96,7 +104,7 @@ export const uploadFileToIPFS = async (file: File): Promise<string> => {
       }
       
       if (response.status === 401) {
-        throw new Error('Invalid Pinata API credentials. Please check your API keys.');
+        throw new Error('Invalid Pinata API credentials. Please check your VITE_APP_PINATA_API_KEY and VITE_APP_PINATA_SECRET_KEY.');
       } else if (response.status === 403) {
         throw new Error('Pinata API access forbidden. Check your account limits and permissions.');
       } else if (response.status === 413) {
@@ -109,7 +117,7 @@ export const uploadFileToIPFS = async (file: File): Promise<string> => {
     const data = await response.json();
     return `ipfs://${data.IpfsHash}`;
   } catch (error) {
-    console.error('Error uploading file to IPFS:', error);
+    secureError('Error uploading file to IPFS:', error);
     throw error;
   }
 };
@@ -119,9 +127,8 @@ export const uploadFileToIPFS = async (file: File): Promise<string> => {
  */
 export const uploadMetadataToIPFS = async (metadata: CropMetadata): Promise<string> => {
   // Check if API keys are configured
-  if (IPFS_CONFIG.PINATA_API_KEY === 'YOUR_PINATA_API_KEY' || 
-      IPFS_CONFIG.PINATA_SECRET_API_KEY === 'YOUR_PINATA_SECRET_API_KEY') {
-    throw new Error('Pinata API keys not configured. Please set VITE_PINATA_API_KEY and VITE_PINATA_SECRET_API_KEY in your .env file.');
+  if (!areCredentialsConfigured(IPFS_CONFIG.PINATA_API_KEY, IPFS_CONFIG.PINATA_SECRET_API_KEY)) {
+    throw new Error('Pinata API keys not configured. Please set VITE_APP_PINATA_API_KEY and VITE_APP_PINATA_SECRET_KEY in your .env file.');
   }
 
   try {
@@ -159,7 +166,7 @@ export const uploadMetadataToIPFS = async (metadata: CropMetadata): Promise<stri
       }
       
       if (response.status === 401) {
-        throw new Error('Invalid Pinata API credentials. Please check your API keys.');
+        throw new Error('Invalid Pinata API credentials. Please check your VITE_APP_PINATA_API_KEY and VITE_APP_PINATA_SECRET_KEY.');
       } else if (response.status === 403) {
         throw new Error('Pinata API access forbidden. Check your account limits and permissions.');
       }
@@ -170,7 +177,7 @@ export const uploadMetadataToIPFS = async (metadata: CropMetadata): Promise<stri
     const data = await response.json();
     return `ipfs://${data.IpfsHash}`;
   } catch (error) {
-    console.error('Error uploading metadata to IPFS:', error);
+    secureError('Error uploading metadata to IPFS:', error);
     throw error;
   }
 };
@@ -188,7 +195,7 @@ export const fetchMetadataFromIPFS = async (ipfsUri: string): Promise<CropMetada
   // Check cache first
   const cached = metadataCache.get(hash);
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    console.log(`Using cached metadata for ${hash}`);
+    secureLog('Using cached metadata for hash:', hash);
     return cached.data;
   }
 
@@ -199,10 +206,10 @@ export const fetchMetadataFromIPFS = async (ipfsUri: string): Promise<CropMetada
       const metadata = JSON.parse(mockMetadata);
       // Cache the mock result
       metadataCache.set(hash, { data: metadata, timestamp: Date.now() });
-      console.log(`Using mock metadata for ${hash}`);
+      secureLog('Using mock metadata for hash:', hash);
       return metadata;
     } catch (error) {
-      console.warn('Failed to parse mock metadata:', error);
+      secureWarn('Failed to parse mock metadata:', error);
     }
   }
 
@@ -269,18 +276,18 @@ export const fetchMetadataFromIPFS = async (ipfsUri: string): Promise<CropMetada
         timestamp: Date.now()
       });
 
-      console.log(`Successfully fetched metadata from ${gateway}`);
+      secureLog('Successfully fetched metadata from gateway:', gateway);
       return cropMetadata;
 
     } catch (error) {
       lastError = error instanceof Error ? error : new Error('Unknown error');
-      console.warn(`Failed to fetch from ${gateway}:`, lastError.message);
+      secureWarn('Failed to fetch from gateway:', gateway, lastError.message);
       // Continue to next gateway
     }
   }
 
   // If all gateways failed, throw the last error
-  console.error('All IPFS gateways failed for hash:', hash);
+  secureError('All IPFS gateways failed for hash:', hash);
   throw lastError || new Error('Failed to fetch metadata from all IPFS gateways');
 };
 
@@ -289,20 +296,12 @@ export const fetchMetadataFromIPFS = async (ipfsUri: string): Promise<CropMetada
  */
 export const clearMetadataCache = (): void => {
   metadataCache.clear();
-  console.log('IPFS metadata cache cleared');
+  secureLog('IPFS metadata cache cleared');
 };
 
 
 
-/**
- * Check if we should use mock IPFS (only when API keys are not configured)
- */
-const shouldUseMockIPFS = (): boolean => {
-  return IPFS_CONFIG.PINATA_API_KEY === 'YOUR_PINATA_API_KEY' ||
-         IPFS_CONFIG.PINATA_SECRET_API_KEY === 'YOUR_PINATA_SECRET_API_KEY' ||
-         !IPFS_CONFIG.PINATA_API_KEY ||
-         !IPFS_CONFIG.PINATA_SECRET_API_KEY;
-};
+
 
 /**
  * Create metadata object from upload parameters
@@ -343,7 +342,7 @@ export const uploadCropBatch = async (params: UploadCropBatchParams): Promise<{ 
     let metadataUri: string;
 
     if (shouldUseMockIPFS()) {
-      console.warn('Using mock IPFS service. Configure Pinata API keys for production use.');
+      secureWarn('Using mock IPFS service. Configure Pinata API keys for production use.');
 
       // Mock file upload
       imageUri = await mockUploadFile(params.imageFile);
@@ -362,7 +361,7 @@ export const uploadCropBatch = async (params: UploadCropBatchParams): Promise<{ 
 
     return { metadataUri };
   } catch (error) {
-    console.error('Error uploading crop batch to IPFS:', error);
+    secureError('Error uploading crop batch to IPFS:', error);
     throw error;
   }
 };

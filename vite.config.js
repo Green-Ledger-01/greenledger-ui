@@ -28,8 +28,8 @@ export default defineConfig({
   ],
   define: {
     global: 'globalThis',
-    'process.env.DEBUG': JSON.stringify(process.env.VITE_DEBUG || ''),
-    'process.env.NODE_ENV': JSON.stringify(process.env.VITE_NODE_ENV || 'production'),
+    'process.env.DEBUG': JSON.stringify(process?.env?.VITE_DEBUG || ''),
+    'process.env.NODE_ENV': JSON.stringify(process?.env?.VITE_NODE_ENV || 'production'),
   },
   optimizeDeps: {
     include: [

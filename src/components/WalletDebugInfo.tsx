@@ -7,8 +7,9 @@ const WalletDebugInfo: React.FC = () => {
   const { isConnected, address, connector } = useAccount();
   const { connectors } = useConnect();
 
-  if (process.env.NODE_ENV === 'production') {
-    return null; // Don't show in production
+  // Only render in development mode
+  if (!import.meta.env.DEV) {
+    return null;
   }
 
   return (

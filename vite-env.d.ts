@@ -17,7 +17,7 @@ interface ImportMetaEnv {
   // Global process type for browser polyfill
   declare global {
     interface Window {
-      Buffer: typeof Buffer;
+      Buffer: any;
     }
 
     var process: {
@@ -25,6 +25,6 @@ interface ImportMetaEnv {
       version: string;
       versions: { node: string };
       platform: string;
-      nextTick: (cb: Function) => void;
+      nextTick: (cb: () => void) => void;
     };
   }
