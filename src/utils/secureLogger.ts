@@ -21,8 +21,8 @@ const sanitizeLogInput = (input: unknown): string => {
     .replace(/\r/g, ' ')   // Remove CR
     .replace(/\n/g, ' ')   // Remove LF
     .replace(/\t/g, ' ')   // Remove tabs
-    .replace(/\x00/g, '')  // Remove null bytes
-    .replace(/[\x01-\x1F\x7F]/g, ''); // Remove other control characters
+    .replace(/\u0000/g, '')  // Remove null bytes
+    .replace(/[\u0001-\u001F\u007F]/g, ''); // Remove other control characters
 
   // Truncate very long strings to prevent log flooding
   if (str.length > 200) {

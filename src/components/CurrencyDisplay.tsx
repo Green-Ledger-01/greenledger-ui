@@ -69,10 +69,9 @@ const CurrencyDisplay: React.FC<CurrencyDisplayProps> = ({
     })}`;
   };
 
-  const primaryConfig = CURRENCY_CONFIG[currency];
-  const primaryFormatted = formatCurrency(amount, currency);
 
   if (compact) {
+    const primaryFormatted = formatCurrency(amount, currency);
     return (
       <div className={`flex items-center gap-2 ${className}`}>
         <DollarSign className="h-4 w-4 text-green-600" />
@@ -87,6 +86,7 @@ const CurrencyDisplay: React.FC<CurrencyDisplayProps> = ({
   }
 
   if (!showAllCurrencies) {
+    const primaryFormatted = formatCurrency(amount, currency);
     return (
       <div className={`flex items-center gap-2 ${className}`}>
         <DollarSign className="h-4 w-4 text-green-600" />
@@ -97,6 +97,7 @@ const CurrencyDisplay: React.FC<CurrencyDisplayProps> = ({
   }
 
   // Show all currencies
+  const primaryFormatted = formatCurrency(amount, currency);
   const currencies = ['ETH', 'USD', 'KES', 'NGN'] as const;
   const conversions = currencies.map(curr => ({
     code: curr,
@@ -142,4 +143,5 @@ const CurrencyDisplay: React.FC<CurrencyDisplayProps> = ({
 };
 
 export default CurrencyDisplay;
-export { convertCurrency, CURRENCY_CONFIG, EXCHANGE_RATES };
+export { CURRENCY_CONFIG, convertCurrency };
+

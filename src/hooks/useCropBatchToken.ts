@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, usePublicClient, useWatchContractEvent } from 'wagmi';
-import { parseEther, formatEther, getAddress } from 'viem';
+import { getAddress } from 'viem';
 import { CONTRACT_ADDRESSES } from '../config/constants';
 import { useToast } from '../contexts/ToastContext';
 import CropBatchTokenABI from '../contracts/CropBatchToken.json';

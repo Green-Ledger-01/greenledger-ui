@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { usePublicClient } from 'wagmi';
 import { getAddress } from 'viem';
 import { CONTRACT_ADDRESSES } from '../config/constants';
@@ -201,7 +201,7 @@ export const useSupplyChainFlow = () => {
   }, [transferToken, addToast]);
 
   // Validate transfer recipient (check if address has required role)
-  const validateTransferRecipient = useCallback(async (address: string, expectedRole: string): Promise<boolean> => {
+  const validateTransferRecipient = useCallback(async (address: string): Promise<boolean> => {
     try {
       // For now, we'll do basic address validation
       // In a full implementation, this would check the UserManagement contract for roles
@@ -223,7 +223,7 @@ export const useSupplyChainFlow = () => {
   }, []);
 
   // Check if user can transfer to specific role
-  const canTransferTo = useCallback((role: string): boolean => {
+  const canTransferTo = useCallback((): boolean => {
     // This would typically check the current user's role and the supply chain rules
     // For now, we'll allow all transfers for demonstration
     return true;

@@ -76,40 +76,7 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
     });
   };
 
-  const getPlaceholderImage = () => {
-    const colors = ['B0D9B1', 'A8E6A3', '88D982', '6BCF7F'];
-    const color = colors[batch.tokenId % colors.length];
-    return `https://placehold.co/400x200/${color}/000000?text=${encodeURIComponent(batch.cropType || 'Crop')}`;
-  };
-
-  const getSupplyChainIcon = (status?: 'farmer' | 'transporter' | 'buyer') => {
-    switch (status) {
-      case 'farmer':
-        return <Sprout className="h-4 w-4 text-green-600" />;
-      case 'transporter':
-        return <Truck className="h-4 w-4 text-blue-600" />;
-      case 'buyer':
-        return <ShoppingCart className="h-4 w-4 text-purple-600" />;
-      default:
-        return <User className="h-4 w-4 text-gray-600" />;
-    }
-  };
-
-  const getSupplyChainColor = (status?: 'farmer' | 'transporter' | 'buyer') => {
-    switch (status) {
-      case 'farmer':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'transporter':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'buyer':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const formatLastUpdated = (timestamp?: number) => {
-    if (!timestamp) return '';
+  const formatLastUpdated = (timestamp: number) => {
     const now = Date.now();
     const diff = now - timestamp;
     const minutes = Math.floor(diff / 60000);
@@ -120,6 +87,12 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
     if (hours > 0) return `${hours}h ago`;
     if (minutes > 0) return `${minutes}m ago`;
     return 'Just now';
+  };
+
+  const getPlaceholderImage = () => {
+    const colors = ['B0D9B1', 'A8E6A3', '88D982', '6BCF7F'];
+    const color = colors[batch.tokenId % colors.length];
+    return `https://placehold.co/400x200/${color}/000000?text=${encodeURIComponent(batch.cropType || 'Crop')}`;
   };
 
   return (
