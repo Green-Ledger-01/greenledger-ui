@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Form, Select, Input, Button, message, Typography, Space, Divider, Tag, Alert, Avatar } from 'antd';
-import { SendOutlined, UserOutlined, EnvironmentOutlined, FileTextOutlined, LoadingOutlined } from '@ant-design/icons';
+import { Card, Form, Select, Input, Button, message, Typography, Space, Divider, Tag, Alert, Avatar, Modal } from 'antd';
+import { SendOutlined, UserOutlined, EnvironmentOutlined, FileTextOutlined, LoadingOutlined, QrcodeOutlined, ScanOutlined } from '@ant-design/icons';
+import { QRScanner } from '../components/QRScanner';
+import QRGenerator from '../components/QRCodeGenerator';
+import TransferQRGenerator from '../components/TransferQRGenerator';
+import { QRService } from '../services/qr.service';
 import { useAccount } from 'wagmi';
 import { useTransferWithProvenance, useInitializeProvenance, useProvenanceHistory, getStateLabel, getStateColor } from '../hooks/useSupplyChainManager';
 import { useCropBatchToken } from '../hooks/useCropBatchToken';
@@ -31,6 +35,9 @@ const TransferOwnershipPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [loadingTokens, setLoadingTokens] = useState(false);
   const [initializingProvenance, setInitializingProvenance] = useState(false);
+  const [showQRScanner, setShowQRScanner] = useState(false);
+  const [showQRGenerator, setShowQRGenerator] = useState(false);
+  const [qrScanResult, setQRScanResult] = useState<any>(null);
 
   // Hooks
   const { data: userRole } = useUserRole(address);
@@ -222,6 +229,61 @@ const TransferOwnershipPage: React.FC = () => {
     }
   };
 
+  const handleQRScan = (result: any) => {
+    try {
+      if (result.type === 'TRANSFER_REQUEST') {
+        // QR contains escrow-like transfer details
+        form.setFieldsValue({
+          recipientAddress: result.currentOwner, // Current owner becomes recipient
+          location: result.tokenDetails?.originFarm || '',
+          notes: `Transfer for ${result.tokenDetails?.name} - ${result.tokenDetails?.cropType}`
+        });
+        
+        // Verify token ownership and details match
+        const scannedToken = userTokens.find(t => t.tokenId === result.tokenId);
+        if (scannedToken) {
+          setSelectedToken(scannedToken);
+          form.setFieldsValue({ tokenId: result.tokenId.toString() });
+        }
+        
+        setQRScanResult(result);
+        setShowQRScanner(false);
+        message.success('Transfer QR scanned! Token and recipient identified.');
+      } else if (result.isValid && result.tokenId) {
+        // Regular verification QR - identify token for transfer
+        const token = userTokens.find(t => t.tokenId.toString() === result.tokenId);
+        if (token) {
+          setSelectedToken(token);
+          form.setFieldsValue({ tokenId: result.tokenId });
+          message.success('Token identified from QR scan!');
+        } else {
+          message.error('Scanned token not found in your collection');
+        }
+        setShowQRScanner(false);
+      } else {
+        message.error('Invalid QR code for transfer');
+      }
+    } catch (error) {
+      message.error('Failed to process QR code');
+    }
+  };
+
+  const generateTransferQR = () => {
+    if (!selectedToken || !address) return null;
+    
+    return QRService.getInstance().generateTransferQR({
+      tokenId: selectedToken.tokenId,
+      currentOwner: address,
+      tokenDetails: {
+        name: selectedToken.name || `Batch #${selectedToken.tokenId}`,
+        cropType: selectedToken.cropType,
+        quantity: selectedToken.quantity,
+        originFarm: selectedToken.originFarm,
+        currentState: selectedToken.currentState
+      }
+    });
+  };
+
   const handleTransfer = async (values: any) => {
     if (!selectedToken || !address) {
       message.error('Please select a token and ensure wallet is connected');
@@ -402,19 +464,54 @@ const TransferOwnershipPage: React.FC = () => {
           )}
 
           <Form.Item
-            label="Recipient Address"
+            label={<Space><ScanOutlined />Scan Transfer QR or Enter Address</Space>}
             name="recipientAddress"
             rules={[
-              { required: true, message: 'Please enter recipient address' },
+              { required: true, message: 'Please scan QR or enter recipient address' },
               { pattern: /^0x[a-fA-F0-9]{40}$/, message: 'Please enter a valid Ethereum address' }
             ]}
           >
-            <Input
-              prefix={<UserOutlined />}
-              placeholder="0x..."
-              disabled={!selectedToken}
-            />
+            <Input.Group compact>
+              <Input
+                style={{ width: 'calc(100% - 80px)' }}
+                prefix={<UserOutlined />}
+                placeholder="Scan QR for instant transfer or enter 0x..."
+              />
+              <Button
+                type="primary"
+                icon={<ScanOutlined />}
+                onClick={() => setShowQRScanner(true)}
+                style={{ width: '80px' }}
+              >
+                Scan
+              </Button>
+            </Input.Group>
           </Form.Item>
+          
+          {qrScanResult && (
+            <Alert
+              message="QR Transfer Details"
+              description={`Token: ${qrScanResult.tokenDetails?.name} | Type: ${qrScanResult.tokenDetails?.cropType} | Owner: ${qrScanResult.currentOwner?.slice(0,6)}...`}
+              type="info"
+              showIcon
+              style={{ marginBottom: '16px' }}
+            />
+          )}
+
+          {selectedToken && (
+            <Form.Item>
+              <Space>
+                <Button
+                  type="dashed"
+                  icon={<QrcodeOutlined />}
+                  onClick={() => setShowQRGenerator(true)}
+                >
+                  Generate Transfer QR
+                </Button>
+                <Text type="secondary">Share this QR with the recipient</Text>
+              </Space>
+            </Form.Item>
+          )}
 
           <Form.Item
             label="Transfer Location"
@@ -475,6 +572,61 @@ const TransferOwnershipPage: React.FC = () => {
           </Space>
         </Card>
       )}
+
+      {/* QR Scanner Modal */}
+      <Modal
+        title="Scan Transfer QR Code"
+        open={showQRScanner}
+        onCancel={() => setShowQRScanner(false)}
+        footer={null}
+        width={500}
+      >
+        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+          <Text type="secondary">
+            Scan a transfer QR code to identify the token and recipient, 
+            or scan any token QR to select it for transfer.
+          </Text>
+        </div>
+        <QRScanner
+          onResult={handleQRScan}
+          className="transfer-qr-scanner"
+        />
+      </Modal>
+
+      {/* QR Generator Modal */}
+      <Modal
+        title="Transfer QR Code - Escrow Key"
+        open={showQRGenerator}
+        onCancel={() => setShowQRGenerator(false)}
+        footer={null}
+        width={450}
+      >
+        {selectedToken && (
+          <div style={{ textAlign: 'center' }}>
+            <Alert
+              message="Transfer Escrow QR"
+              description="This QR acts like a key containing token ownership details. The recipient scans this to identify themselves and complete the transfer."
+              type="info"
+              style={{ marginBottom: '16px', textAlign: 'left' }}
+            />
+            <TransferQRGenerator
+              data={generateTransferQR()}
+              size={256}
+            />
+            <div style={{ marginTop: '16px' }}>
+              <Text strong>Token #{selectedToken.tokenId}</Text>
+              <br />
+              <Text>{selectedToken.name}</Text>
+              <br />
+              <Text type="secondary">{selectedToken.cropType} - {selectedToken.quantity}kg</Text>
+              <br />
+              <Text type="secondary" style={{ fontSize: '12px' }}>
+                Current Owner: {address?.slice(0,6)}...{address?.slice(-4)}
+              </Text>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

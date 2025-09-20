@@ -19,6 +19,7 @@ import SupplyChainExplorer from '../pages/SupplyChainExplorer';
 import Marketplace from '../pages/Marketplace';
 import CheckoutAndTrack from '../pages/CheckoutAndTrack';
 import WaitlistPage from '../pages/WaitlistPage';
+import QRVerificationPage from '../pages/QRVerificationPage';
 
 // Simple Connect Button Component using ConnectButtonWrapper
 const SimpleConnectButton: React.FC = () => {
@@ -109,6 +110,8 @@ const AppContent = () => {
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/track" element={<CheckoutAndTrack />} />
               <Route path="/track/:tokenId" element={<CheckoutAndTrack />} />
+              <Route path="/qr" element={<QRVerificationPage />} />
+              <Route path="/verify" element={<QRVerificationPage />} />
               <Route path="/auth" element={<AuthenticationPage />} />
               <Route path="/waitlist" element={<WaitlistPage />} />
 

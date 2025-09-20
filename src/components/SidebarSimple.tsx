@@ -11,7 +11,8 @@ import {
   Shield,
   Coins,
   Send,
-  Search
+  Search,
+  QrCode
 } from 'lucide-react';
 
 interface SidebarSimpleProps {
@@ -33,6 +34,12 @@ const SidebarSimple: React.FC<SidebarSimpleProps> = ({ isOpen, toggleSidebar }) 
       href: '/',
       icon: Home,
       description: 'Overview and statistics'
+    },
+    {
+      name: 'QR Verification',
+      href: '/qr',
+      icon: QrCode,
+      description: 'Instant blockchain verification'
     },
     {
       name: 'Tokenize Crop',

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GreenLedger - Offline</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 20px; background: #f9fafb; }
+        .container { max-width: 400px; margin: 50px auto; text-align: center; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .icon { font-size: 48px; margin-bottom: 20px; }
+        h1 { color: #374151; margin-bottom: 16px; }
+        p { color: #6b7280; margin-bottom: 24px; }
+        .button { background: #10b981; color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .button:hover { background: #059669; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">📱</div>
+        <h1>You're Offline</h1>
+        <p>GreenLedger needs an internet connection for verification. Please check your connection and try again.</p>
+        <button class="button" onclick="window.location.reload()">Try Again</button>
+    </div>
+</body>
+</html>

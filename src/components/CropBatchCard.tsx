@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ChevronRight, Calendar, MapPin, Scale, Sprout, User, Truck, ShoppingCart, Clock, Plus, Check, DollarSign, X, Info } from 'lucide-react';
+import { ChevronRight, Calendar, MapPin, Scale, Sprout, User, Truck, ShoppingCart, Clock, Plus, Check, DollarSign, X, Info, QrCode } from 'lucide-react';
+import { QRGenerator } from './QRCodeGenerator';
 import { useToast } from '../contexts/ToastContext';
 import { useCart } from '../contexts/CartContext';
 import { ipfsToHttp, CropMetadata } from '../utils/ipfs';
@@ -20,6 +21,7 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
   const { addToCart, isInCart } = useCart();
   const { refreshTrigger, getBatchDetails } = useCropBatchToken();
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
   const [currentOwner, setCurrentOwner] = useState(batch.owner || '');
 
   const isAlreadyInCart = isInCart(batch.tokenId);
@@ -192,10 +194,22 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
             {/* View Details Button */}
             <button
               onClick={handleMoreInfoClick}
-              className="flex-1 bg-gray-100 text-gray-700 py-2 px-3 rounded-lg hover:bg-gray-200 transition-all duration-200 font-medium flex items-center justify-center gap-1 border border-gray-200 text-sm"
+              className="bg-gray-100 text-gray-700 py-2 px-3 rounded-lg hover:bg-gray-200 transition-all duration-200 font-medium flex items-center justify-center gap-1 border border-gray-200 text-sm"
             >
               <Info className="h-3 w-3" />
               <span>Details</span>
+            </button>
+
+            {/* QR Code Button */}
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                setShowQRModal(true);
+              }}
+              className="bg-blue-100 text-blue-700 py-2 px-3 rounded-lg hover:bg-blue-200 transition-all duration-200 font-medium flex items-center justify-center gap-1 border border-blue-200 text-sm"
+            >
+              <QrCode className="h-3 w-3" />
+              <span>QR</span>
             </button>
           </div>
         </div>
@@ -420,12 +434,44 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
                 </button>
 
                 <button
+                  onClick={() => setShowQRModal(true)}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-semibold flex items-center gap-2"
+                >
+                  <QrCode className="h-4 w-4" />
+                  <span>QR Code</span>
+                </button>
+
+                <button
                   onClick={() => setShowDetailModal(false)}
                   className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200 font-semibold border border-gray-200"
                 >
                   Close
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* QR Code Modal */}
+      {showQRModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Product QR Code</h3>
+              <button
+                onClick={() => setShowQRModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+            <div className="p-4">
+              <QRGenerator
+                tokenId={batch.tokenId.toString()}
+                size={250}
+                className="border-0 shadow-none p-0"
+              />
             </div>
           </div>
         </div>
