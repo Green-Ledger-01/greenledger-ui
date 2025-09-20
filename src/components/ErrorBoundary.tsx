@@ -63,7 +63,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
               </button>
             </div>
 
-            {import.meta.env.DEV && this.state.error && (
+            {!import.meta.env.PROD && this.state.error && (
               <details className="text-left bg-gray-50 rounded-lg p-4 mt-4">
                 <summary className="cursor-pointer font-medium text-gray-700 mb-2">
                   Error Details (Development)
