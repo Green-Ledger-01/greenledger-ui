@@ -107,7 +107,7 @@ export const useSupplyChainFlow = () => {
           ],
         },
         args: {
-          id: BigInt(tokenId),
+          // TransferSingle event uses 'id' as a non-indexed parameter
         },
         fromBlock: 'earliest',
         toBlock: 'latest',
