@@ -1,7 +1,8 @@
-import { useReadContract, useWriteContract } from 'wagmi';
+import { useReadContract, useWriteContract, useAccount } from 'wagmi';
 import { CONTRACT_ADDRESSES, SUPPLY_CHAIN_STATES } from '../config/constants';
 import SupplyChainManagerABI from '../contracts/SupplyChainManager.json';
 import { secureLog, secureError } from '../utils/secureLogger';
+import { liskSepolia } from '../chains/liskSepolia';
 
 export interface ProvenanceRecord {
   tokenId: bigint;
@@ -23,6 +24,7 @@ export interface ProvenanceStep {
 
 export const useInitializeProvenance = () => {
   const { writeContract, ...rest } = useWriteContract();
+  const { address } = useAccount();
 
   const initializeProvenance = (args: {
     tokenId: bigint;
@@ -54,6 +56,8 @@ export const useInitializeProvenance = () => {
       abi: SupplyChainManagerABI,
       functionName: 'initializeProvenance',
       args: [args.tokenId, args.farmer, args.location, args.notes],
+      chain: liskSepolia,
+      account: address,
     });
   };
 
@@ -65,6 +69,7 @@ export const useInitializeProvenance = () => {
 
 export const useTransferWithProvenance = () => {
   const { writeContract, ...rest } = useWriteContract();
+  const { address } = useAccount();
 
   const transferWithProvenance = (args: {
     tokenId: bigint;
@@ -78,6 +83,8 @@ export const useTransferWithProvenance = () => {
       abi: SupplyChainManagerABI,
       functionName: 'transferWithProvenance',
       args: [args.tokenId, args.to, args.newState, args.location, args.notes],
+      chain: liskSepolia,
+      account: address,
     });
   };
 
@@ -89,6 +96,7 @@ export const useTransferWithProvenance = () => {
 
 export const useMarkAsConsumed = () => {
   const { writeContract, ...rest } = useWriteContract();
+  const { address } = useAccount();
 
   const markAsConsumed = (args: {
     tokenId: bigint;
@@ -100,6 +108,8 @@ export const useMarkAsConsumed = () => {
       abi: SupplyChainManagerABI,
       functionName: 'markAsConsumed',
       args: [args.tokenId, args.location, args.notes],
+      chain: liskSepolia,
+      account: address,
     });
   };
 
