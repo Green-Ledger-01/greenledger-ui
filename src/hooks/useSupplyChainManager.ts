@@ -1,7 +1,8 @@
-import { useReadContract, useWriteContract } from 'wagmi';
+import { useReadContract, useWriteContract, useAccount } from 'wagmi';
 import { CONTRACT_ADDRESSES, SUPPLY_CHAIN_STATES } from '../config/constants';
 import SupplyChainManagerABI from '../contracts/SupplyChainManager.json';
 import { secureLog, secureError } from '../utils/secureLogger';
+import { liskSepolia } from '../chains/liskSepolia';
 
 export interface ProvenanceRecord {
   tokenId: bigint;
@@ -22,9 +23,10 @@ export interface ProvenanceStep {
 }
 
 export const useInitializeProvenance = () => {
-  const { writeContractAsync, ...rest } = useWriteContract();
+  const { writeContract, ...rest } = useWriteContract();
+  const { address } = useAccount();
 
-  const initializeProvenance = async (args: {
+  const initializeProvenance = (args: {
     tokenId: bigint;
     farmer: string;
     location: string;
@@ -49,70 +51,70 @@ export const useInitializeProvenance = () => {
 
     secureLog('Calling initializeProvenance with tokenId:', args.tokenId.toString(), 'farmer:', args.farmer, 'location:', args.location, 'notes:', args.notes);
 
-    try {
-      const result = await writeContractAsync({
-        address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
-        abi: SupplyChainManagerABI,
-        functionName: 'initializeProvenance',
-        args: [args.tokenId, args.farmer, args.location, args.notes],
-      });
-
-      secureLog('initializeProvenance transaction result:', result);
-      return result;
-    } catch (error: any) {
-      secureError('initializeProvenance contract call failed:', error);
-      throw error;
-    }
+    return writeContract({
+      address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
+      abi: SupplyChainManagerABI,
+      functionName: 'initializeProvenance',
+      args: [args.tokenId, args.farmer, args.location, args.notes],
+      chain: liskSepolia,
+      account: address,
+    });
   };
 
   return {
-    writeAsync: initializeProvenance,
+    writeContract: initializeProvenance,
     ...rest,
   };
 };
 
 export const useTransferWithProvenance = () => {
-  const { writeContractAsync, ...rest } = useWriteContract();
+  const { writeContract, ...rest } = useWriteContract();
+  const { address } = useAccount();
 
-  const transferWithProvenance = async (args: {
+  const transferWithProvenance = (args: {
     tokenId: bigint;
     to: string;
     newState: number;
     location: string;
     notes: string;
   }) => {
-    return await writeContractAsync({
+    return writeContract({
       address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
       abi: SupplyChainManagerABI,
       functionName: 'transferWithProvenance',
       args: [args.tokenId, args.to, args.newState, args.location, args.notes],
+      chain: liskSepolia,
+      account: address,
     });
   };
 
   return {
-    writeAsync: transferWithProvenance,
+    writeContract: transferWithProvenance,
     ...rest,
   };
 };
 
 export const useMarkAsConsumed = () => {
-  const { writeContractAsync, ...rest } = useWriteContract();
+  const { writeContract, ...rest } = useWriteContract();
+  const { address } = useAccount();
 
-  const markAsConsumed = async (args: {
+  const markAsConsumed = (args: {
     tokenId: bigint;
     location: string;
     notes: string;
   }) => {
-    return await writeContractAsync({
+    return writeContract({
       address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
       abi: SupplyChainManagerABI,
       functionName: 'markAsConsumed',
       args: [args.tokenId, args.location, args.notes],
+      chain: liskSepolia,
+      account: address,
     });
   };
 
   return {
-    writeAsync: markAsConsumed,
+    writeContract: markAsConsumed,
     ...rest,
   };
 };

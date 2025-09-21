@@ -8,8 +8,18 @@ import { useUserTokenHistory, useTokensByState } from '../hooks/useSupplyChainMa
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { hasRole, isConnected, account } = useWeb3Enhanced();
+  const { hasRole, address } = useWeb3Enhanced();
+  const isConnected = !!address;
+  const account = address;
   const { getAllBatches, isLoading, error } = useCropBatchToken();
+  
+  // Handle errors properly
+  React.useEffect(() => {
+    if (error) {
+      console.error('Dashboard error:', error);
+      // Could add toast notification here if needed
+    }
+  }, [error]);
 
   // Real-time blockchain data hooks
   const { data: userTokenHistory } = useUserTokenHistory(account);
@@ -22,14 +32,12 @@ const Dashboard: React.FC = () => {
 
   // Real blockchain data
   const [batches, setBatches] = useState<any[]>([]);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const connectionStatus = isConnected ? 'connected' : 'disconnected';
-  const lastUpdateTime = React.useMemo(() => Date.now(), []);
   
   const [liveStats, setLiveStats] = useState({
     totalBatches: 0,
     activeFarms: 0,
-    registeredUsers: 0,
+    platformTokens: 0,
     recentTransactions: 0,
   });
 
@@ -41,6 +49,7 @@ const Dashboard: React.FC = () => {
       color: 'bg-green-500 hover:bg-green-600',
       path: '/register',
       requiresRole: 'admin' as const,
+      disabled: false,
     },
     {
       title: 'Tokenize Crop',
@@ -49,6 +58,7 @@ const Dashboard: React.FC = () => {
       color: 'bg-blue-500 hover:bg-blue-600',
       path: '/tokenize',
       requiresRole: 'farmer' as const,
+      disabled: false,
     },
     {
       title: 'Browse Marketplace',
@@ -56,6 +66,7 @@ const Dashboard: React.FC = () => {
       icon: Activity,
       color: 'bg-purple-500 hover:bg-purple-600',
       path: '/marketplace',
+      disabled: false,
     },
     {
       title: 'Checkout and Track',
@@ -63,25 +74,30 @@ const Dashboard: React.FC = () => {
       icon: MapPin,
       color: 'bg-yellow-500 hover:bg-yellow-600',
       path: '/track',
+      disabled: false,
     },
   ];
 
   // Load batches from blockchain
   const refetchBatches = React.useCallback(async () => {
-    setIsRefreshing(true);
     try {
       const allBatches = await getAllBatches();
       setBatches(allBatches);
     } catch (error) {
       console.error('Failed to fetch batches:', error);
-    } finally {
-      setIsRefreshing(false);
     }
   }, [getAllBatches]);
 
-  // Load batches on mount
+  // Load batches on mount with error handling
   useEffect(() => {
-    refetchBatches();
+    const loadBatches = async () => {
+      try {
+        await refetchBatches();
+      } catch (error) {
+        console.error('Failed to load batches on mount:', error);
+      }
+    };
+    loadBatches();
   }, [refetchBatches]);
 
   // Update live stats when data changes
@@ -91,7 +107,7 @@ const Dashboard: React.FC = () => {
       setLiveStats({
         totalBatches: 0,
         activeFarms: 0,
-        registeredUsers: 0,
+        platformTokens: 0,
         recentTransactions: 0,
       });
       return;
@@ -110,12 +126,12 @@ const Dashboard: React.FC = () => {
 
     // Calculate real-time stats from blockchain data per connected address
     const totalSupplyChainTokens = Number(producedTokens || 0) + Number(inTransitTokens || 0) + Number(deliveredTokens || 0);
-    const userInteractionCount = userTokenHistory ? userTokenHistory.length : 0;
+    const userInteractionCount = Array.isArray(userTokenHistory) ? userTokenHistory.length : 0;
 
     setLiveStats({
       totalBatches: userBatches.length, // User's batches only
       activeFarms: uniqueFarms, // Farms user has interacted with
-      registeredUsers: totalSupplyChainTokens, // Platform-wide token count
+      platformTokens: totalSupplyChainTokens, // Platform-wide token count
       recentTransactions: recentBatches + userInteractionCount, // User's activity
     });
   }, [batches, producedTokens, inTransitTokens, deliveredTokens, userTokenHistory, account]);
@@ -137,7 +153,7 @@ const Dashboard: React.FC = () => {
     },
     {
       label: 'Platform Tokens',
-      value: liveStats.registeredUsers.toLocaleString(),
+      value: liveStats.platformTokens.toLocaleString(),
       icon: Users,
       color: 'text-purple-600',
       isLive: true
@@ -151,17 +167,7 @@ const Dashboard: React.FC = () => {
     },
   ], [liveStats]);
 
-  const formatLastUpdate = React.useCallback((timestamp: number) => {
-    const now = Date.now();
-    const diff = now - timestamp;
-    const minutes = Math.floor(diff / 60000);
-    const seconds = Math.floor((diff % 60000) / 1000);
 
-    if (minutes > 0) {
-      return `${minutes}m ${seconds}s ago`;
-    }
-    return `${seconds}s ago`;
-  }, []);
 
   const getConnectionIcon = React.useCallback(() => {
     switch (connectionStatus) {
@@ -169,8 +175,7 @@ const Dashboard: React.FC = () => {
         return <Wifi className="h-4 w-4 text-green-600" />;
       case 'disconnected':
         return <WifiOff className="h-4 w-4 text-red-600" />;
-      case 'syncing':
-        return <RefreshCw className="h-4 w-4 text-yellow-600 animate-spin" />;
+
       default:
         return <WifiOff className="h-4 w-4 text-gray-400" />;
     }
@@ -196,9 +201,7 @@ const Dashboard: React.FC = () => {
                 <div className="flex items-center gap-2">
                   {getConnectionIcon()}
                   <span className="text-sm text-gray-600">
-                    {connectionStatus === 'connected' ? 'Connected' :
-                     connectionStatus === 'disconnected' ? 'Disconnected' :
-                     'Syncing'}
+                    {connectionStatus === 'connected' ? 'Connected' : 'Disconnected'}
                   </span>
                   {connectionStatus === 'connected' && account && (
                     <>

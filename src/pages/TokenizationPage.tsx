@@ -44,7 +44,7 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
   } = useCropBatchToken();
 
   const {
-    writeAsync: initializeProvenance,
+    writeContract: initializeProvenance,
     isPending: isInitializingProvenance,
     error: provenanceError,
   } = useInitializeProvenance();

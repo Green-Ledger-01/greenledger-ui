@@ -302,9 +302,13 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
         'success'
       );
 
-      // Register on-chain
+      // Register on-chain with validation
       const primaryRoleId = roleIds[0];
       const contractRoleId = ROLE_MAPPING[primaryRoleId as keyof typeof ROLE_MAPPING];
+      
+      if (contractRoleId === undefined) {
+        throw new Error(`Invalid role: ${primaryRoleId}`);
+      }
 
       await writeContract({
         address: CONTRACT_ADDRESSES.UserManagement as `0x${string}`,
