@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, usePublicClient, useWatchContractEvent, useChainId } from 'wagmi';
 import { getAddress } from 'viem';
 import { CONTRACT_ADDRESSES } from '../config/constants';
@@ -6,6 +6,10 @@ import { useToast } from '../contexts/ToastContext';
 import CropBatchTokenABI from '../contracts/CropBatchToken.json';
 import { secureLog, secureError, secureWarn } from '../utils/secureLogger';
 import { liskSepolia } from '../chains/liskSepolia';
+
+// Constants
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+const BLOCK_RANGE_LIMIT = 10000; // ~2 days of blocks
 
 export interface CropBatch {
   tokenId: number;
@@ -74,9 +78,15 @@ export const useCropBatchToken = () => {
     functionName: 'nextTokenId',
   });
 
-  // Get batch details
+  // Get batch details with caching
   const getBatchDetails = useCallback(async (tokenId: number): Promise<CropBatch | null> => {
     if (!publicClient) return null;
+    
+    // Check cache first
+    const cached = getCachedBatch(tokenId);
+    if (cached) {
+      return cached;
+    }
     
     try {
       setIsLoading(true);
@@ -96,10 +106,14 @@ export const useCropBatchToken = () => {
       const [cropType, quantity, originFarm, harvestDate, notes, metadataUri] = batchDetails;
 
       // Find the current owner by checking transfer events
-      let currentOwner = '0x0000000000000000000000000000000000000000';
+      let currentOwner = ZERO_ADDRESS;
 
       try {
-        // Get all transfer events for this token to find current owner
+        // Get current block for optimized range
+        const currentBlock = await publicClient.getBlockNumber();
+        const fromBlock = currentBlock > BLOCK_RANGE_LIMIT ? currentBlock - BigInt(BLOCK_RANGE_LIMIT) : 0n;
+        
+        // Get transfer events with optimized block range
         const transferLogs = await publicClient.getLogs({
           address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
           event: {
@@ -114,11 +128,9 @@ export const useCropBatchToken = () => {
             ],
           },
           args: {
-            operator: undefined,
-            from: undefined,
-            to: undefined,
+            id: BigInt(tokenId),
           },
-          fromBlock: 'earliest',
+          fromBlock,
           toBlock: 'latest',
         });
 
@@ -130,18 +142,27 @@ export const useCropBatchToken = () => {
       } catch (error) {
         secureWarn('Failed to fetch transfer events for ownership:', error);
         // Fallback: check if current user owns it
-        const balance = await publicClient.readContract({
-          address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
-          abi: CropBatchTokenABI,
-          functionName: 'balanceOf',
-          args: [address || '0x0000000000000000000000000000000000000000', BigInt(tokenId)],
-        });
-        if (Number(balance) > 0) {
-          currentOwner = address || '0x0000000000000000000000000000000000000000';
+        if (address) {
+          try {
+            const balance = await publicClient.readContract({
+              address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
+              abi: CropBatchTokenABI,
+              functionName: 'balanceOf',
+              args: [address, BigInt(tokenId)],
+            });
+            if (Number(balance) > 0) {
+              currentOwner = address;
+            }
+          } catch (balanceError) {
+            secureWarn('Failed to check balance:', balanceError);
+          }
         }
       }
 
-      // Get minting event to find original minter
+      // Get minting event to find original minter with optimized range
+      const currentBlock = await publicClient.getBlockNumber();
+      const fromBlock = currentBlock > BLOCK_RANGE_LIMIT ? currentBlock - BigInt(BLOCK_RANGE_LIMIT) : 0n;
+      
       const logs = await publicClient.getLogs({
         address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
         event: {
@@ -158,17 +179,21 @@ export const useCropBatchToken = () => {
         args: {
           tokenId: BigInt(tokenId),
         },
-        fromBlock: 'earliest',
+        fromBlock,
         toBlock: 'latest',
       });
 
       const mintEvent = logs[0];
-      const minter = mintEvent?.args?.minter || '0x0000000000000000000000000000000000000000';
-      const timestamp = mintEvent?.blockNumber ? 
+      if (!mintEvent?.args) {
+        throw new Error(`Mint event not found for token ${tokenId}`);
+      }
+      
+      const minter = mintEvent.args.minter || ZERO_ADDRESS;
+      const timestamp = mintEvent.blockNumber ? 
         Number((await publicClient.getBlock({ blockNumber: mintEvent.blockNumber })).timestamp) * 1000 : 
         Date.now();
 
-      return {
+      const batch: CropBatch = {
         tokenId,
         cropType: cropType as string,
         quantity: Number(quantity),
@@ -180,6 +205,10 @@ export const useCropBatchToken = () => {
         minter: minter as string,
         timestamp,
       };
+      
+      // Cache the result
+      setCachedBatch(tokenId, batch);
+      return batch;
 
     } catch (err) {
       secureError('Error fetching batch details:', err);
@@ -198,7 +227,11 @@ export const useCropBatchToken = () => {
       setIsLoading(true);
       setError(null);
 
-      // Get all minting events for this user
+      // Get current block for optimized range
+      const currentBlock = await publicClient.getBlockNumber();
+      const fromBlock = currentBlock > BLOCK_RANGE_LIMIT ? currentBlock - BigInt(BLOCK_RANGE_LIMIT) : 0n;
+      
+      // Get all minting events for this user with optimized range
       const logs = await publicClient.getLogs({
         address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
         event: {
@@ -215,21 +248,21 @@ export const useCropBatchToken = () => {
         args: {
           minter: getAddress(userAddress),
         },
-        fromBlock: 'earliest',
+        fromBlock,
         toBlock: 'latest',
       });
 
-      const tokens: CropBatch[] = [];
+      // Batch process all token details in parallel
+      const tokenPromises = logs
+        .filter(log => log.args?.tokenId)
+        .map(log => getBatchDetails(Number(log.args!.tokenId)));
       
-      for (const log of logs) {
-        if (log.args?.tokenId) {
-          const tokenId = Number(log.args.tokenId);
-          const batch = await getBatchDetails(tokenId);
-          if (batch) {
-            tokens.push(batch);
-          }
-        }
-      }
+      const batchResults = await Promise.allSettled(tokenPromises);
+      const tokens: CropBatch[] = batchResults
+        .filter((result): result is PromiseFulfilledResult<CropBatch> => 
+          result.status === 'fulfilled' && result.value !== null
+        )
+        .map(result => result.value);
 
       return tokens.sort((a, b) => b.timestamp - a.timestamp);
 
@@ -316,7 +349,11 @@ export const useCropBatchToken = () => {
       setIsLoading(true);
       setError(null);
 
-      // Get all minting events
+      // Get current block for optimized range
+      const currentBlock = await publicClient.getBlockNumber();
+      const fromBlock = currentBlock > BLOCK_RANGE_LIMIT ? currentBlock - BigInt(BLOCK_RANGE_LIMIT) : 0n;
+      
+      // Get all minting events with optimized range
       const logs = await publicClient.getLogs({
         address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
         event: {
@@ -330,21 +367,21 @@ export const useCropBatchToken = () => {
             { name: 'quantity', type: 'uint256', indexed: false },
           ],
         },
-        fromBlock: 'earliest',
+        fromBlock,
         toBlock: 'latest',
       });
 
-      const batches: CropBatch[] = [];
-
-      for (const log of logs) {
-        if (log.args?.tokenId) {
-          const tokenId = Number(log.args.tokenId);
-          const batch = await getBatchDetails(tokenId);
-          if (batch) {
-            batches.push(batch);
-          }
-        }
-      }
+      // Batch process all token details in parallel
+      const tokenPromises = logs
+        .filter(log => log.args?.tokenId)
+        .map(log => getBatchDetails(Number(log.args!.tokenId)));
+      
+      const batchResults = await Promise.allSettled(tokenPromises);
+      const batches: CropBatch[] = batchResults
+        .filter((result): result is PromiseFulfilledResult<CropBatch> => 
+          result.status === 'fulfilled' && result.value !== null
+        )
+        .map(result => result.value);
 
       return batches.sort((a, b) => b.timestamp - a.timestamp);
 
@@ -441,24 +478,47 @@ export const useCropBatchToken = () => {
   };
 };
 
-// Export alias for compatibility with existing components
+// Export alias for compatibility with existing components - FIXED INFINITE RE-RENDER
 export const useCropBatchTokens = () => {
-  const { getAllBatches, isLoading, error } = useCropBatchToken();
+  const { getAllBatches, isLoading, error, refreshTrigger } = useCropBatchToken();
   const [data, setData] = useState<CropBatch[]>([]);
+
+  // Memoize getAllBatches to prevent recreation on every render
+  const memoizedGetAllBatches = useMemo(() => getAllBatches, [getAllBatches]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const batches = await getAllBatches();
-      setData(batches);
+      try {
+        const batches = await memoizedGetAllBatches();
+        setData(batches);
+      } catch (error) {
+        secureError('Failed to fetch batches in useCropBatchTokens:', error);
+      }
     };
 
     fetchData();
-  }, [getAllBatches]);
+  }, [refreshTrigger]); // Use refreshTrigger instead of getAllBatches
 
   return {
     data,
     isLoading,
     error,
-    refetch: getAllBatches,
+    refetch: memoizedGetAllBatches,
   };
+};
+
+// Add batch cache for better performance
+const batchCache = new Map<number, { data: CropBatch; timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+export const getCachedBatch = (tokenId: number): CropBatch | null => {
+  const cached = batchCache.get(tokenId);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.data;
+  }
+  return null;
+};
+
+export const setCachedBatch = (tokenId: number, batch: CropBatch): void => {
+  batchCache.set(tokenId, { data: batch, timestamp: Date.now() });
 };
