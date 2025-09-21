@@ -26,7 +26,7 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
 
   const isAlreadyInCart = isInCart(batch.tokenId);
 
-  // Update owner when transfer events are detected
+  // Update owner when transfer events are detected - OPTIMIZED
   React.useEffect(() => {
     if (refreshTrigger > 0) {
       const updateOwnership = async () => {
@@ -41,7 +41,7 @@ const CropBatchCard: React.FC<CropBatchCardProps> = ({ batch }) => {
       };
       updateOwnership();
     }
-  }, [refreshTrigger, batch.tokenId, getBatchDetails, currentOwner]);
+  }, [refreshTrigger]); // Removed dependencies that cause unnecessary re-renders
 
   const handleMoreInfoClick = (e: React.MouseEvent) => {
     e.preventDefault();
