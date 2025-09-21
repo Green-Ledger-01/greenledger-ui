@@ -12,6 +12,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
+import { useAccount } from 'wagmi';
 import { useToast } from '../contexts/ToastContext';
 import { useCropBatchToken } from '../hooks/useCropBatchToken';
 import { useInitializeProvenance } from '../hooks/useSupplyChainManager';
@@ -27,7 +28,8 @@ interface TokenizationPageProps {
 }
 
 const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
-  const { account, hasRole, isConnected } = useWeb3Enhanced();
+  const { address, hasRole } = useWeb3Enhanced();
+  const { isConnected } = useAccount();
   const { addToast } = useToast();
   const {
     mintNewBatch,
@@ -177,7 +179,7 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
       addToast('IPFS upload complete. Initiating blockchain transaction...', 'info');
 
       await mintNewBatch({
-        to: account!,
+        to: address!,
         cropType: formData.cropType,
         quantity,
         originFarm: formData.originFarm,
@@ -221,7 +223,7 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
       return;
     }
 
-    if (!isConnected || !account) {
+    if (!isConnected || !address) {
       addToast('Please connect your wallet.', 'warning');
       return;
     }
@@ -253,7 +255,7 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
       addToast('Initializing supply chain provenance...', 'info');
 
       // Validate required data before calling contract
-      if (!account) {
+      if (!address) {
         throw new Error('Wallet account not available');
       }
 
@@ -266,14 +268,14 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
 
       console.log('Initializing provenance with:', {
         tokenId: BigInt(tokenId),
-        farmer: account,
+        farmer: address,
         location,
         notes
       });
 
       await initializeProvenance({
         tokenId: BigInt(tokenId),
-        farmer: account,
+        farmer: address,
         location,
         notes
       });
