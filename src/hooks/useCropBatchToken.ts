@@ -127,9 +127,6 @@ export const useCropBatchToken = () => {
               { name: 'value', type: 'uint256', indexed: false },
             ],
           },
-          args: {
-            id: BigInt(tokenId),
-          },
           fromBlock,
           toBlock: 'latest',
         });

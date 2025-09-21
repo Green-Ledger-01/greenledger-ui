@@ -8,7 +8,9 @@ import { useUserTokenHistory, useTokensByState } from '../hooks/useSupplyChainMa
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { hasRole, isConnected, account } = useWeb3Enhanced();
+  const { hasRole, address } = useWeb3Enhanced();
+  const isConnected = !!address;
+  const account = address;
   const { getAllBatches, isLoading, error } = useCropBatchToken();
   
   // Handle errors properly
@@ -49,6 +51,7 @@ const Dashboard: React.FC = () => {
       color: 'bg-green-500 hover:bg-green-600',
       path: '/register',
       requiresRole: 'admin' as const,
+      disabled: false,
     },
     {
       title: 'Tokenize Crop',
@@ -57,6 +60,7 @@ const Dashboard: React.FC = () => {
       color: 'bg-blue-500 hover:bg-blue-600',
       path: '/tokenize',
       requiresRole: 'farmer' as const,
+      disabled: false,
     },
     {
       title: 'Browse Marketplace',
@@ -64,6 +68,7 @@ const Dashboard: React.FC = () => {
       icon: Activity,
       color: 'bg-purple-500 hover:bg-purple-600',
       path: '/marketplace',
+      disabled: false,
     },
     {
       title: 'Checkout and Track',
@@ -71,6 +76,7 @@ const Dashboard: React.FC = () => {
       icon: MapPin,
       color: 'bg-yellow-500 hover:bg-yellow-600',
       path: '/track',
+      disabled: false,
     },
   ];
 
@@ -125,7 +131,7 @@ const Dashboard: React.FC = () => {
 
     // Calculate real-time stats from blockchain data per connected address
     const totalSupplyChainTokens = Number(producedTokens || 0) + Number(inTransitTokens || 0) + Number(deliveredTokens || 0);
-    const userInteractionCount = userTokenHistory ? userTokenHistory.length : 0;
+    const userInteractionCount = Array.isArray(userTokenHistory) ? userTokenHistory.length : 0;
 
     setLiveStats({
       totalBatches: userBatches.length, // User's batches only
@@ -184,8 +190,7 @@ const Dashboard: React.FC = () => {
         return <Wifi className="h-4 w-4 text-green-600" />;
       case 'disconnected':
         return <WifiOff className="h-4 w-4 text-red-600" />;
-      case 'syncing':
-        return <RefreshCw className="h-4 w-4 text-yellow-600 animate-spin" />;
+
       default:
         return <WifiOff className="h-4 w-4 text-gray-400" />;
     }
@@ -211,9 +216,7 @@ const Dashboard: React.FC = () => {
                 <div className="flex items-center gap-2">
                   {getConnectionIcon()}
                   <span className="text-sm text-gray-600">
-                    {connectionStatus === 'connected' ? 'Connected' :
-                     connectionStatus === 'disconnected' ? 'Disconnected' :
-                     'Syncing'}
+                    {connectionStatus === 'connected' ? 'Connected' : 'Disconnected'}
                   </span>
                   {connectionStatus === 'connected' && account && (
                     <>
