@@ -480,13 +480,12 @@ export const useCropBatchTokens = () => {
   const { getAllBatches, isLoading, error, refreshTrigger } = useCropBatchToken();
   const [data, setData] = useState<CropBatch[]>([]);
 
-  // Memoize getAllBatches to prevent recreation on every render
-  const memoizedGetAllBatches = useMemo(() => getAllBatches, [getAllBatches]);
+  // Use getAllBatches directly since it's already memoized with useCallback
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const batches = await memoizedGetAllBatches();
+        const batches = await getAllBatches();
         setData(batches);
       } catch (error) {
         secureError('Failed to fetch batches in useCropBatchTokens:', error);
@@ -500,11 +499,12 @@ export const useCropBatchTokens = () => {
     data,
     isLoading,
     error,
-    refetch: memoizedGetAllBatches,
+    refetch: getAllBatches,
   };
 };
 
-// Add batch cache for better performance
+// Add batch cache with size limit for better performance
+const MAX_CACHE_SIZE = 100;
 const batchCache = new Map<number, { data: CropBatch; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
@@ -517,5 +517,12 @@ export const getCachedBatch = (tokenId: number): CropBatch | null => {
 };
 
 export const setCachedBatch = (tokenId: number, batch: CropBatch): void => {
+  // Implement LRU eviction if cache is full
+  if (batchCache.size >= MAX_CACHE_SIZE) {
+    const firstKey = batchCache.keys().next().value;
+    if (firstKey !== undefined) {
+      batchCache.delete(firstKey);
+    }
+  }
   batchCache.set(tokenId, { data: batch, timestamp: Date.now() });
 };

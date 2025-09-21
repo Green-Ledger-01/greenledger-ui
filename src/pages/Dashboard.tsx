@@ -32,14 +32,12 @@ const Dashboard: React.FC = () => {
 
   // Real blockchain data
   const [batches, setBatches] = useState<any[]>([]);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const connectionStatus = isConnected ? 'connected' : 'disconnected';
-  const lastUpdateTime = React.useMemo(() => Date.now(), []);
   
   const [liveStats, setLiveStats] = useState({
     totalBatches: 0,
     activeFarms: 0,
-    registeredUsers: 0,
+    platformTokens: 0,
     recentTransactions: 0,
   });
 
@@ -82,14 +80,11 @@ const Dashboard: React.FC = () => {
 
   // Load batches from blockchain
   const refetchBatches = React.useCallback(async () => {
-    setIsRefreshing(true);
     try {
       const allBatches = await getAllBatches();
       setBatches(allBatches);
     } catch (error) {
       console.error('Failed to fetch batches:', error);
-    } finally {
-      setIsRefreshing(false);
     }
   }, [getAllBatches]);
 
@@ -112,7 +107,7 @@ const Dashboard: React.FC = () => {
       setLiveStats({
         totalBatches: 0,
         activeFarms: 0,
-        registeredUsers: 0,
+        platformTokens: 0,
         recentTransactions: 0,
       });
       return;
@@ -136,7 +131,7 @@ const Dashboard: React.FC = () => {
     setLiveStats({
       totalBatches: userBatches.length, // User's batches only
       activeFarms: uniqueFarms, // Farms user has interacted with
-      registeredUsers: totalSupplyChainTokens, // Platform-wide token count
+      platformTokens: totalSupplyChainTokens, // Platform-wide token count
       recentTransactions: recentBatches + userInteractionCount, // User's activity
     });
   }, [batches, producedTokens, inTransitTokens, deliveredTokens, userTokenHistory, account]);
@@ -158,7 +153,7 @@ const Dashboard: React.FC = () => {
     },
     {
       label: 'Platform Tokens',
-      value: liveStats.registeredUsers.toLocaleString(),
+      value: liveStats.platformTokens.toLocaleString(),
       icon: Users,
       color: 'text-purple-600',
       isLive: true
@@ -172,17 +167,7 @@ const Dashboard: React.FC = () => {
     },
   ], [liveStats]);
 
-  const formatLastUpdate = React.useCallback((timestamp: number) => {
-    const now = Date.now();
-    const diff = now - timestamp;
-    const minutes = Math.floor(diff / 60000);
-    const seconds = Math.floor((diff % 60000) / 1000);
 
-    if (minutes > 0) {
-      return `${minutes}m ${seconds}s ago`;
-    }
-    return `${seconds}s ago`;
-  }, []);
 
   const getConnectionIcon = React.useCallback(() => {
     switch (connectionStatus) {
