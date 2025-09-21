@@ -32,11 +32,17 @@ Core platform capabilities
 ### **⚙️ Operations**
 Production deployment and maintenance
 - [Performance](./operations/PERFORMANCE.md) - Optimization and scaling strategies
+- [Performance Optimization Fixes](./operations/PERFORMANCE_OPTIMIZATION_FIXES.md) - 🆕 **CRITICAL** MVP stability fixes
 - [Security](./operations/SECURITY.md) - Zero-trust security architecture
 
 ### **🎓 Learning**
 Knowledge base and educational resources
 - [Resources](./learning/RESOURCES.md) - Learning paths and troubleshooting
+
+### **🔧 Troubleshooting**
+Issue resolution and debugging guides
+- [Performance Fixes Guide](./troubleshooting/PERFORMANCE_FIXES_GUIDE.md) - 🆕 **CRITICAL** Performance issue resolution
+- [Wallet Connection Issues](./troubleshooting/WALLET_CONNECTION_RACE_CONDITION_FIX.md) - Web3 connection troubleshooting
 
 ### **📋 Guides**
 Step-by-step implementation guides
@@ -67,16 +73,19 @@ Quick start and setup guides
 ## 🎯 Quick Navigation
 
 ### **For Developers**
-1. Start with [Quick Start](./implementation/QUICK_START.md)
-2. Review [System Architecture](./architecture/SYSTEM_ARCHITECTURE.md)
-3. Explore [Learning Resources](./learning/RESOURCES.md)
-4. Check [API Reference](./api/API_REFERENCE.md)
+1. **🚨 CRITICAL**: Review [Performance Optimization Fixes](./operations/PERFORMANCE_OPTIMIZATION_FIXES.md)
+2. Start with [Quick Start](./implementation/QUICK_START.md)
+3. Review [System Architecture](./architecture/SYSTEM_ARCHITECTURE.md)
+4. Explore [Learning Resources](./learning/RESOURCES.md)
+5. Check [API Reference](./api/API_REFERENCE.md)
+6. Troubleshoot with [Performance Fixes Guide](./troubleshooting/PERFORMANCE_FIXES_GUIDE.md)
 
 ### **For DevOps/Infrastructure**
-1. Review [Performance](./operations/PERFORMANCE.md)
-2. Study [Security](./operations/SECURITY.md)
-3. Follow [Deployment](./guides/DEPLOYMENT.md)
-4. Monitor with [System Architecture](./architecture/SYSTEM_ARCHITECTURE.md)
+1. **🚨 URGENT**: Review [Performance Optimization Fixes](./operations/PERFORMANCE_OPTIMIZATION_FIXES.md)
+2. Study [Performance](./operations/PERFORMANCE.md)
+3. Check [Security](./operations/SECURITY.md)
+4. Follow [Deployment](./guides/DEPLOYMENT.md)
+5. Monitor with [System Architecture](./architecture/SYSTEM_ARCHITECTURE.md)
 
 ### **For Product/Business**
 1. Understand [Value Proposition](./analysis/PLATFORM_VALUE_PROPOSITION.md)
