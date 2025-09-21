@@ -10,6 +10,14 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { hasRole, isConnected, account } = useWeb3Enhanced();
   const { getAllBatches, isLoading, error } = useCropBatchToken();
+  
+  // Handle errors properly
+  React.useEffect(() => {
+    if (error) {
+      console.error('Dashboard error:', error);
+      // Could add toast notification here if needed
+    }
+  }, [error]);
 
   // Real-time blockchain data hooks
   const { data: userTokenHistory } = useUserTokenHistory(account);
@@ -79,9 +87,16 @@ const Dashboard: React.FC = () => {
     }
   }, [getAllBatches]);
 
-  // Load batches on mount
+  // Load batches on mount with error handling
   useEffect(() => {
-    refetchBatches();
+    const loadBatches = async () => {
+      try {
+        await refetchBatches();
+      } catch (error) {
+        console.error('Failed to load batches on mount:', error);
+      }
+    };
+    loadBatches();
   }, [refetchBatches]);
 
   // Update live stats when data changes
