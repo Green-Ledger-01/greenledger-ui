@@ -1,10 +1,11 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, usePublicClient, useWatchContractEvent } from 'wagmi';
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, usePublicClient, useWatchContractEvent, useChainId } from 'wagmi';
 import { getAddress } from 'viem';
 import { CONTRACT_ADDRESSES } from '../config/constants';
 import { useToast } from '../contexts/ToastContext';
 import CropBatchTokenABI from '../contracts/CropBatchToken.json';
 import { secureLog, secureError, secureWarn } from '../utils/secureLogger';
+import { liskSepolia } from '../chains/liskSepolia';
 
 export interface CropBatch {
   tokenId: number;
@@ -113,7 +114,9 @@ export const useCropBatchToken = () => {
             ],
           },
           args: {
-            id: BigInt(tokenId),
+            operator: undefined,
+            from: undefined,
+            to: undefined,
           },
           fromBlock: 'earliest',
           toBlock: 'latest',
@@ -248,7 +251,7 @@ export const useCropBatchToken = () => {
     try {
       setError(null);
       
-      await writeContract({
+      writeContract({
         address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
         abi: CropBatchTokenABI,
         functionName: 'mintNewBatch',
@@ -261,6 +264,8 @@ export const useCropBatchToken = () => {
           params.notes,
           params.metadataUri,
         ],
+        chain: liskSepolia,
+        account: address as `0x${string}`,
       });
 
     } catch (err) {
@@ -280,7 +285,7 @@ export const useCropBatchToken = () => {
     try {
       setError(null);
       
-      await writeContract({
+      writeContract({
         address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
         abi: CropBatchTokenABI,
         functionName: 'safeTransferFrom',
@@ -291,6 +296,8 @@ export const useCropBatchToken = () => {
           BigInt(params.amount),
           '0x', // data
         ],
+        chain: liskSepolia,
+        account: address as `0x${string}`,
       });
 
     } catch (err) {
