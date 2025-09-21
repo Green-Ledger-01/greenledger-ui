@@ -2,6 +2,7 @@ import React, { createContext, useContext, useCallback, useState, useEffect } fr
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useDisconnect } from "wagmi";
 import { CONTRACT_ADDRESSES, DEFAULT_ADMIN_ROLE } from "../config/constants";
 import { useToast } from "./ToastContext";
+import { liskSepolia } from "../chains/liskSepolia";
 
 // Types
 export interface UserRole {
@@ -14,7 +15,6 @@ export interface UserRole {
 export interface Web3ContextEnhancedType {
   // Account & Connection
   address: `0x${string}` | undefined;
-  isConnected: boolean;
   disconnect: () => void;
   
   // Role Management
@@ -259,6 +259,11 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
 
   // Register roles (both locally and on-chain)
   const registerRoles = useCallback(async (roleIds: string[]) => {
+    // Wait briefly for state synchronization if needed
+    if (!address && isConnected) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
     if (!address || !isConnected) {
       addToast('Please connect your wallet first', 'warning');
       return;
@@ -317,6 +322,8 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
         ],
         functionName: "registerUser",
         args: [address as `0x${string}`, contractRoleId],
+        chain: liskSepolia,
+        account: address as `0x${string}`,
       });
 
       addToast(`Submitting ${primaryRoleId} role registration to blockchain...`, 'info');
@@ -359,7 +366,6 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
   const contextValue: Web3ContextEnhancedType = {
     // Account & Connection
     address,
-    isConnected,
     disconnect,
     
     // Role Management
