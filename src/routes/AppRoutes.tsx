@@ -9,7 +9,6 @@ import CartSidebar from '../components/CartSidebar';
 import ConnectButtonWrapper from '../components/ConnectButtonWrapper';
 import LoadingSpinner from '../components/LoadingSpinner';
 import LandingPage from '../pages/LandingPage';
-import AuthenticationPage from '../pages/AuthenticationPage';
 
 import Dashboard from '../pages/Dashboard';
 import UserProfile from '../pages/UserProfile';
@@ -54,35 +53,37 @@ const AppContent = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-green-50 via-white to-green-100">
+    <div className="min-h-screen-safe flex flex-col bg-gradient-to-br from-green-50 via-white to-green-100 safe-area-inset">
       {/* Mobile Header with Hamburger */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-white/80 backdrop-blur-md shadow-lg border-b border-green-100 sticky top-0 z-40">
+      <div className="md:hidden flex items-center justify-between p-4 xs:p-6 bg-white/90 backdrop-blur-md shadow-lg border-b border-green-100 sticky top-0 z-40">
         <button
           onClick={toggleSidebar}
-          className="text-green-800 focus:outline-none hover:text-green-600 transition-colors p-2 rounded-lg hover:bg-green-50"
+          className="text-green-800 focus:outline-none hover:text-green-600 transition-colors touch-target rounded-lg hover:bg-green-50 active:bg-green-100"
         >
           <Menu className="h-6 w-6" />
         </button>
-        <div className="flex items-center space-x-2">
-          <div className="h-8 w-8 rounded-full gradient-bg-primary flex items-center justify-center">
-            <span className="text-white text-sm font-bold">G</span>
+        <div className="flex items-center space-x-3 xs:space-x-2">
+          <div className="h-10 w-10 xs:h-8 xs:w-8 rounded-full bg-gradient-to-r from-green-600 to-green-700 flex items-center justify-center shadow-lg">
+            <span className="text-white text-base xs:text-sm font-bold">G</span>
           </div>
-          <h1 className="text-xl font-bold gradient-text">GreenLedger</h1>
+          <h1 className="text-2xl xs:text-xl font-bold bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">GreenLedger</h1>
         </div>
-        <SimpleConnectButton />
+        <div className="flex-shrink-0">
+          <SimpleConnectButton />
+        </div>
       </div>
 
       {/* Desktop Header */}
       <div className="hidden md:block">
-        <div className="bg-white/80 backdrop-blur-md shadow-sm border-b border-green-100 sticky top-0 z-40">
+        <div className="bg-white/90 backdrop-blur-md shadow-sm border-b border-green-100 sticky top-0 z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-4">
               <div className="flex items-center space-x-3">
-                <div className="h-10 w-10 rounded-full gradient-bg-primary flex items-center justify-center">
-                  <span className="text-white font-bold">G</span>
+                <div className="h-12 w-12 lg:h-10 lg:w-10 rounded-full bg-gradient-to-r from-green-600 to-green-700 flex items-center justify-center shadow-lg">
+                  <span className="text-white font-bold text-lg lg:text-base">G</span>
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold gradient-text">GreenLedger</h1>
+                  <h1 className="text-3xl lg:text-2xl font-bold bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">GreenLedger</h1>
                   <span className="text-sm text-gray-500">Agricultural Supply Chain</span>
                 </div>
               </div>
@@ -97,7 +98,7 @@ const AppContent = () => {
         <SidebarSimple isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto bg-transparent">
+        <main className="flex-1 overflow-y-auto bg-transparent mobile-scroll pb-16 md:pb-0">
           <div className="min-h-full">
             <Routes>
               <Route path="/" element={<Dashboard />} />
@@ -112,7 +113,7 @@ const AppContent = () => {
               <Route path="/track/:tokenId" element={<CheckoutAndTrack />} />
               <Route path="/qr" element={<QRVerificationPage />} />
               <Route path="/verify" element={<QRVerificationPage />} />
-              <Route path="/auth" element={<AuthenticationPage />} />
+
               <Route path="/waitlist" element={<WaitlistPage />} />
 
             </Routes>
