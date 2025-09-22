@@ -2,6 +2,134 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile-first responsive design utilities */
+@layer base {
+  /* CSS Custom Properties for safe area insets */
+  :root {
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-inset-left: env(safe-area-inset-left, 0px);
+    --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  }
+
+  /* Prevent zoom on input focus (iOS) */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="date"],
+  textarea,
+  select {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  /* Smooth scrolling for mobile */
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Better touch scrolling */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@layer components {
+  /* Mobile-optimized button styles */
+  .btn-mobile {
+    @apply min-h-touch min-w-touch flex items-center justify-center;
+    @apply px-6 py-4 text-base font-medium rounded-xl;
+    @apply transition-all duration-200 active:scale-95;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  /* Touch-friendly form inputs */
+  .input-mobile {
+    @apply w-full px-4 py-4 text-base border rounded-xl;
+    @apply focus:ring-2 focus:ring-green-500 focus:border-green-500;
+    @apply transition-colors min-h-touch;
+  }
+
+  /* Mobile card styles */
+  .card-mobile {
+    @apply bg-white rounded-xl shadow-lg border border-gray-200;
+    @apply p-6 space-y-4;
+  }
+
+  /* Mobile navigation styles */
+  .nav-mobile {
+    @apply fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200;
+    @apply flex justify-around items-center py-2 z-30;
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+  }
+
+  /* Mobile header styles */
+  .header-mobile {
+    @apply sticky top-0 z-40 bg-white/90 backdrop-blur-md;
+    @apply border-b border-gray-200 shadow-sm;
+    padding-top: calc(1rem + env(safe-area-inset-top));
+  }
+}
+
+@layer utilities {
+  /* Safe area utilities */
+  .pt-safe {
+    padding-top: calc(1rem + env(safe-area-inset-top));
+  }
+  
+  .pb-safe {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+  
+  .pl-safe {
+    padding-left: calc(1rem + env(safe-area-inset-left));
+  }
+  
+  .pr-safe {
+    padding-right: calc(1rem + env(safe-area-inset-right));
+  }
+
+  /* Touch interaction utilities */
+  .active\:scale-98:active {
+    transform: scale(0.98);
+  }
+  
+  .active\:scale-95:active {
+    transform: scale(0.95);
+  }
+
+  /* Mobile-specific display utilities */
+  .mobile-only {
+    @apply block;
+  }
+  
+  .desktop-only {
+    @apply hidden;
+  }
+  
+  @screen md {
+    .mobile-only {
+      @apply hidden;
+    }
+    
+    .desktop-only {
+      @apply block;
+    }
+  }
+
+  /* Gradient utilities */
+  .gradient-bg-primary {
+    @apply bg-gradient-to-r from-green-600 to-green-700;
+  }
+  
+  .gradient-text {
+    @apply bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent;
+  }
+}
+
 /* Custom animations and utilities */
 @layer utilities {
   .animate-fade-in-up {
