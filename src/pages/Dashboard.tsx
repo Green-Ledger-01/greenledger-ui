@@ -191,89 +191,93 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="p-4 space-y-4">
+      <div className="p-4 xs:p-6 space-y-4 xs:space-y-6">
         {/* Compact Header */}
-        <div className="bg-white rounded-lg p-4 shadow border border-gray-200">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="bg-white rounded-xl xs:rounded-lg p-6 xs:p-4 shadow-lg xs:shadow border border-gray-200">
+          <div className="flex flex-col gap-4 xs:gap-6">
             <div className="flex-1">
-              <div className="flex items-center gap-4 mb-2">
-                <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-                <div className="flex items-center gap-2">
+              <div className="flex flex-col xs:flex-row xs:items-center gap-3 xs:gap-4 mb-3 xs:mb-2">
+                <h1 className="text-3xl xs:text-2xl font-bold text-gray-900">Dashboard</h1>
+                <div className="flex items-center gap-2 xs:gap-2">
                   {getConnectionIcon()}
-                  <span className="text-sm text-gray-600">
+                  <span className="text-base xs:text-sm text-gray-600 font-medium">
                     {connectionStatus === 'connected' ? 'Connected' : 'Disconnected'}
                   </span>
                   {connectionStatus === 'connected' && account && (
                     <>
-                      <span className="text-gray-400">•</span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-gray-400 hidden xs:inline">•</span>
+                      <span className="text-sm xs:text-xs text-gray-500 font-mono">
                         {account.slice(0, 6)}...{account.slice(-4)}
                       </span>
                     </>
                   )}
                 </div>
               </div>
-              <p className="text-sm text-gray-600">
+              <p className="text-base xs:text-sm text-gray-600 leading-relaxed">
                 Your blockchain-powered agricultural supply chain management platform
               </p>
             </div>
 
             {/* Quick Action Buttons */}
-            <div className="flex items-center gap-3">
+            <div className="grid grid-cols-2 xs:flex xs:flex-wrap gap-3 xs:gap-2">
               <button
                 onClick={() => navigate('/qr')}
-                className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-blue-700 transition-all text-sm font-medium shadow-lg"
+                className="flex items-center justify-center xs:justify-start gap-2 bg-gradient-to-r from-green-600 to-blue-600 text-white px-4 xs:px-3 py-3 xs:py-2 rounded-xl xs:rounded-lg hover:from-green-700 hover:to-blue-700 transition-all text-base xs:text-sm font-medium shadow-lg touch-target"
               >
-                <QrCode className="h-4 w-4" />
-                QR Verify
+                <QrCode className="h-5 w-5 xs:h-4 xs:w-4" />
+                <span className="hidden xs:inline">QR Verify</span>
+                <span className="xs:hidden">Verify</span>
               </button>
               <button
                 onClick={() => navigate('/marketplace')}
-                className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all text-sm"
+                className="flex items-center justify-center xs:justify-start gap-2 bg-green-600 text-white px-4 xs:px-3 py-3 xs:py-2 rounded-xl xs:rounded-lg hover:bg-green-700 transition-all text-base xs:text-sm font-medium touch-target"
               >
-                <Activity className="h-4 w-4" />
-                Marketplace
+                <Activity className="h-5 w-5 xs:h-4 xs:w-4" />
+                <span className="hidden xs:inline">Marketplace</span>
+                <span className="xs:hidden">Market</span>
               </button>
               <button
                 onClick={() => navigate('/track')}
-                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all text-sm"
+                className="flex items-center justify-center xs:justify-start gap-2 bg-blue-600 text-white px-4 xs:px-3 py-3 xs:py-2 rounded-xl xs:rounded-lg hover:bg-blue-700 transition-all text-base xs:text-sm font-medium touch-target"
               >
-                <MapPin className="h-4 w-4" />
-                Checkout & Track
+                <MapPin className="h-5 w-5 xs:h-4 xs:w-4" />
+                <span className="hidden xs:inline">Checkout & Track</span>
+                <span className="xs:hidden">Track</span>
               </button>
               <button
                 onClick={() => navigate('/tokenize')}
-                className="flex items-center gap-2 bg-gray-100 text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-200 transition-all border border-gray-200 text-sm"
+                className="flex items-center justify-center xs:justify-start gap-2 bg-gray-100 text-gray-900 px-4 xs:px-3 py-3 xs:py-2 rounded-xl xs:rounded-lg hover:bg-gray-200 transition-all border border-gray-200 text-base xs:text-sm font-medium touch-target"
               >
-                <Package className="h-4 w-4" />
-                Create Batch
+                <Package className="h-5 w-5 xs:h-4 xs:w-4" />
+                <span className="hidden xs:inline">Create Batch</span>
+                <span className="xs:hidden">Create</span>
               </button>
             </div>
           </div>
         </div>
 
         {/* Compact Stats Grid */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 xs:gap-6">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             return (
-              <div key={index} className="bg-white rounded-lg shadow p-4 border border-gray-100 relative">
+              <div key={index} className="bg-white rounded-xl xs:rounded-lg shadow-lg xs:shadow p-6 xs:p-4 border border-gray-100 relative">
                 {stat.isLive && (
-                  <div className="absolute top-2 right-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <div className="absolute top-3 xs:top-2 right-3 xs:right-2">
+                    <div className="w-3 h-3 xs:w-2 xs:h-2 bg-green-500 rounded-full animate-pulse"></div>
                   </div>
                 )}
                 <div className="text-center">
-                  <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                    <Icon className="h-5 w-5 text-green-600" />
+                  <div className="h-12 w-12 xs:h-10 xs:w-10 bg-green-100 rounded-xl xs:rounded-lg flex items-center justify-center mx-auto mb-4 xs:mb-3">
+                    <Icon className="h-6 w-6 xs:h-5 xs:w-5 text-green-600" />
                   </div>
-                  <div className="text-2xl font-bold text-green-600 mb-1">{stat.value}</div>
-                  <div className="text-sm text-gray-700 font-medium">{stat.label}</div>
+                  <div className="text-3xl xs:text-2xl font-bold text-green-600 mb-2 xs:mb-1">{stat.value}</div>
+                  <div className="text-base xs:text-sm text-gray-700 font-medium">{stat.label}</div>
                   {stat.isLive && connectionStatus === 'connected' && account && (
-                    <p className="text-xs text-green-600 mt-1">Live</p>
+                    <p className="text-sm xs:text-xs text-green-600 mt-2 xs:mt-1 font-medium">Live</p>
                   )}
                   {!account && (
-                    <p className="text-xs text-gray-500 mt-1">Connect wallet</p>
+                    <p className="text-sm xs:text-xs text-gray-500 mt-2 xs:mt-1">Connect wallet</p>
                   )}
                 </div>
               </div>
@@ -282,39 +286,39 @@ const Dashboard: React.FC = () => {
         </section>
 
         {/* QR Verification Highlight */}
-        <section className="bg-gradient-to-r from-green-600 to-blue-600 rounded-lg shadow-lg p-6 text-white">
-          <div className="flex items-center justify-between">
+        <section className="bg-gradient-to-r from-green-600 to-blue-600 rounded-xl xs:rounded-lg shadow-lg p-6 xs:p-4 text-white">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 lg:gap-4">
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="h-12 w-12 bg-white/20 rounded-lg flex items-center justify-center">
-                  <Scan className="h-6 w-6 text-white" />
+              <div className="flex flex-col xs:flex-row xs:items-center gap-4 xs:gap-3 mb-6 xs:mb-3">
+                <div className="h-16 w-16 xs:h-12 xs:w-12 bg-white/20 rounded-xl xs:rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Scan className="h-8 w-8 xs:h-6 xs:w-6 text-white" />
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold">🚀 Revolutionary QR Verification</h3>
-                  <p className="text-green-100">Our key competitive advantage - instant blockchain verification</p>
+                <div className="text-center xs:text-left">
+                  <h3 className="text-2xl xs:text-xl font-bold mb-2 xs:mb-1">🚀 Revolutionary QR Verification</h3>
+                  <p className="text-green-100 text-base xs:text-sm">Our key competitive advantage - instant blockchain verification</p>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-2xl font-bold">⚡ &lt;2s</div>
-                  <div className="text-sm text-green-100">Verification Time</div>
+              <div className="grid grid-cols-3 gap-4 xs:gap-2 text-center">
+                <div className="p-3 xs:p-2">
+                  <div className="text-3xl xs:text-2xl font-bold mb-1">⚡ &lt;2s</div>
+                  <div className="text-sm xs:text-xs text-green-100">Verification Time</div>
                 </div>
-                <div>
-                  <div className="text-2xl font-bold">🔗 100%</div>
-                  <div className="text-sm text-green-100">Blockchain Proof</div>
+                <div className="p-3 xs:p-2">
+                  <div className="text-3xl xs:text-2xl font-bold mb-1">🔗 100%</div>
+                  <div className="text-sm xs:text-xs text-green-100">Blockchain Proof</div>
                 </div>
-                <div>
-                  <div className="text-2xl font-bold">📱 Mobile</div>
-                  <div className="text-sm text-green-100">Optimized</div>
+                <div className="p-3 xs:p-2">
+                  <div className="text-3xl xs:text-2xl font-bold mb-1">📱 Mobile</div>
+                  <div className="text-sm xs:text-xs text-green-100">Optimized</div>
                 </div>
               </div>
             </div>
-            <div className="ml-6">
+            <div className="flex justify-center lg:justify-end">
               <button
                 onClick={() => navigate('/qr')}
-                className="bg-white text-green-600 px-6 py-3 rounded-lg hover:bg-gray-100 transition-all font-semibold flex items-center gap-2 shadow-lg"
+                className="bg-white text-green-600 px-8 xs:px-6 py-4 xs:py-3 rounded-xl xs:rounded-lg hover:bg-gray-100 transition-all font-semibold flex items-center gap-3 xs:gap-2 shadow-lg touch-target text-lg xs:text-base"
               >
-                <QrCode className="h-5 w-5" />
+                <QrCode className="h-6 w-6 xs:h-5 xs:w-5" />
                 Try QR Scanner
               </button>
             </div>
@@ -322,49 +326,49 @@ const Dashboard: React.FC = () => {
         </section>
 
       {/* Compact Data Visualizations */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-white rounded-lg shadow p-4 border border-gray-100">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center">
-              <Activity className="h-4 w-4 text-green-600" />
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 xs:gap-6">
+        <div className="bg-white rounded-xl xs:rounded-lg shadow-lg xs:shadow p-6 xs:p-4 border border-gray-100">
+          <div className="flex items-center gap-4 xs:gap-3 mb-6 xs:mb-4">
+            <div className="h-10 w-10 xs:h-8 xs:w-8 bg-green-100 rounded-xl xs:rounded-lg flex items-center justify-center">
+              <Activity className="h-5 w-5 xs:h-4 xs:w-4 text-green-600" />
             </div>
-            <h3 className="text-lg font-bold text-gray-900">Recent Activity</h3>
+            <h3 className="text-xl xs:text-lg font-bold text-gray-900">Recent Activity</h3>
           </div>
-          <div className="h-48 bg-gray-50 rounded-lg flex items-center justify-center text-gray-500">
-            <div className="text-center">
-              <TrendingUp className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-              <p className="font-medium text-sm">Chart Coming Soon</p>
-              <p className="text-xs text-gray-600">Latest crop batch tokenizations</p>
+          <div className="h-56 xs:h-48 bg-gray-50 rounded-xl xs:rounded-lg flex items-center justify-center text-gray-500">
+            <div className="text-center p-4">
+              <TrendingUp className="h-12 w-12 xs:h-8 xs:w-8 mx-auto mb-4 xs:mb-2 text-gray-400" />
+              <p className="font-medium text-base xs:text-sm mb-2 xs:mb-1">Chart Coming Soon</p>
+              <p className="text-sm xs:text-xs text-gray-600">Latest crop batch tokenizations</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-4 border border-gray-100">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center">
-              <MapPin className="h-4 w-4 text-green-600" />
+        <div className="bg-white rounded-xl xs:rounded-lg shadow-lg xs:shadow p-6 xs:p-4 border border-gray-100">
+          <div className="flex items-center gap-4 xs:gap-3 mb-6 xs:mb-4">
+            <div className="h-10 w-10 xs:h-8 xs:w-8 bg-green-100 rounded-xl xs:rounded-lg flex items-center justify-center">
+              <MapPin className="h-5 w-5 xs:h-4 xs:w-4 text-green-600" />
             </div>
-            <h3 className="text-lg font-bold text-gray-900">Supply Chain Map</h3>
+            <h3 className="text-xl xs:text-lg font-bold text-gray-900">Supply Chain Map</h3>
           </div>
-          <div className="h-48 bg-gray-50 rounded-lg flex items-center justify-center text-gray-500">
-            <div className="text-center">
-              <MapPin className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-              <p className="font-medium text-sm">Interactive Map Coming Soon</p>
-              <p className="text-xs text-gray-600">Global movement tracking</p>
+          <div className="h-56 xs:h-48 bg-gray-50 rounded-xl xs:rounded-lg flex items-center justify-center text-gray-500">
+            <div className="text-center p-4">
+              <MapPin className="h-12 w-12 xs:h-8 xs:w-8 mx-auto mb-4 xs:mb-2 text-gray-400" />
+              <p className="font-medium text-base xs:text-sm mb-2 xs:mb-1">Interactive Map Coming Soon</p>
+              <p className="text-sm xs:text-xs text-gray-600">Global movement tracking</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Compact Quick Actions */}
-      <section className="bg-white rounded-lg shadow p-4 border border-gray-100">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center">
-            <Zap className="h-4 w-4 text-green-600" />
+      <section className="bg-white rounded-xl xs:rounded-lg shadow-lg xs:shadow p-6 xs:p-4 border border-gray-100">
+        <div className="flex items-center gap-4 xs:gap-3 mb-6 xs:mb-4">
+          <div className="h-10 w-10 xs:h-8 xs:w-8 bg-green-100 rounded-xl xs:rounded-lg flex items-center justify-center">
+            <Zap className="h-5 w-5 xs:h-4 xs:w-4 text-green-600" />
           </div>
-          <h3 className="text-lg font-bold text-gray-900">Quick Actions</h3>
+          <h3 className="text-xl xs:text-lg font-bold text-gray-900">Quick Actions</h3>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 xs:gap-3">
           {quickActions.map((action, index) => {
             const Icon = action.icon;
             const canPerform = !action.requiresRole || canPerformAction(action.requiresRole);
@@ -376,22 +380,22 @@ const Dashboard: React.FC = () => {
                 onClick={() => handleQuickAction(action)}
                 disabled={isDisabled}
                 className={`
-                  bg-gray-50 border border-gray-200 text-gray-900 p-3 rounded-lg transition-all text-center
-                  ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100 hover:shadow-md'}
+                  bg-gray-50 border border-gray-200 text-gray-900 p-4 xs:p-3 rounded-xl xs:rounded-lg transition-all text-center touch-target
+                  ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100 hover:shadow-md active:bg-gray-200'}
                 `}
               >
-                <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                  <Icon className="h-4 w-4 text-green-600" />
+                <div className="h-10 w-10 xs:h-8 xs:w-8 bg-green-100 rounded-xl xs:rounded-lg flex items-center justify-center mx-auto mb-3 xs:mb-2">
+                  <Icon className="h-5 w-5 xs:h-4 xs:w-4 text-green-600" />
                 </div>
-                <div className="text-xs font-bold text-gray-900">{action.title}</div>
-                <div className="text-xs text-gray-600 mt-1">{action.description}</div>
+                <div className="text-sm xs:text-xs font-bold text-gray-900 mb-1">{action.title}</div>
+                <div className="text-sm xs:text-xs text-gray-600 leading-tight">{action.description}</div>
                 {action.requiresRole && !canPerform && (
-                  <div className="text-xs mt-1 text-orange-600">
+                  <div className="text-sm xs:text-xs mt-2 xs:mt-1 text-orange-600 font-medium">
                     Requires {action.requiresRole}
                   </div>
                 )}
                 {action.disabled && (
-                  <div className="text-xs mt-1 text-gray-500">
+                  <div className="text-sm xs:text-xs mt-2 xs:mt-1 text-gray-500">
                     Coming Soon
                   </div>
                 )}

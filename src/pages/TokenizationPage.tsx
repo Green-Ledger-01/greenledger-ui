@@ -364,47 +364,47 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="p-6 max-w-4xl mx-auto">
+      <div className="p-4 xs:p-6 max-w-4xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Crop Tokenization</h1>
-          <p className="text-gray-600">
+        <div className="text-center mb-6 xs:mb-8">
+          <h1 className="text-4xl xs:text-3xl font-bold text-gray-900 mb-3 xs:mb-2">Crop Tokenization</h1>
+          <p className="text-lg xs:text-base text-gray-600 leading-relaxed">
             Create NFTs for your agricultural produce with IPFS metadata and blockchain minting
           </p>
         </div>
 
 
 
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-2xl xs:rounded-xl shadow-xl xs:shadow-lg border border-gray-200">
           {/* Header */}
-          <div className="p-6 border-b border-gray-200">
+          <div className="p-6 xs:p-4 border-b border-gray-200">
             {/* Status indicators */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-                <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                <span className={isConnected ? 'text-green-700 font-medium' : 'text-red-700 font-medium'}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 xs:gap-3 text-base xs:text-sm">
+              <div className="flex items-center gap-3 xs:gap-2 p-4 xs:p-3 bg-gray-50 rounded-xl xs:rounded-lg">
+                <div className={`w-4 h-4 xs:w-3 xs:h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <span className={`${isConnected ? 'text-green-700 font-medium' : 'text-red-700 font-medium'}`}>
                   {isConnected ? 'Wallet Connected' : 'Wallet Disconnected'}
                 </span>
               </div>
 
               {!isLoadingNextTokenId && nextTokenId && (
-                <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg">
-                  <Coins className="h-4 w-4 text-green-600" />
+                <div className="flex items-center gap-3 xs:gap-2 p-4 xs:p-3 bg-green-50 rounded-xl xs:rounded-lg">
+                  <Coins className="h-5 w-5 xs:h-4 xs:w-4 text-green-600" />
                   <span className="text-green-700 font-medium">Next Token ID: #{nextTokenId}</span>
                 </div>
               )}
 
-              <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
-                <Shield className="h-4 w-4 text-blue-600" />
+              <div className="flex items-center gap-3 xs:gap-2 p-4 xs:p-3 bg-blue-50 rounded-xl xs:rounded-lg">
+                <Shield className="h-5 w-5 xs:h-4 xs:w-4 text-blue-600" />
                 <span className="text-blue-700 font-medium">Blockchain + IPFS</span>
               </div>
             </div>
 
             {isProcessing && (
-              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="mt-6 xs:mt-4 p-4 xs:p-3 bg-blue-50 border border-blue-200 rounded-xl xs:rounded-lg">
                 <div className="flex items-center gap-3">
                   <LoadingSpinner variant="minimal" size="sm" />
-                  <span className="text-blue-800 font-medium">
+                  <span className="text-blue-800 font-medium text-base xs:text-sm">
                     {isUploading ? 'Uploading to IPFS...' :
                      isWritePending ? 'Waiting for wallet...' :
                      isConfirming ? 'Confirming transaction...' :
@@ -412,19 +412,19 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
                   </span>
                 </div>
                 {uploadProgress && (
-                  <p className="text-sm text-blue-700 mt-2">{uploadProgress}</p>
+                  <p className="text-base xs:text-sm text-blue-700 mt-3 xs:mt-2">{uploadProgress}</p>
                 )}
               </div>
             )}
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <form onSubmit={handleSubmit} className="p-6 xs:p-4 space-y-8 xs:space-y-6">
           {/* Basic Information */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 xs:gap-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                <FileText className="h-4 w-4 inline mr-1" />
+              <label htmlFor="name" className="block text-base xs:text-sm font-medium text-gray-700 mb-3 xs:mb-2">
+                <FileText className="h-5 w-5 xs:h-4 xs:w-4 inline mr-2 xs:mr-1" />
                 Crop Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -434,17 +434,17 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
                 value={formData.name}
                 onChange={handleInputChange}
                 placeholder="e.g., Organic Heirloom Tomatoes"
-                className={`w-full px-4 py-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors ${
+                className={`w-full px-4 xs:px-3 py-4 xs:py-3 border rounded-xl xs:rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors text-base xs:text-sm touch-target ${
                   formErrors.name ? 'border-red-400 bg-red-50' : 'border-gray-300'
                 }`}
                 disabled={isProcessing}
               />
-              {formErrors.name && <p className="mt-1 text-xs text-red-600">{formErrors.name}</p>}
+              {formErrors.name && <p className="mt-2 xs:mt-1 text-sm xs:text-xs text-red-600">{formErrors.name}</p>}
             </div>
 
             <div>
-              <label htmlFor="cropType" className="block text-sm font-medium text-gray-700 mb-2">
-                <Scale className="h-4 w-4 inline mr-1" />
+              <label htmlFor="cropType" className="block text-base xs:text-sm font-medium text-gray-700 mb-3 xs:mb-2">
+                <Scale className="h-5 w-5 xs:h-4 xs:w-4 inline mr-2 xs:mr-1" />
                 Crop Type <span className="text-red-500">*</span>
               </label>
               <select
@@ -452,7 +452,7 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
                 name="cropType"
                 value={formData.cropType}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors ${
+                className={`w-full px-4 xs:px-3 py-4 xs:py-3 border rounded-xl xs:rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors text-base xs:text-sm touch-target ${
                   formErrors.cropType ? 'border-red-400 bg-red-50' : 'border-gray-300'
                 }`}
                 disabled={isProcessing}
@@ -468,13 +468,13 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
                 <option value="Fiber Crops">Fiber Crops</option>
                 <option value="Other">Other</option>
               </select>
-              {formErrors.cropType && <p className="mt-1 text-xs text-red-600">{formErrors.cropType}</p>}
+              {formErrors.cropType && <p className="mt-2 xs:mt-1 text-sm xs:text-xs text-red-600">{formErrors.cropType}</p>}
             </div>
           </div>
 
           {/* Description */}
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="description" className="block text-base xs:text-sm font-medium text-gray-700 mb-3 xs:mb-2">
               Description
             </label>
             <textarea
@@ -482,9 +482,9 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
               name="description"
               value={formData.description}
               onChange={handleInputChange}
-              rows={3}
+              rows={4}
               placeholder="Detailed description of the crop batch..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+              className="w-full px-4 xs:px-3 py-4 xs:py-3 border border-gray-300 rounded-xl xs:rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors text-base xs:text-sm resize-none"
               disabled={isProcessing}
             />
           </div>
@@ -706,38 +706,40 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
           </div>
 
           {/* Submit Button */}
-          <div className="pt-6 border-t border-gray-200">
+          <div className="pt-8 xs:pt-6 border-t border-gray-200">
             <button
               type="submit"
               disabled={isProcessing || !isConnected}
-              className="w-full py-4 px-6 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white"
+              className="w-full py-5 xs:py-4 px-8 xs:px-6 rounded-2xl xs:rounded-xl font-bold text-xl xs:text-lg shadow-xl hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white touch-target"
             >
               {isProcessing ? (
                 <>
                   <LoadingSpinner variant="minimal" size="sm" className="mr-3" />
-                  {isUploading ? 'Uploading to IPFS...' :
-                   isWritePending ? 'Waiting for Wallet...' :
-                   isConfirming ? 'Confirming Transaction...' :
-                   isInitializingProvenance ? 'Initializing Provenance...' :
-                   'Processing...'}
+                  <span className="text-lg xs:text-base">
+                    {isUploading ? 'Uploading to IPFS...' :
+                     isWritePending ? 'Waiting for Wallet...' :
+                     isConfirming ? 'Confirming Transaction...' :
+                     isInitializingProvenance ? 'Initializing Provenance...' :
+                     'Processing...'}
+                  </span>
                 </>
               ) : (
                 <>
-                  <Coins className="h-5 w-5 mr-2" />
-                  Mint Crop Batch Token
+                  <Coins className="h-6 w-6 xs:h-5 xs:w-5 mr-3 xs:mr-2" />
+                  <span>Mint Crop Batch Token</span>
                 </>
               )}
             </button>
 
             {hash && (
-              <div className="mt-4 text-center">
-                <p className="text-sm text-gray-600">
+              <div className="mt-6 xs:mt-4 text-center">
+                <p className="text-base xs:text-sm text-gray-600">
                   Transaction sent! View on{' '}
                   <a
                     href={getBlockExplorerUrl(hash)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-green-600 hover:underline font-medium"
+                    className="text-green-600 hover:underline font-medium touch-target inline-block"
                   >
                     Block Explorer
                   </a>
@@ -746,24 +748,24 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
             )}
 
             {isConfirmed && provenanceInitialized && (
-              <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <div className="flex items-center gap-2 text-green-800">
-                  <CheckCircle className="h-5 w-5" />
-                  <span className="font-medium">Tokenization & Provenance Successful!</span>
+              <div className="mt-6 xs:mt-4 p-6 xs:p-4 bg-green-50 border border-green-200 rounded-xl xs:rounded-lg">
+                <div className="flex items-center gap-3 xs:gap-2 text-green-800">
+                  <CheckCircle className="h-6 w-6 xs:h-5 xs:w-5" />
+                  <span className="font-medium text-lg xs:text-base">Tokenization & Provenance Successful!</span>
                 </div>
-                <p className="text-sm text-green-700 mt-1">
+                <p className="text-base xs:text-sm text-green-700 mt-3 xs:mt-1 leading-relaxed">
                   Your crop batch has been successfully tokenized and supply chain provenance has been initialized.
                 </p>
               </div>
             )}
 
             {isConfirmed && !provenanceInitialized && !isInitializingProvenance && (
-              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <div className="flex items-center gap-2 text-yellow-800">
-                  <Info className="h-5 w-5" />
-                  <span className="font-medium">Token Minted - Initializing Provenance...</span>
+              <div className="mt-6 xs:mt-4 p-6 xs:p-4 bg-yellow-50 border border-yellow-200 rounded-xl xs:rounded-lg">
+                <div className="flex items-center gap-3 xs:gap-2 text-yellow-800">
+                  <Info className="h-6 w-6 xs:h-5 xs:w-5" />
+                  <span className="font-medium text-lg xs:text-base">Token Minted - Initializing Provenance...</span>
                 </div>
-                <p className="text-sm text-yellow-700 mt-1">
+                <p className="text-base xs:text-sm text-yellow-700 mt-3 xs:mt-1 leading-relaxed">
                   Token created successfully. Setting up supply chain tracking...
                 </p>
               </div>
@@ -772,12 +774,12 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
         </form>
 
         {/* Info Section */}
-        <div className="p-6 border-t border-gray-200 rounded-b-xl bg-green-50">
-          <div className="flex items-start space-x-3">
-            <Info className="w-5 h-5 mt-0.5 text-green-600" />
-            <div className="text-sm text-green-800">
-              <p className="font-medium mb-1">Blockchain Storage</p>
-              <p>
+        <div className="p-6 xs:p-4 border-t border-gray-200 rounded-b-2xl xs:rounded-b-xl bg-green-50">
+          <div className="flex items-start space-x-4 xs:space-x-3">
+            <Info className="w-6 h-6 xs:w-5 xs:h-5 mt-1 xs:mt-0.5 text-green-600 flex-shrink-0" />
+            <div className="text-base xs:text-sm text-green-800">
+              <p className="font-medium mb-2 xs:mb-1 text-lg xs:text-base">Blockchain Storage</p>
+              <p className="leading-relaxed">
                 Your crop batch will be permanently stored on IPFS and minted as an NFT on the blockchain with complete provenance tracking.
               </p>
             </div>
