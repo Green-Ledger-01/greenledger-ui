@@ -249,7 +249,7 @@ const LandingPage: React.FC = () => {
       </nav>
 
      {/* Hero Section */}
-<section id="hero" className="relative overflow-hidden">
+<section id="hero" className="relative overflow-hidden min-h-screen">
   {/* Image Carousel Background */}
   <div className="absolute inset-0 z-0">
     <div className="relative w-full h-full">
@@ -273,7 +273,7 @@ const LandingPage: React.FC = () => {
     <div className="absolute inset-0 bg-green-900/70 backdrop-blur-[1px] z-10"></div>
   </div>
 
-  <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
+  <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32 min-h-screen flex items-center">
     <div className="grid lg:grid-cols-2 gap-12 items-center">
       <div className="space-y-8 text-white lg:text-left">
         <div className="space-y-6">
@@ -446,10 +446,28 @@ const LandingPage: React.FC = () => {
             <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
               Powerful Features for Modern Agriculture
             </h2>
-            <p className="text-xl text-green-100 max-w-3xl mx-auto">
+            <p className="text-xl text-green-100 max-w-3xl mx-auto mb-12">
               Our comprehensive platform provides everything you need to manage, track,
               and optimize your agricultural supply chain.
             </p>
+            
+            {/* Video Showcase */}
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 mb-16">
+              <h3 className="text-2xl font-bold text-white mb-6">See GreenLedger in Action</h3>
+              <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl">
+                <video
+                  controls
+                  className="w-full h-full object-cover"
+                  poster="/images/video-thumbnail.jpg"
+                >
+                  <source src="/images/GreenLedger_ Transforming Agriculture with Blockchain.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+              <p className="text-green-100 mt-4 text-lg">
+                Watch how GreenLedger transforms agricultural supply chains with blockchain technology
+              </p>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
