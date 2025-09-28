@@ -19,11 +19,37 @@ import {
 import ConnectButtonWrapper from '../components/ConnectButtonWrapper';
 import { useAccount } from 'wagmi';
 
+// Carousel styles
+const carouselStyles = `
+  @keyframes fade-in-out {
+    0%, 33.33% { opacity: 1; }
+    33.34%, 66.66% { opacity: 0; }
+    66.67%, 100% { opacity: 0; }
+  }
+  .animate-fade-in-out {
+    animation: fade-in-out 9s infinite;
+  }
+  .animation-delay-3000 {
+    animation-delay: 3s;
+  }
+  .animation-delay-6000 {
+    animation-delay: 6s;
+  }
+`;
+
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { isConnected } = useAccount();
   const [activeSection, setActiveSection] = useState('hero');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Inject carousel styles
+  useEffect(() => {
+    const styleElement = document.createElement('style');
+    styleElement.textContent = carouselStyles;
+    document.head.appendChild(styleElement);
+    return () => document.head.removeChild(styleElement);
+  }, []);
 
   const handleGetStarted = () => {
     if (isConnected) {
@@ -223,145 +249,164 @@ const LandingPage: React.FC = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section id="hero" className="relative overflow-hidden">
-        <div className="absolute inset-0 flex">
-          <div className="w-1/2 bg-green-600"></div>
-          <div className="w-1/2 bg-green-600"></div>
+     {/* Hero Section */}
+<section id="hero" className="relative overflow-hidden min-h-screen">
+  {/* Image Carousel Background */}
+  <div className="absolute inset-0 z-0">
+    <div className="relative w-full h-full">
+      <img 
+        src="/images/hero1.jpg" 
+        alt="Agriculture" 
+        className="absolute inset-0 w-full h-full object-cover animate-fade-in-out"
+      />
+      <img 
+        src="/images/hero2.jpg" 
+        alt="Farming" 
+        className="absolute inset-0 w-full h-full object-cover animate-fade-in-out animation-delay-3000"
+      />
+      <img 
+        src="/images/hero3.jpg" 
+        alt="Supply Chain" 
+        className="absolute inset-0 w-full h-full object-cover animate-fade-in-out animation-delay-6000"
+      />
+    </div>
+    {/* Overlay for better text readability */}
+  </div>
+  <div className="absolute inset-0 bg-green-900/70 backdrop-blur-[1px] z-10"></div>
+
+  <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32 min-h-screen flex items-center">
+    <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <div className="space-y-8 text-white lg:text-left">
+        <div className="space-y-6">
+          <h1 className="text-4xl lg:text-6xl font-bold leading-tight drop-shadow-lg">
+            Bringing Trust to
+            <span className="block text-green-200">Agriculture</span>
+            with Blockchain Technology
+          </h1>
+          <p className="text-xl text-green-100 leading-relaxed drop-shadow-md">
+            Track your produce from farm to table with transparent, immutable records
+            powered by Web3 technology.
+          </p>
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8 text-white lg:text-left">
-              <div className="space-y-6">
-                <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
-                  Bringing Trust to
-                  <span className="block text-green-200">Agriculture</span>
-                  with Blockchain Technology
-                </h1>
-                <p className="text-xl text-green-100 leading-relaxed">
-                  Track your produce from farm to table with transparent, immutable records
-                  powered by Web3 technology.
-                </p>
+        {/* Login Options Card */}
+        {!isConnected ? (
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center space-x-3 mb-4">
+              <Shield className="h-6 w-6 text-green-200" />
+              <h3 className="text-lg font-semibold text-white">Get Started</h3>
+            </div>
+            <div className="space-y-3 flex flex-col items-center">
+              <ConnectButtonWrapper variant="primary" />
+              <div className="text-center text-green-100">
+                <span className="text-sm">or</span>
               </div>
+              <button
+                onClick={() => navigate('/waitlist')}
+                className="w-full bg-white/20 hover:bg-white/30 text-white border border-white/30 px-6 py-3 rounded-lg transition-all duration-200 font-medium"
+              >
+                Join Our Waitlist
+              </button>
+              <p className="text-sm text-green-100 text-center">
+                Secure authentication with blockchain technology
+              </p>
+            </div>
+            <div className="flex items-center justify-center space-x-6 text-sm text-green-200 pt-2">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-4 w-4" />
+                <span>Secure</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-4 w-4" />
+                <span>Decentralized</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-4 w-4" />
+                <span>Private</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-2xl">
+            <div className="flex items-center space-x-3 mb-4">
+              <CheckCircle className="h-6 w-6 text-green-200" />
+              <h3 className="text-lg font-semibold text-white">Wallet Connected</h3>
+            </div>
+            <button
+              onClick={handleGetStarted}
+              className="w-full bg-white text-green-600 px-8 py-4 rounded-xl hover:bg-green-50 transition-all duration-200 font-semibold text-lg shadow-lg hover:shadow-xl flex items-center justify-center"
+            >
+              <Zap className="mr-2 h-5 w-5" />
+              Enter Dashboard
+            </button>
+          </div>
+        )}
+      </div>
 
-              {/* Login Options Card */}
-              {!isConnected ? (
-                <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 space-y-4">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <Shield className="h-6 w-6 text-green-200" />
-                    <h3 className="text-lg font-semibold text-white">Get Started</h3>
-                  </div>
-                  <div className="space-y-3">
-                    <ConnectButtonWrapper variant="primary" />
-                    <div className="text-center text-green-100">
-                      <span className="text-sm">or</span>
-                    </div>
-                    <button
-                      onClick={() => navigate('/waitlist')}
-                      className="w-full bg-white/20 hover:bg-white/30 text-white border border-white/30 px-6 py-3 rounded-lg transition-all duration-200 font-medium"
-                    >
-                      Join Our Waitlist
-                    </button>
-                    <p className="text-sm text-green-100 text-center">
-                      Secure authentication with blockchain technology
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-center space-x-6 text-sm text-green-200 pt-2">
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4" />
-                      <span>Secure</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4" />
-                      <span>Decentralized</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="h-4 w-4" />
-                      <span>Private</span>
-                    </div>
-                  </div>
+      <div className="relative">
+        <div className="relative z-10 bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/50">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
+                  <Truck className="h-6 w-6 text-green-600" />
                 </div>
-              ) : (
-                <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <CheckCircle className="h-6 w-6 text-green-200" />
-                    <h3 className="text-lg font-semibold text-white">Wallet Connected</h3>
-                  </div>
-                  <button
-                    onClick={handleGetStarted}
-                    className="w-full bg-white text-green-600 px-8 py-4 rounded-xl hover:bg-green-50 transition-all duration-200 font-semibold text-lg shadow-lg hover:shadow-xl flex items-center justify-center"
-                  >
-                    <Zap className="mr-2 h-5 w-5" />
-                    Enter Dashboard
-                  </button>
-                </div>
-              )}
+                <h3 className="text-lg font-semibold text-gray-900">Live Supply Chain</h3>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-sm text-green-600 font-medium">Live</span>
+              </div>
             </div>
 
-            <div className="relative">
-              <div className="relative z-10 bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
-                        <Truck className="h-6 w-6 text-green-600" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900">Live Supply Chain</h3>
+            <div className="space-y-4">
+              {[
+                { stage: 'Farm Origin', icon: Leaf, active: true },
+                { stage: 'Processing', icon: Shield, active: true },
+                { stage: 'Distribution', icon: Truck, active: true },
+                { stage: 'Retail', icon: Users, active: false }
+              ].map((item, index) => {
+                const Icon = item.icon;
+                return (
+                  <div key={item.stage} className="flex items-center space-x-3">
+                    <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
+                      item.active ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+                    }`}>
+                      <Icon className="h-5 w-5" />
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-sm text-green-600 font-medium">Live</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    {[
-                      { stage: 'Farm Origin', icon: Leaf, active: true },
-                      { stage: 'Processing', icon: Shield, active: true },
-                      { stage: 'Distribution', icon: Truck, active: true },
-                      { stage: 'Retail', icon: Users, active: false }
-                    ].map((item, index) => {
-                      const Icon = item.icon;
-                      return (
-                        <div key={item.stage} className="flex items-center space-x-3">
-                          <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
-                            item.active ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
-                          }`}>
-                            <Icon className="h-5 w-5" />
-                          </div>
-                          <div className="flex-1">
-                            <span className={`font-medium ${item.active ? 'text-gray-900' : 'text-gray-400'}`}>
-                              {item.stage}
-                            </span>
-                            {item.active && (
-                              <div className="w-full bg-green-100 rounded-full h-2 mt-1">
-                                <div className="bg-green-600 h-2 rounded-full" style={{width: `${(index + 1) * 25}%`}}></div>
-                              </div>
-                            )}
-                          </div>
-                          {item.active && <CheckCircle className="h-5 w-5 text-green-500" />}
+                    <div className="flex-1">
+                      <span className={`font-medium ${item.active ? 'text-gray-900' : 'text-gray-400'}`}>
+                        {item.stage}
+                      </span>
+                      {item.active && (
+                        <div className="w-full bg-green-100 rounded-full h-2 mt-1">
+                          <div className="bg-green-600 h-2 rounded-full" style={{width: `${(index + 1) * 25}%`}}></div>
                         </div>
-                      );
-                    })}
+                      )}
+                    </div>
+                    {item.active && <CheckCircle className="h-5 w-5 text-green-500" />}
                   </div>
-                </div>
-              </div>
-
-              <div className="absolute -top-4 -right-4 h-24 w-24 bg-green-200 rounded-full animate-float opacity-60"></div>
-              <div className="absolute -bottom-4 -left-4 h-16 w-16 bg-green-300 rounded-full animate-float opacity-60" style={{animationDelay: '2s'}}></div>
+                );
+              })}
             </div>
           </div>
         </div>
-      </section>
 
+        <div className="absolute -top-4 -right-4 h-24 w-24 bg-green-200/60 rounded-full animate-float opacity-80"></div>
+        <div className="absolute -bottom-4 -left-4 h-16 w-16 bg-green-300/60 rounded-full animate-float opacity-80" style={{animationDelay: '2s'}}></div>
+      </div>
+    </div>
+  </div>
+
+  {/* Animated particles overlay */}
+  <div className="absolute inset-0 pointer-events-none z-5">
+    <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-white/30 rounded-full animate-bounce" style={{animationDelay: '0s', animationDuration: '3s'}}></div>
+    <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-green-200/40 rounded-full animate-bounce" style={{animationDelay: '1s', animationDuration: '4s'}}></div>
+    <div className="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 bg-white/20 rounded-full animate-bounce" style={{animationDelay: '2s', animationDuration: '5s'}}></div>
+  </div>
+</section>
       {/* Stats Section */}
-      <section id="stats" className="relative overflow-hidden py-16">
-        <div className="absolute inset-0 flex">
-          <div className="w-1/2 bg-green-600"></div>
-          <div className="w-1/2 bg-green-600"></div>
-        </div>
-
+      <section id="stats" className="relative overflow-hidden py-16 bg-white">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
@@ -375,7 +420,7 @@ const LandingPage: React.FC = () => {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+                <div className="bg-green-50 rounded-2xl p-6 shadow-lg border border-green-100 hover:shadow-xl transition-shadow duration-300">
                   <div className="text-3xl lg:text-4xl font-bold text-green-600 mb-2">{stat.number}</div>
                   <div className="text-gray-700 font-medium">{stat.label}</div>
                 </div>
@@ -386,21 +431,34 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="relative overflow-hidden py-20">
-        <div className="absolute inset-0 flex">
-          <div className="w-1/2 bg-green-600"></div>
-          <div className="w-1/2 bg-green-600"></div>
-        </div>
+      <section id="features" className="relative overflow-hidden py-20 bg-gradient-to-br from-green-600 via-green-700 to-blue-600">
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
               Powerful Features for Modern Agriculture
             </h2>
-            <p className="text-xl text-green-100 max-w-3xl mx-auto">
+            <p className="text-xl text-green-100 max-w-3xl mx-auto mb-12">
               Our comprehensive platform provides everything you need to manage, track,
               and optimize your agricultural supply chain.
             </p>
+            
+            {/* Video Showcase */}
+        <div className="flex justify-center mb-16">
+          <div className="bg-white/10 max-w-[1000px] w-full backdrop-blur-md rounded-2xl p-8">
+            <h3 className="text-2xl font-bold text-white mb-6">See GreenLedger in Action</h3>
+            <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl">
+              <video
+                controls
+                className="w-full h-full object-cover"
+                poster="greenledger-logo.jpg"
+              >
+                <source src="/images/GreenLedger_ Transforming Agriculture with Blockchain.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          </div>
+        </div>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -422,10 +480,11 @@ const LandingPage: React.FC = () => {
 
       {/* Benefits Section */}
       <section id="benefits" className="relative overflow-hidden py-20">
-        {/* Split Background - Reversed */}
-        <div className="absolute inset-0 flex">
-          <div className="w-1/2 bg-green-600"></div>
-          <div className="w-1/2 bg-green-600"></div>
+        {/* Background Image with Parallax Effect */}
+        <div className="absolute inset-0 z-0">
+          <div className="h-full w-full bg-fixed bg-cover bg-center bg-no-repeat" style={{backgroundImage: 'url(/images/benefits-background.jpg)'}}>
+            <div className="absolute inset-0 bg-black/50"></div>
+          </div>
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -549,7 +608,7 @@ const LandingPage: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                  <div className="bg-gray-50 flex justify-center border border-gray-200 rounded-xl p-4">
                     <ConnectButtonWrapper variant="primary" />
                   </div>
                   <div className="text-center text-gray-400">
