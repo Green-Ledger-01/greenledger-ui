@@ -156,10 +156,7 @@ export const useCropBatchToken = () => {
         }
       }
 
-      // Get minting event to find original minter with optimized range
-      const currentBlock = await publicClient.getBlockNumber();
-      const fromBlock = currentBlock > BLOCK_RANGE_LIMIT ? currentBlock - BigInt(BLOCK_RANGE_LIMIT) : 0n;
-      
+      // Get minting event to find original minter (search all blocks)
       const logs = await publicClient.getLogs({
         address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
         event: {
@@ -176,7 +173,7 @@ export const useCropBatchToken = () => {
         args: {
           tokenId: BigInt(tokenId),
         },
-        fromBlock,
+        fromBlock: 'earliest',
         toBlock: 'latest',
       });
 
@@ -346,11 +343,14 @@ export const useCropBatchToken = () => {
       setIsLoading(true);
       setError(null);
 
-      // Get current block for optimized range
-      const currentBlock = await publicClient.getBlockNumber();
-      const fromBlock = currentBlock > BLOCK_RANGE_LIMIT ? currentBlock - BigInt(BLOCK_RANGE_LIMIT) : 0n;
+      // Check cache first
+      const cached = getMarketplaceCache();
+      if (cached.length > 0) {
+        setIsLoading(false);
+        return cached;
+      }
       
-      // Get all minting events with optimized range
+      // Get all minting events from contract deployment (no block limit)
       const logs = await publicClient.getLogs({
         address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
         event: {
@@ -364,7 +364,7 @@ export const useCropBatchToken = () => {
             { name: 'quantity', type: 'uint256', indexed: false },
           ],
         },
-        fromBlock,
+        fromBlock: 'earliest',
         toBlock: 'latest',
       });
 
@@ -380,7 +380,12 @@ export const useCropBatchToken = () => {
         )
         .map(result => result.value);
 
-      return batches.sort((a, b) => b.timestamp - a.timestamp);
+      const sortedBatches = batches.sort((a, b) => b.timestamp - a.timestamp);
+      
+      // Cache results for faster loading
+      setMarketplaceCache(sortedBatches);
+      
+      return sortedBatches;
 
     } catch (err) {
       secureError('Error fetching all batches:', err);
@@ -428,9 +433,24 @@ export const useCropBatchToken = () => {
     eventName: 'TransferSingle',
     onLogs(logs) {
       secureLog('Transfer event detected:', logs);
-      // Trigger refresh for components using this hook
+      // Clear marketplace cache on transfers
+      localStorage.removeItem('greenledger_marketplace_cache');
       setRefreshTrigger(prev => prev + 1);
       addToast('Ownership transfer detected - updating data...', 'info');
+    },
+  });
+
+  // Watch for new mints to update marketplace
+  useWatchContractEvent({
+    address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
+    abi: CropBatchTokenABI,
+    eventName: 'CropBatchMinted',
+    onLogs(logs) {
+      secureLog('New batch minted:', logs);
+      // Clear marketplace cache on new mints
+      localStorage.removeItem('greenledger_marketplace_cache');
+      setRefreshTrigger(prev => prev + 1);
+      addToast('New crop batch available in marketplace!', 'success');
     },
   });
 
@@ -525,4 +545,35 @@ export const setCachedBatch = (tokenId: number, batch: CropBatch): void => {
     }
   }
   batchCache.set(tokenId, { data: batch, timestamp: Date.now() });
+};
+
+// Marketplace cache for persistent storage
+const MARKETPLACE_CACHE_KEY = 'greenledger_marketplace_cache';
+const MARKETPLACE_CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
+
+export const getMarketplaceCache = (): CropBatch[] => {
+  try {
+    const cached = localStorage.getItem(MARKETPLACE_CACHE_KEY);
+    if (cached) {
+      const data = JSON.parse(cached);
+      if (Date.now() - data.timestamp < MARKETPLACE_CACHE_DURATION) {
+        return data.batches || [];
+      }
+    }
+  } catch (error) {
+    secureWarn('Failed to parse marketplace cache:', error);
+  }
+  return [];
+};
+
+export const setMarketplaceCache = (batches: CropBatch[]): void => {
+  try {
+    const cacheData = {
+      batches,
+      timestamp: Date.now(),
+    };
+    localStorage.setItem(MARKETPLACE_CACHE_KEY, JSON.stringify(cacheData));
+  } catch (error) {
+    secureWarn('Failed to cache marketplace data:', error);
+  }
 };
