@@ -23,7 +23,8 @@ import { useAccount } from 'wagmi';
 const carouselStyles = `
   @keyframes fade-in-out {
     0%, 33.33% { opacity: 1; }
-    33.34%, 100% { opacity: 0; }
+    33.34%, 66.66% { opacity: 0; }
+    66.67%, 100% { opacity: 0; }
   }
   .animate-fade-in-out {
     animation: fade-in-out 9s infinite;
@@ -32,7 +33,7 @@ const carouselStyles = `
     animation-delay: 3s;
   }
   .animation-delay-6000 {
-    animation-delay: 9s;
+    animation-delay: 6s;
   }
 `;
 
@@ -270,8 +271,8 @@ const LandingPage: React.FC = () => {
       />
     </div>
     {/* Overlay for better text readability */}
-    <div className="absolute inset-0 bg-green-900/70 backdrop-blur-[1px] z-10"></div>
   </div>
+  <div className="absolute inset-0 bg-green-900/70 backdrop-blur-[1px] z-10"></div>
 
   <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32 min-h-screen flex items-center">
     <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -295,7 +296,7 @@ const LandingPage: React.FC = () => {
               <Shield className="h-6 w-6 text-green-200" />
               <h3 className="text-lg font-semibold text-white">Get Started</h3>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-3 flex flex-col items-center">
               <ConnectButtonWrapper variant="primary" />
               <div className="text-center text-green-100">
                 <span className="text-sm">or</span>
@@ -405,12 +406,7 @@ const LandingPage: React.FC = () => {
   </div>
 </section>
       {/* Stats Section */}
-      <section id="stats" className="relative overflow-hidden py-16">
-        <div className="absolute inset-0 flex">
-          <div className="w-1/2 bg-green-600"></div>
-          <div className="w-1/2 bg-green-600"></div>
-        </div>
-
+      <section id="stats" className="relative overflow-hidden py-16 bg-white">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
@@ -424,7 +420,7 @@ const LandingPage: React.FC = () => {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+                <div className="bg-green-50 rounded-2xl p-6 shadow-lg border border-green-100 hover:shadow-xl transition-shadow duration-300">
                   <div className="text-3xl lg:text-4xl font-bold text-green-600 mb-2">{stat.number}</div>
                   <div className="text-gray-700 font-medium">{stat.label}</div>
                 </div>
@@ -435,11 +431,7 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="relative overflow-hidden py-20">
-        <div className="absolute inset-0 flex">
-          <div className="w-1/2 bg-green-600"></div>
-          <div className="w-1/2 bg-green-600"></div>
-        </div>
+      <section id="features" className="relative overflow-hidden py-20 bg-gradient-to-br from-green-600 via-green-700 to-blue-600">
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -452,22 +444,21 @@ const LandingPage: React.FC = () => {
             </p>
             
             {/* Video Showcase */}
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 mb-16">
-              <h3 className="text-2xl font-bold text-white mb-6">See GreenLedger in Action</h3>
-              <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl">
-                <video
-                  controls
-                  className="w-full h-full object-cover"
-                  poster="/images/video-thumbnail.jpg"
-                >
-                  <source src="/images/GreenLedger_ Transforming Agriculture with Blockchain.mp4" type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-              </div>
-              <p className="text-green-100 mt-4 text-lg">
-                Watch how GreenLedger transforms agricultural supply chains with blockchain technology
-              </p>
+        <div className="flex justify-center mb-16">
+          <div className="bg-white/10 max-w-[1000px] w-full backdrop-blur-md rounded-2xl p-8">
+            <h3 className="text-2xl font-bold text-white mb-6">See GreenLedger in Action</h3>
+            <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl">
+              <video
+                controls
+                className="w-full h-full object-cover"
+                poster="greenledger-logo.jpg"
+              >
+                <source src="/images/GreenLedger_ Transforming Agriculture with Blockchain.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
             </div>
+          </div>
+        </div>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -489,10 +480,11 @@ const LandingPage: React.FC = () => {
 
       {/* Benefits Section */}
       <section id="benefits" className="relative overflow-hidden py-20">
-        {/* Split Background - Reversed */}
-        <div className="absolute inset-0 flex">
-          <div className="w-1/2 bg-green-600"></div>
-          <div className="w-1/2 bg-green-600"></div>
+        {/* Background Image with Parallax Effect */}
+        <div className="absolute inset-0 z-0">
+          <div className="h-full w-full bg-fixed bg-cover bg-center bg-no-repeat" style={{backgroundImage: 'url(/images/benefits-background.jpg)'}}>
+            <div className="absolute inset-0 bg-black/50"></div>
+          </div>
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -616,7 +608,7 @@ const LandingPage: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                  <div className="bg-gray-50 flex justify-center border border-gray-200 rounded-xl p-4">
                     <ConnectButtonWrapper variant="primary" />
                   </div>
                   <div className="text-center text-gray-400">
