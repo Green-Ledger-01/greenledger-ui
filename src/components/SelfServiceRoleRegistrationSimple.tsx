@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { User, Truck, ShoppingCart, Shield, X, Check, AlertCircle, Loader2 } from 'lucide-react';
+import { useAccount } from 'wagmi';
 import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
 import { useToast } from '../contexts/ToastContext';
 
@@ -120,12 +121,23 @@ const SelfServiceRoleRegistrationSimple: React.FC<SelfServiceRoleRegistrationSim
   showSkipOption = true,
   isModal = true
 }) => {
-  const { address, isConnected, registerRoles, isRegistering } = useWeb3Enhanced();
+  const { address, isConnected } = useAccount();
+  const { registerRoles, isRegistering } = useWeb3Enhanced();
   const { addToast } = useToast();
 
   // Local state
   const [selectedRoles, setSelectedRoles] = useState<UserRole[]>([]);
   const [showConfirmation, setShowConfirmation] = useState(false);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('🔍 Role Registration Debug:', {
+      isConnected,
+      address,
+      selectedRoles: selectedRoles.length,
+      isRegistering
+    });
+  }, [isConnected, address, selectedRoles, isRegistering]);
 
   // Helper function to render icons
   const renderIcon = (iconType: string) => {
@@ -181,7 +193,7 @@ const SelfServiceRoleRegistrationSimple: React.FC<SelfServiceRoleRegistrationSim
 
   // Handle role registration
   const handleRegister = useCallback(async () => {
-    if (!isConnected) {
+    if (!isConnected || !address) {
       addToast('Please connect your wallet first', 'warning');
       return;
     }
@@ -441,10 +453,10 @@ const SelfServiceRoleRegistrationSimple: React.FC<SelfServiceRoleRegistrationSim
                   
                   <button
                     onClick={handleRegister}
-                    disabled={isRegistering || !isConnected || selectedRoles.length === 0}
+                    disabled={isRegistering || !isConnected || !address || selectedRoles.length === 0}
                     className={`
                       px-6 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2
-                      ${isConnected && selectedRoles.length > 0 && !isRegistering
+                      ${isConnected && address && selectedRoles.length > 0 && !isRegistering
                         ? 'bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       }
@@ -455,7 +467,7 @@ const SelfServiceRoleRegistrationSimple: React.FC<SelfServiceRoleRegistrationSim
                         <Loader2 className="w-4 h-4 animate-spin" />
                         <span>Registering...</span>
                       </>
-                    ) : !isConnected ? (
+                    ) : !isConnected || !address ? (
                       <span>Connect Wallet First</span>
                     ) : selectedRoles.length === 0 ? (
                       <span>Select Role(s)</span>

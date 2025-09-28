@@ -259,9 +259,13 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
 
   // Register roles (both locally and on-chain)
   const registerRoles = useCallback(async (roleIds: string[]) => {
-    // Wait briefly for state synchronization if needed
-    if (!address && isConnected) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+    // Enhanced connection validation with retry logic
+    let retries = 0;
+    const maxRetries = 10;
+    
+    while ((!address || !isConnected) && retries < maxRetries) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      retries++;
     }
     
     if (!address || !isConnected) {
