@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Info, UserPlus, Users, Shield, CheckCircle, Package, TrendingUp, MapPin, Calendar, Wallet, Activity, Clock, Hash } from 'lucide-react';
+import { useAccount } from 'wagmi';
 import { useWeb3Enhanced } from '../contexts/Web3ContextEnhanced';
 import { useCropBatchToken } from '../hooks/useCropBatchToken';
 import { useUserTokenHistory } from '../hooks/useSupplyChainManager';
@@ -12,7 +13,8 @@ import { useUserTokenHistory } from '../hooks/useSupplyChainManager';
  * roles, and platform statistics specific to the user.
  */
 const UserProfile: React.FC = () => {
-  const { address, isConnected, userRoles, hasRole } = useWeb3Enhanced();
+  const { address, isConnected } = useAccount();
+  const { userRoles, hasRole } = useWeb3Enhanced();
   const { getAllBatches } = useCropBatchToken();
   const { data: userTokenHistory } = useUserTokenHistory(address);
 
