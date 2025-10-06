@@ -3,26 +3,17 @@
  * Centralized configuration for contract addresses, API endpoints, and other constants
  */
 
-// Contract Addresses - loaded from environment variables
-export const CONTRACT_ADDRESSES = {
-  // Core Contracts
-  UserManagement: import.meta.env.VITE_GREENLEDGER_USER_MANAGEMENT_CONTRACT_ADDRESS || '0x16CA86437Fce24524578Ca980c3ED21574610bd7',
-  CropBatchToken: import.meta.env.VITE_CROPBATCH_TOKEN_CONTRACT_ADDRESS || '0x65571BD6583542417Fb7288aADEd4021AE678fF6',
+import { getContractAddresses } from './networks';
 
-  // Payment System Contracts
-  Marketplace: import.meta.env.VITE_MARKETPLACE_CONTRACT_ADDRESS || '0xc9D53d7eA2916b367b8D61de5B85e2b919C6A9a9',
-  TransportationManager: import.meta.env.VITE_TRANSPORTATION_MANAGER_CONTRACT_ADDRESS || '0xEEb472585448Bd261228AD7c1a09e68ADd1da022',
-  PaymentProcessor: import.meta.env.VITE_PAYMENT_PROCESSOR_CONTRACT_ADDRESS || '0xc9337f3A4341c47207153080221cAD85470ee218',
-  OrderManager: import.meta.env.VITE_ORDER_MANAGER_CONTRACT_ADDRESS || '0x70Ba58028264DF7eD27269586D8494cB63C093ee',
+// Contract Addresses - dynamically loaded based on connected network
+// This will be updated when the user switches networks
+export const getContractAddressesForChain = (chainId?: number) => getContractAddresses(chainId);
 
-  // Legacy Contracts (for backward compatibility)
-  GreenLedgerAccess: import.meta.env.VITE_GREENLEDGER_ACCESS_CONTRACT_ADDRESS || '0x9DBa889848577778865050e67cd88eD86Cb60db6',
-  GreenLedgerPaymaster: import.meta.env.VITE_GREENLEDGER_PAYMASTER_CONTRACT_ADDRESS || '0xbDc36735342605D1FdcE9A0E2bEcebC3F1A7e044',
-  SupplyChainManager: import.meta.env.VITE_SUPPLY_CHAIN_MANAGER_CONTRACT_ADDRESS || '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9',
-} as const;
+// Legacy export for backward compatibility
+export const CONTRACT_ADDRESSES = getContractAddresses();
 
 // WalletConnect Configuration
-export const WALLETCONNECT_PROJECT_ID = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'a2b252199b53298a09b4344c2ae77d33';
+export const WALLETCONNECT_PROJECT_ID = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'c7a85de336009620345903a0c197ddb8';
 
 // IPFS Configuration
 export const IPFS_CONFIG = {
@@ -45,7 +36,9 @@ export const IPFS_CONFIG = {
 // Application Configuration
 export const APP_CONFIG = {
   NAME: import.meta.env.VITE_APP_NAME || 'GreenLedger',
-  DESCRIPTION: import.meta.env.VITE_APP_DESCRIPTION || 'Blockchain-based Agricultural Supply Chain Tracker',
+  VERSION: import.meta.env.VITE_APP_VERSION || '1.0.0',
+  ENVIRONMENT: import.meta.env.VITE_APP_ENVIRONMENT || 'production',
+  DESCRIPTION: 'Blockchain-based Agricultural Supply Chain Tracker',
 } as const;
 
 // Role Constants

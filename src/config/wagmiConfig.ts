@@ -1,11 +1,10 @@
-// src/providers/wagmiConfig.ts
+// src/config/wagmiConfig.ts
 import { createConfig, http } from 'wagmi';
 import { injected, walletConnect, coinbaseWallet } from 'wagmi/connectors';
 import { liskSepolia } from '../chains/liskSepolia';
-
-// Environment variables for better security
-const WALLETCONNECT_PROJECT_ID = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID;
-const APP_NAME = import.meta.env.VITE_APP_NAME || 'GreenLedger';
+import { u2uMainnet } from '../chains/u2uMainnet';
+import { NETWORKS } from './networks';
+import { APP_CONFIG, WALLETCONNECT_PROJECT_ID } from './constants';
 
 // Validate environment variables at build time
 if (!WALLETCONNECT_PROJECT_ID) {
@@ -13,7 +12,8 @@ if (!WALLETCONNECT_PROJECT_ID) {
 }
 
 // Create readonly tuple for strict type safety
-export const chains = [liskSepolia] as const;
+// Support both Lisk Sepolia (testnet) and U2U Mainnet
+export const chains = [liskSepolia, u2uMainnet] as const;
 
 export const config = createConfig({
   connectors: [
@@ -29,8 +29,8 @@ export const config = createConfig({
     walletConnect({
       projectId: WALLETCONNECT_PROJECT_ID,
       metadata: {
-        name: APP_NAME,
-        description: 'Blockchain-based Agricultural Supply Chain Tracker',
+        name: APP_CONFIG.NAME,
+        description: APP_CONFIG.DESCRIPTION,
         url: typeof window !== 'undefined' ? window.location.origin : 'https://greenledger.app',
         icons: []
       },
@@ -38,7 +38,7 @@ export const config = createConfig({
     }),
     // 3. Coinbase Wallet
     coinbaseWallet({
-      appName: APP_NAME,
+      appName: APP_CONFIG.NAME,
       appLogoUrl: undefined,
     }),
   ],
@@ -48,7 +48,8 @@ export const config = createConfig({
   
   // Transport configuration (RPC providers)
   transports: {
-    [liskSepolia.id]: http(import.meta.env.VITE_APP_RPC_URL || 'https://rpc.sepolia-api.lisk.com'),
+    [liskSepolia.id]: http(NETWORKS.lisk.rpcUrl),
+    [u2uMainnet.id]: http(NETWORKS.u2u.rpcUrl),
   },
   ssr: false,
 })
