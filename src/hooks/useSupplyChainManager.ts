@@ -1,8 +1,9 @@
 import { useReadContract, useWriteContract, useAccount } from 'wagmi';
-import { CONTRACT_ADDRESSES, SUPPLY_CHAIN_STATES } from '../config/constants';
+import { SUPPLY_CHAIN_STATES } from '../config/constants';
+import { useContractAddresses } from './useContractAddresses';
+import { useCurrentChain } from './useCurrentChain';
 import SupplyChainManagerABI from '../contracts/SupplyChainManager.json';
 import { secureLog, secureError } from '../utils/secureLogger';
-import { liskSepolia } from '../chains/liskSepolia';
 
 export interface ProvenanceRecord {
   tokenId: bigint;
@@ -25,6 +26,8 @@ export interface ProvenanceStep {
 export const useInitializeProvenance = () => {
   const { writeContract, ...rest } = useWriteContract();
   const { address } = useAccount();
+  const { addresses: CONTRACT_ADDRESSES } = useContractAddresses();
+  const currentChain = useCurrentChain();
 
   const initializeProvenance = (args: {
     tokenId: bigint;
@@ -56,7 +59,7 @@ export const useInitializeProvenance = () => {
       abi: SupplyChainManagerABI,
       functionName: 'initializeProvenance',
       args: [args.tokenId, args.farmer, args.location, args.notes],
-      chain: liskSepolia,
+      chain: currentChain,
       account: address,
     });
   };
@@ -70,6 +73,8 @@ export const useInitializeProvenance = () => {
 export const useTransferWithProvenance = () => {
   const { writeContract, ...rest } = useWriteContract();
   const { address } = useAccount();
+  const { addresses: CONTRACT_ADDRESSES } = useContractAddresses();
+  const currentChain = useCurrentChain();
 
   const transferWithProvenance = (args: {
     tokenId: bigint;
@@ -83,7 +88,7 @@ export const useTransferWithProvenance = () => {
       abi: SupplyChainManagerABI,
       functionName: 'transferWithProvenance',
       args: [args.tokenId, args.to, args.newState, args.location, args.notes],
-      chain: liskSepolia,
+      chain: currentChain,
       account: address,
     });
   };
@@ -97,6 +102,8 @@ export const useTransferWithProvenance = () => {
 export const useMarkAsConsumed = () => {
   const { writeContract, ...rest } = useWriteContract();
   const { address } = useAccount();
+  const { addresses: CONTRACT_ADDRESSES } = useContractAddresses();
+  const currentChain = useCurrentChain();
 
   const markAsConsumed = (args: {
     tokenId: bigint;
@@ -108,7 +115,7 @@ export const useMarkAsConsumed = () => {
       abi: SupplyChainManagerABI,
       functionName: 'markAsConsumed',
       args: [args.tokenId, args.location, args.notes],
-      chain: liskSepolia,
+      chain: currentChain,
       account: address,
     });
   };
@@ -120,74 +127,86 @@ export const useMarkAsConsumed = () => {
 };
 
 export const useProvenanceHistory = (tokenId?: bigint) => {
+  const { addresses: CONTRACT_ADDRESSES, isSupported } = useContractAddresses();
   return useReadContract({
     address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
+    query: {
+      enabled: !!tokenId && isSupported,
+    },
     abi: SupplyChainManagerABI,
     functionName: 'getProvenanceHistory',
     args: tokenId ? [tokenId] : undefined,
-    query: {
-      enabled: !!tokenId,
-    },
+
   });
 };
 
 export const useProvenanceStep = (tokenId?: bigint, stepIndex?: bigint) => {
+  const { addresses: CONTRACT_ADDRESSES, isSupported } = useContractAddresses();
   return useReadContract({
     address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
+    query: {
+      enabled: !!tokenId && stepIndex !== undefined && isSupported,
+    },
     abi: SupplyChainManagerABI,
     functionName: 'getProvenanceStep',
     args: tokenId && stepIndex !== undefined ? [tokenId, stepIndex] : undefined,
-    query: {
-      enabled: !!tokenId && stepIndex !== undefined,
-    },
+
   });
 };
 
 export const useTokensByState = (state?: number) => {
+  const { addresses: CONTRACT_ADDRESSES, isSupported } = useContractAddresses();
   return useReadContract({
     address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
+    query: {
+      enabled: state !== undefined && isSupported,
+    },
     abi: SupplyChainManagerABI,
     functionName: 'getTokensByState',
     args: state !== undefined ? [state] : undefined,
-    query: {
-      enabled: state !== undefined,
-    },
+
   });
 };
 
 export const useTokensInState = (state?: number, offset?: bigint, limit?: bigint) => {
+  const { addresses: CONTRACT_ADDRESSES, isSupported } = useContractAddresses();
   return useReadContract({
     address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
+    query: {
+      enabled: state !== undefined && offset !== undefined && limit !== undefined && isSupported,
+    },
     abi: SupplyChainManagerABI,
     functionName: 'getTokensInState',
     args: state !== undefined && offset !== undefined && limit !== undefined ? [state, offset, limit] : undefined,
-    query: {
-      enabled: state !== undefined && offset !== undefined && limit !== undefined,
-    },
+
   });
 };
 
 export const useUserTokenHistory = (userAddress?: string) => {
+  const { addresses: CONTRACT_ADDRESSES, isSupported } = useContractAddresses();
   return useReadContract({
     address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
+    query: {
+      enabled: !!userAddress && isSupported,
+    },
     abi: SupplyChainManagerABI,
     functionName: 'getUserTokenHistory',
     args: userAddress ? [userAddress] : undefined,
-    query: {
-      enabled: !!userAddress,
-    },
+
   });
 };
 
 export const useHasUserInteracted = (tokenId?: bigint, userAddress?: string) => {
+  const { addresses: CONTRACT_ADDRESSES, isSupported } = useContractAddresses();
   return useReadContract({
     address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
+    query: {
+      enabled: !!tokenId && !!userAddress && isSupported,
+    },
     abi: SupplyChainManagerABI,
     functionName: 'hasUserInteracted',
     args: tokenId && userAddress ? [tokenId, userAddress] : undefined,
-    query: {
-      enabled: !!tokenId && !!userAddress,
-    },
+
   });
 };
 
