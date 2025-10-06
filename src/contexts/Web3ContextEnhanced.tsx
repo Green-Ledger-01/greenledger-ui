@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useCallback, useState, useEffect } from "react";
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useDisconnect } from "wagmi";
-import { CONTRACT_ADDRESSES, DEFAULT_ADMIN_ROLE } from "../config/constants";
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useDisconnect, useChainId } from "wagmi";
+import { DEFAULT_ADMIN_ROLE } from "../config/constants";
+import { useContractAddresses } from "../hooks/useContractAddresses";
+import { useCurrentChain } from "../hooks/useCurrentChain";
 import { useToast } from "./ToastContext";
-import { liskSepolia } from "../chains/liskSepolia";
 
 // Types
 export interface UserRole {
@@ -52,6 +53,8 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
   const { address, isConnected } = useAccount();
   const { disconnect } = useDisconnect();
   const { addToast } = useToast();
+  const { addresses: CONTRACT_ADDRESSES, isSupported } = useContractAddresses();
+  const currentChain = useCurrentChain();
   
   // Local state
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
@@ -69,6 +72,11 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
   // Read user roles from contract
   const { data: contractRoles, error: readError, refetch: refetchRoles } = useReadContract({
     address: CONTRACT_ADDRESSES.UserManagement as `0x${string}`,
+    query: {
+      enabled: !!address && isConnected && isSupported,
+      retry: 3,
+      retryDelay: 1000,
+    },
     abi: [
       {
         inputs: [{ name: "_user", type: "address" }],
@@ -84,16 +92,15 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
     ],
     functionName: "getUserRolesStatus",
     args: address ? [address as `0x${string}`] : undefined,
-    query: {
-      enabled: !!address && isConnected,
-      retry: 3,
-      retryDelay: 1000,
-    },
+
   });
 
   // Check admin role
   const { data: hasAdminRole } = useReadContract({
     address: CONTRACT_ADDRESSES.UserManagement as `0x${string}`,
+    query: {
+      enabled: !!address && isConnected && isSupported,
+    },
     abi: [
       {
         inputs: [
@@ -108,9 +115,7 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
     ],
     functionName: "hasRole",
     args: address ? [DEFAULT_ADMIN_ROLE as `0x${string}`, address as `0x${string}`] : undefined,
-    query: {
-      enabled: !!address && isConnected,
-    },
+
   });
 
   // Load user roles on address change
@@ -331,7 +336,7 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
             ],
             functionName: "registerUser",
             args: [address as `0x${string}`, contractRoleId],
-            chain: liskSepolia,
+            chain: currentChain,
             account: address as `0x${string}`,
           });
         }

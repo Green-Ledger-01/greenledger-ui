@@ -1,11 +1,11 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, usePublicClient, useWatchContractEvent, useChainId } from 'wagmi';
 import { getAddress } from 'viem';
-import { CONTRACT_ADDRESSES } from '../config/constants';
+\import { useContractAddresses } from './useContractAddresses';
+import { useCurrentChain } from './useCurrentChain';
 import { useToast } from '../contexts/ToastContext';
 import CropBatchTokenABI from '../contracts/CropBatchToken.json';
 import { secureLog, secureError, secureWarn } from '../utils/secureLogger';
-import { liskSepolia } from '../chains/liskSepolia';
 
 // Constants
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
@@ -45,6 +45,8 @@ export const useCropBatchToken = () => {
   const { address } = useAccount();
   const { addToast } = useToast();
   const publicClient = usePublicClient();
+  const { addresses: CONTRACT_ADDRESSES, isSupported } = useContractAddresses();
+  const currentChain = useCurrentChain();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,6 +78,9 @@ export const useCropBatchToken = () => {
     address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
     abi: CropBatchTokenABI,
     functionName: 'nextTokenId',
+    query: {
+      enabled: isSupported,
+    },
   });
 
   // Get batch details with caching
@@ -291,7 +296,7 @@ export const useCropBatchToken = () => {
           params.notes,
           params.metadataUri,
         ],
-        chain: liskSepolia,
+        chain: currentChain,
         account: address as `0x${string}`,
       });
 
@@ -301,7 +306,7 @@ export const useCropBatchToken = () => {
       setError(errorMessage);
       throw err;
     }
-  }, [address, writeContract]);
+  }, [address, writeContract, currentChain]);
 
   // Transfer token
   const transferToken = useCallback(async (params: TransferParams) => {
@@ -323,7 +328,7 @@ export const useCropBatchToken = () => {
           BigInt(params.amount),
           '0x', // data
         ],
-        chain: liskSepolia,
+        chain: currentChain,
         account: address as `0x${string}`,
       });
 

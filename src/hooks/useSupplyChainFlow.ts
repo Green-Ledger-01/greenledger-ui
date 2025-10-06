@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { usePublicClient } from 'wagmi';
 import { getAddress } from 'viem';
-import { CONTRACT_ADDRESSES } from '../config/constants';
+import { useContractAddresses } from './useContractAddresses';
 import { useToast } from '../contexts/ToastContext';
 import CropBatchTokenABI from '../contracts/CropBatchToken.json';
 import { useCropBatchToken } from './useCropBatchToken';
@@ -35,13 +35,14 @@ export const useSupplyChainFlow = () => {
   const { addToast } = useToast();
   const publicClient = usePublicClient();
   const { transferToken } = useCropBatchToken();
+  const { addresses: CONTRACT_ADDRESSES, isSupported } = useContractAddresses();
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Get supply chain history for a token
   const getSupplyChainHistory = useCallback(async (tokenId: number): Promise<SupplyChainHistory | null> => {
-    if (!publicClient) return null;
+    if (!publicClient || !isSupported) return null;
     
     try {
       setIsLoading(true);
@@ -231,7 +232,7 @@ export const useSupplyChainFlow = () => {
 
   // Get recent supply chain activity
   const getRecentActivity = useCallback(async (limit: number = 10): Promise<SupplyChainEvent[]> => {
-    if (!publicClient) return [];
+    if (!publicClient || !isSupported) return [];
     
     try {
       setIsLoading(true);
