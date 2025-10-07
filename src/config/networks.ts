@@ -13,9 +13,9 @@ export interface NetworkConfig {
   contracts: {
     userManagement: string;
     cropBatchToken: string;
-    access: string;
-    paymaster: string;
-    supplyChain: string;
+    access?: string;
+    paymaster?: string;
+    supplyChain?: string;
   };
 }
 
@@ -30,7 +30,8 @@ export const NETWORKS: Record<NetworkName, NetworkConfig> = {
       cropBatchToken: import.meta.env.VITE_U2U_CROPBATCH_TOKEN_CONTRACT || '0xd3549d47D09b485d3921E5169596deB47158b490',
       access: import.meta.env.VITE_U2U_ACCESS_CONTRACT || '0x64C9197f7051b6908d3a9FEe5b4369ff24E1e21B',
       paymaster: import.meta.env.VITE_U2U_PAYMASTER_CONTRACT || '0x747F40796cD10E72718fC801d3466B03F1755398',
-      supplyChain: import.meta.env.VITE_U2U_SUPPLY_CHAIN_CONTRACT || '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9',
+      // SupplyChainManager not deployed on U2U Mainnet
+      supplyChain: undefined,
     },
   },
   lisk: {

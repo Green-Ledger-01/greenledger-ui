@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, usePublicClient, useWatchContractEvent, useChainId } from 'wagmi';
 import { getAddress } from 'viem';
-\import { useContractAddresses } from './useContractAddresses';
+import { useContractAddresses } from './useContractAddresses';
 import { useCurrentChain } from './useCurrentChain';
 import { useToast } from '../contexts/ToastContext';
 import CropBatchTokenABI from '../contracts/CropBatchToken.json';
@@ -45,7 +45,7 @@ export const useCropBatchToken = () => {
   const { address } = useAccount();
   const { addToast } = useToast();
   const publicClient = usePublicClient();
-  const { addresses: CONTRACT_ADDRESSES, isSupported } = useContractAddresses();
+  const { addresses: CONTRACT_ADDRESSES, isSupported, hasCropBatchToken } = useContractAddresses();
   const currentChain = useCurrentChain();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -79,13 +79,13 @@ export const useCropBatchToken = () => {
     abi: CropBatchTokenABI,
     functionName: 'nextTokenId',
     query: {
-      enabled: isSupported,
+      enabled: isSupported && hasCropBatchToken,
     },
   });
 
   // Get batch details with caching
   const getBatchDetails = useCallback(async (tokenId: number): Promise<CropBatch | null> => {
-    if (!publicClient) return null;
+    if (!publicClient || !hasCropBatchToken) return null;
     
     // Check cache first
     const cached = getCachedBatch(tokenId);
@@ -216,11 +216,11 @@ export const useCropBatchToken = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [publicClient, address]);
+  }, [publicClient, address, hasCropBatchToken]);
 
   // Get user's tokens
   const getUserTokens = useCallback(async (userAddress?: string): Promise<CropBatch[]> => {
-    if (!publicClient || !userAddress) return [];
+    if (!publicClient || !userAddress || !hasCropBatchToken) return [];
     
     try {
       setIsLoading(true);
@@ -272,12 +272,16 @@ export const useCropBatchToken = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [publicClient, getBatchDetails]);
+  }, [publicClient, getBatchDetails, hasCropBatchToken]);
 
   // Mint new batch
   const mintNewBatch = useCallback(async (params: MintParams) => {
     if (!address) {
       throw new Error('Wallet not connected');
+    }
+    
+    if (!hasCropBatchToken) {
+      throw new Error('CropBatchToken contract not available on this network');
     }
 
     try {
@@ -306,12 +310,16 @@ export const useCropBatchToken = () => {
       setError(errorMessage);
       throw err;
     }
-  }, [address, writeContract, currentChain]);
+  }, [address, writeContract, currentChain, hasCropBatchToken]);
 
   // Transfer token
   const transferToken = useCallback(async (params: TransferParams) => {
     if (!address) {
       throw new Error('Wallet not connected');
+    }
+    
+    if (!hasCropBatchToken) {
+      throw new Error('CropBatchToken contract not available on this network');
     }
 
     try {
@@ -338,11 +346,11 @@ export const useCropBatchToken = () => {
       setError(errorMessage);
       throw err;
     }
-  }, [address, writeContract]);
+  }, [address, writeContract, hasCropBatchToken]);
 
   // Get all batches (for marketplace/explorer)
   const getAllBatches = useCallback(async (): Promise<CropBatch[]> => {
-    if (!publicClient) return [];
+    if (!publicClient || !hasCropBatchToken) return [];
 
     try {
       setIsLoading(true);
@@ -399,7 +407,7 @@ export const useCropBatchToken = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [publicClient, getBatchDetails]);
+  }, [publicClient, getBatchDetails, hasCropBatchToken]);
 
   // Clear errors
   const clearError = useCallback(() => {
@@ -436,6 +444,7 @@ export const useCropBatchToken = () => {
     address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
     abi: CropBatchTokenABI,
     eventName: 'TransferSingle',
+    enabled: hasCropBatchToken,
     onLogs(logs) {
       secureLog('Transfer event detected:', logs);
       // Clear marketplace cache on transfers
@@ -450,6 +459,7 @@ export const useCropBatchToken = () => {
     address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
     abi: CropBatchTokenABI,
     eventName: 'CropBatchMinted',
+    enabled: hasCropBatchToken,
     onLogs(logs) {
       secureLog('New batch minted:', logs);
       // Clear marketplace cache on new mints
@@ -464,6 +474,7 @@ export const useCropBatchToken = () => {
     address: CONTRACT_ADDRESSES.CropBatchToken as `0x${string}`,
     abi: CropBatchTokenABI,
     eventName: 'TransferBatch',
+    enabled: hasCropBatchToken,
     onLogs(logs) {
       secureLog('Batch transfer event detected:', logs);
       setRefreshTrigger(prev => prev + 1);

@@ -13,10 +13,18 @@ export const useContractAddresses = () => {
   const networkName = getNetworkByChainId(chainId);
   const isSupported = networkName !== null;
   
+  // Check if specific contracts are available
+  const hasSupplyChain = !!addresses.SupplyChainManager;
+  const hasUserManagement = !!addresses.UserManagement;
+  const hasCropBatchToken = !!addresses.CropBatchToken;
+  
   return {
     addresses,
     networkName,
     isSupported,
     chainId,
+    hasSupplyChain,
+    hasUserManagement,
+    hasCropBatchToken,
   };
 };

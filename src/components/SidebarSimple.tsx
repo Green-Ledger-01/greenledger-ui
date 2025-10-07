@@ -76,6 +76,12 @@ const SidebarSimple: React.FC<SidebarSimpleProps> = ({ isOpen, toggleSidebar }) 
       href: '/profile',
       icon: UserPlus,
       description: 'View and manage profile'
+    },
+    {
+      name: 'Register Roles',
+      href: '/register',
+      icon: Shield,
+      description: 'Update your platform roles'
     }
   ];
 

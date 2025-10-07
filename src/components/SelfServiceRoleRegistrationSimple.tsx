@@ -239,11 +239,11 @@ const SelfServiceRoleRegistrationSimple: React.FC<SelfServiceRoleRegistrationSim
 
   const containerClasses = isModal 
     ? "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-    : "w-full max-w-4xl mx-auto";
+    : "w-full max-w-4xl mx-auto min-h-screen flex items-center justify-center p-4";
 
   const contentClasses = isModal
     ? "bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
-    : "bg-white rounded-xl shadow-lg border border-gray-200";
+    : "bg-white rounded-xl shadow-lg border border-gray-200 w-full";
 
   return (
     <div className={containerClasses}>
@@ -276,10 +276,13 @@ const SelfServiceRoleRegistrationSimple: React.FC<SelfServiceRoleRegistrationSim
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">
-                    Welcome to GreenLedger
+                    {isModal ? 'Welcome to GreenLedger' : 'Update Your Roles'}
                   </h2>
                   <p className="text-gray-600 mt-1">
-                    Choose your role(s) to get started with the agricultural supply chain platform
+                    {isModal 
+                      ? 'Choose your role(s) to get started with the agricultural supply chain platform'
+                      : 'Update your platform roles to access different features and capabilities'
+                    }
                   </p>
                 </div>
                 {showSkipOption && (

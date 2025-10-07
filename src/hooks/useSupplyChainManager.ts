@@ -26,7 +26,7 @@ export interface ProvenanceStep {
 export const useInitializeProvenance = () => {
   const { writeContract, ...rest } = useWriteContract();
   const { address } = useAccount();
-  const { addresses: CONTRACT_ADDRESSES } = useContractAddresses();
+  const { addresses: CONTRACT_ADDRESSES, hasSupplyChain } = useContractAddresses();
   const currentChain = useCurrentChain();
 
   const initializeProvenance = (args: {
@@ -35,6 +35,11 @@ export const useInitializeProvenance = () => {
     location: string;
     notes: string;
   }) => {
+    // Check if SupplyChain contract is available
+    if (!hasSupplyChain) {
+      throw new Error('SupplyChain contract not available on this network');
+    }
+
     // Validate inputs before calling contract
     if (!args.tokenId || args.tokenId <= 0n) {
       throw new Error('Invalid token ID provided');
@@ -73,7 +78,7 @@ export const useInitializeProvenance = () => {
 export const useTransferWithProvenance = () => {
   const { writeContract, ...rest } = useWriteContract();
   const { address } = useAccount();
-  const { addresses: CONTRACT_ADDRESSES } = useContractAddresses();
+  const { addresses: CONTRACT_ADDRESSES, hasSupplyChain } = useContractAddresses();
   const currentChain = useCurrentChain();
 
   const transferWithProvenance = (args: {
@@ -83,6 +88,10 @@ export const useTransferWithProvenance = () => {
     location: string;
     notes: string;
   }) => {
+    if (!hasSupplyChain) {
+      throw new Error('SupplyChain contract not available on this network');
+    }
+    
     return writeContract({
       address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
       abi: SupplyChainManagerABI,
@@ -102,7 +111,7 @@ export const useTransferWithProvenance = () => {
 export const useMarkAsConsumed = () => {
   const { writeContract, ...rest } = useWriteContract();
   const { address } = useAccount();
-  const { addresses: CONTRACT_ADDRESSES } = useContractAddresses();
+  const { addresses: CONTRACT_ADDRESSES, hasSupplyChain } = useContractAddresses();
   const currentChain = useCurrentChain();
 
   const markAsConsumed = (args: {
@@ -110,6 +119,10 @@ export const useMarkAsConsumed = () => {
     location: string;
     notes: string;
   }) => {
+    if (!hasSupplyChain) {
+      throw new Error('SupplyChain contract not available on this network');
+    }
+    
     return writeContract({
       address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
       abi: SupplyChainManagerABI,
@@ -127,11 +140,11 @@ export const useMarkAsConsumed = () => {
 };
 
 export const useProvenanceHistory = (tokenId?: bigint) => {
-  const { addresses: CONTRACT_ADDRESSES, isSupported } = useContractAddresses();
+  const { addresses: CONTRACT_ADDRESSES, isSupported, hasSupplyChain } = useContractAddresses();
   return useReadContract({
     address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
     query: {
-      enabled: !!tokenId && isSupported,
+      enabled: !!tokenId && isSupported && hasSupplyChain,
     },
     abi: SupplyChainManagerABI,
     functionName: 'getProvenanceHistory',
@@ -141,11 +154,11 @@ export const useProvenanceHistory = (tokenId?: bigint) => {
 };
 
 export const useProvenanceStep = (tokenId?: bigint, stepIndex?: bigint) => {
-  const { addresses: CONTRACT_ADDRESSES, isSupported } = useContractAddresses();
+  const { addresses: CONTRACT_ADDRESSES, isSupported, hasSupplyChain } = useContractAddresses();
   return useReadContract({
     address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
     query: {
-      enabled: !!tokenId && stepIndex !== undefined && isSupported,
+      enabled: !!tokenId && stepIndex !== undefined && isSupported && hasSupplyChain,
     },
     abi: SupplyChainManagerABI,
     functionName: 'getProvenanceStep',
@@ -155,11 +168,11 @@ export const useProvenanceStep = (tokenId?: bigint, stepIndex?: bigint) => {
 };
 
 export const useTokensByState = (state?: number) => {
-  const { addresses: CONTRACT_ADDRESSES, isSupported } = useContractAddresses();
+  const { addresses: CONTRACT_ADDRESSES, isSupported, hasSupplyChain } = useContractAddresses();
   return useReadContract({
     address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
     query: {
-      enabled: state !== undefined && isSupported,
+      enabled: state !== undefined && isSupported && hasSupplyChain,
     },
     abi: SupplyChainManagerABI,
     functionName: 'getTokensByState',
@@ -169,11 +182,11 @@ export const useTokensByState = (state?: number) => {
 };
 
 export const useTokensInState = (state?: number, offset?: bigint, limit?: bigint) => {
-  const { addresses: CONTRACT_ADDRESSES, isSupported } = useContractAddresses();
+  const { addresses: CONTRACT_ADDRESSES, isSupported, hasSupplyChain } = useContractAddresses();
   return useReadContract({
     address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
     query: {
-      enabled: state !== undefined && offset !== undefined && limit !== undefined && isSupported,
+      enabled: state !== undefined && offset !== undefined && limit !== undefined && isSupported && hasSupplyChain,
     },
     abi: SupplyChainManagerABI,
     functionName: 'getTokensInState',
@@ -183,11 +196,11 @@ export const useTokensInState = (state?: number, offset?: bigint, limit?: bigint
 };
 
 export const useUserTokenHistory = (userAddress?: string) => {
-  const { addresses: CONTRACT_ADDRESSES, isSupported } = useContractAddresses();
+  const { addresses: CONTRACT_ADDRESSES, isSupported, hasSupplyChain } = useContractAddresses();
   return useReadContract({
     address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
     query: {
-      enabled: !!userAddress && isSupported,
+      enabled: !!userAddress && isSupported && hasSupplyChain,
     },
     abi: SupplyChainManagerABI,
     functionName: 'getUserTokenHistory',
@@ -197,11 +210,11 @@ export const useUserTokenHistory = (userAddress?: string) => {
 };
 
 export const useHasUserInteracted = (tokenId?: bigint, userAddress?: string) => {
-  const { addresses: CONTRACT_ADDRESSES, isSupported } = useContractAddresses();
+  const { addresses: CONTRACT_ADDRESSES, isSupported, hasSupplyChain } = useContractAddresses();
   return useReadContract({
     address: CONTRACT_ADDRESSES.SupplyChainManager as `0x${string}`,
     query: {
-      enabled: !!tokenId && !!userAddress && isSupported,
+      enabled: !!tokenId && !!userAddress && isSupported && hasSupplyChain,
     },
     abi: SupplyChainManagerABI,
     functionName: 'hasUserInteracted',

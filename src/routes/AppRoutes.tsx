@@ -20,6 +20,7 @@ import CheckoutAndTrack from '../pages/CheckoutAndTrack';
 import WaitlistPage from '../pages/WaitlistPage';
 import QRVerificationPage from '../pages/QRVerificationPage';
 
+
 // Simple Connect Button Component using ConnectButtonWrapper
 const SimpleConnectButton: React.FC = () => {
   return <ConnectButtonWrapper variant="compact" />;
@@ -40,16 +41,23 @@ const AppContent = () => {
     return <LandingPage />;
   }
 
-  // Show role registration overlay if needed
-  if (needsRoleRegistration) {
-    return (
-      <SelfServiceRoleRegistrationSimple
-        onRegistrationComplete={() => {}}
-        onSkip={() => {}}
-        showSkipOption={true}
-        isModal={true}
-      />
-    );
+  // Show role registration overlay if needed (but allow bypass)
+  if (needsRoleRegistration && window.location.pathname !== '/register') {
+    // Only show modal if not on register page and user hasn't skipped
+    const hasSkipped = localStorage.getItem('greenledger_role_registration_skipped');
+    if (!hasSkipped) {
+      return (
+        <SelfServiceRoleRegistrationSimple
+          onRegistrationComplete={() => {}}
+          onSkip={() => {
+            localStorage.setItem('greenledger_role_registration_skipped', 'true');
+            window.location.reload();
+          }}
+          showSkipOption={true}
+          isModal={true}
+        />
+      );
+    }
   }
 
   return (
@@ -113,6 +121,16 @@ const AppContent = () => {
               <Route path="/track/:tokenId" element={<CheckoutAndTrack />} />
               <Route path="/qr" element={<QRVerificationPage />} />
               <Route path="/verify" element={<QRVerificationPage />} />
+              <Route path="/register" element={
+                <div className="p-6">
+                  <SelfServiceRoleRegistrationSimple
+                    onRegistrationComplete={() => window.location.href = '/dashboard'}
+                    onSkip={() => window.location.href = '/dashboard'}
+                    showSkipOption={true}
+                    isModal={false}
+                  />
+                </div>
+              } />
 
               <Route path="/waitlist" element={<WaitlistPage />} />
 
