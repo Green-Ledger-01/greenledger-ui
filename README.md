@@ -99,14 +99,24 @@ VITE_WALLETCONNECT_PROJECT_ID="your_walletconnect_project_id"
 VITE_APP_PINATA_API_KEY="your_pinata_api_key"
 VITE_APP_PINATA_SECRET_KEY="your_pinata_secret_key"
 
-# 📜 Smart Contract Addresses (Lisk Sepolia Testnet)
-VITE_GREENLEDGER_USER_MANAGEMENT_CONTRACT_ADDRESS="0x66BCB324f59035aD2B084Fe651ea82398A9fac82"
-VITE_CROPBATCH_TOKEN_CONTRACT_ADDRESS="0xA065205364784B3D7e830D0EB2681EB218e3aD27"
-VITE_SUPPLY_CHAIN_MANAGER_CONTRACT_ADDRESS="0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
+# 📜 Smart Contract Addresses (U2U Mainnet - Primary)
+VITE_GREENLEDGER_USER_MANAGEMENT_CONTRACT_ADDRESS="0x45639B93D48754ec21266c745e968930EB8b4BB6"
+VITE_CROPBATCH_TOKEN_CONTRACT_ADDRESS="0xd3549d47D09b485d3921E5169596deB47158b490"
+VITE_GREENLEDGER_ACCESS_CONTRACT_ADDRESS="0x64C9197f7051b6908d3a9FEe5b4369ff24E1e21B"
+VITE_GREENLEDGER_PAYMASTER_CONTRACT_ADDRESS="0x747F40796cD10E72718fC801d3466B03F1755398"
 
-# 🌐 Network Configuration
-VITE_APP_RPC_URL="https://rpc.sepolia-api.lisk.com"
-VITE_APP_CHAIN_ID="4202"
+# 🌐 Network Configuration (U2U Mainnet)
+VITE_APP_RPC_URL="https://rpc-mainnet.u2u.xyz"
+VITE_APP_CHAIN_ID="39"
+VITE_APP_NETWORK_NAME="U2U Network Solaris"
+VITE_APP_EXPLORER_URL="https://u2uscan.xyz"
+
+# 🔄 Backup Configuration (Lisk Sepolia)
+# VITE_GREENLEDGER_USER_MANAGEMENT_CONTRACT_ADDRESS="0x58C584ddDaAe2DF9Ac73F33F733B876Ffc23CE53"
+# VITE_CROPBATCH_TOKEN_CONTRACT_ADDRESS="0x4097236ED51C12a7b57Af129190E0166248709D0"
+# VITE_SUPPLY_CHAIN_MANAGER_CONTRACT_ADDRESS="0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
+# VITE_APP_RPC_URL="https://rpc.sepolia-api.lisk.com"
+# VITE_APP_CHAIN_ID="4202"
 ```
 
 ### 🎬 **Launch Development Server**
@@ -220,15 +230,29 @@ graph LR
 ## 📜 **Smart Contract Ecosystem**
 
 <div align="center">
+  <img src="https://img.shields.io/badge/Network-U2U_Mainnet-FF6B35?style=for-the-badge" alt="U2U Mainnet" />
   <img src="https://img.shields.io/badge/Network-Lisk_Sepolia-00D4FF?style=for-the-badge" alt="Lisk Sepolia" />
   <img src="https://img.shields.io/badge/Standard-ERC1155-FF6B35?style=for-the-badge" alt="ERC1155" />
   <img src="https://img.shields.io/badge/Verified-✓-00C851?style=for-the-badge" alt="Verified" />
 </div>
 
+### 🚀 **U2U Network Mainnet (Chain ID: 39) - PRIMARY**
+
 | 📜 **Contract** | 🔗 **Address** | 🎯 **Purpose** | 📊 **Status** |
 |----------------|----------------|----------------|---------------|
-| **UserManagement** | [`0x66BCB324...`](https://sepolia-blockscout.lisk.com/address/0x66BCB324f59035aD2B084Fe651ea82398A9fac82) | 🔐 Role-based access control | ✅ Deployed |
-| **CropBatchToken** | [`0xA065205...`](https://sepolia-blockscout.lisk.com/address/0xA065205364784B3D7e830D0EB2681EB218e3aD27) | 🎫 ERC1155 crop batch NFTs | ✅ Deployed |
+| **UserManagement** | [`0x45639B93...`](https://u2uscan.xyz/address/0x45639B93D48754ec21266c745e968930EB8b4BB6) | 🔐 Role-based access control | ✅ Deployed |
+| **CropBatchToken** | [`0xd3549d47...`](https://u2uscan.xyz/address/0xd3549d47D09b485d3921E5169596deB47158b490) | 🎫 ERC1155 crop batch NFTs | ✅ Deployed |
+| **GreenLedgerAccess** | [`0x64C9197f...`](https://u2uscan.xyz/address/0x64C9197f7051b6908d3a9FEe5b4369ff24E1e21B) | 🔑 Access control system | ✅ Deployed |
+| **GreenLedgerPaymaster** | [`0x747F4079...`](https://u2uscan.xyz/address/0x747F40796cD10E72718fC801d3466B03F1755398) | 💰 Gas abstraction | ✅ Deployed |
+
+### 🔄 **Lisk Sepolia Testnet (Chain ID: 4202) - BACKUP**
+
+| 📜 **Contract** | 🔗 **Address** | 🎯 **Purpose** | 📊 **Status** |
+|----------------|----------------|----------------|---------------|
+| **UserManagement** | [`0x58C584dd...`](https://sepolia-blockscout.lisk.com/address/0x58C584ddDaAe2DF9Ac73F33F733B876Ffc23CE53) | 🔐 Role-based access control | ✅ Deployed |
+| **CropBatchToken** | [`0x4097236E...`](https://sepolia-blockscout.lisk.com/address/0x4097236ED51C12a7b57Af129190E0166248709D0) | 🎫 ERC1155 crop batch NFTs | ✅ Deployed |
+| **UserManagement (Legacy)** | [`0x66BCB324...`](https://sepolia-blockscout.lisk.com/address/0x66BCB324f59035aD2B084Fe651ea82398A9fac82) | 🔐 Legacy access control | ✅ Deployed |
+| **CropBatchToken (Legacy)** | [`0xA065205...`](https://sepolia-blockscout.lisk.com/address/0xA065205364784B3D7e830D0EB2681EB218e3aD27) | 🎫 Legacy NFT contract | ✅ Deployed |
 | **SupplyChainManager** | [`0xDc64a140...`](https://sepolia-blockscout.lisk.com/address/0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9) | 📊 Provenance tracking | ✅ Deployed |
 
 ### 🔐 **Security Features**
@@ -236,6 +260,8 @@ graph LR
 - ✅ **Reentrancy protection** on all state-changing functions
 - ✅ **Input validation** and comprehensive error handling
 - ✅ **Event logging** for complete audit trails
+- ✅ **Cross-chain consistency** between U2U and Lisk deployments
+- ✅ **Gas abstraction** via Paymaster on U2U Network
 - ✅ **Upgradeable contracts** with timelock governance
 
 ## 🛠️ **Development Workflow**
@@ -251,6 +277,41 @@ npm run type-check   # 📝 TypeScript type checking
 npm run clean        # 🧹 Clean build artifacts
 ```
 
+### 📜 **Smart Contract Interaction Examples**
+
+**U2U Network Mainnet (Primary)**
+```javascript
+// Contract addresses
+const userManagement = '0x45639B93D48754ec21266c745e968930EB8b4BB6';
+const cropBatchToken = '0xd3549d47D09b485d3921E5169596deB47158b490';
+const greenLedgerAccess = '0x64C9197f7051b6908d3a9FEe5b4369ff24E1e21B';
+const paymaster = '0x747F40796cD10E72718fC801d3466B03F1755398';
+
+// Register user and mint token
+await userManagement.registerUser(farmerAddress, 0); // 0 = Farmer
+await cropBatchToken.mintNewBatch(
+  farmerAddress,
+  'Organic Tomatoes',
+  100, // kg
+  'Green Valley Farm',
+  Math.floor(Date.now() / 1000),
+  'Premium organic tomatoes',
+  'ipfs://QmHash'
+);
+```
+
+**Lisk Sepolia Testnet (Backup)**
+```javascript
+// Contract addresses
+const userManagement = '0x58C584ddDaAe2DF9Ac73F33F733B876Ffc23CE53';
+const cropBatchToken = '0x4097236ED51C12a7b57Af129190E0166248709D0';
+const supplyChainManager = '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9';
+
+// Same operations on Lisk Sepolia
+await userManagement.registerUser(farmerAddress, 0);
+await cropBatchToken.mintNewBatch(/* same parameters */);
+```
+
 ### 🧪 **Testing Strategy**
 
 <details>
@@ -259,19 +320,19 @@ npm run clean        # 🧹 Clean build artifacts
 #### **🔄 End-to-End User Journey**
 1. **🔗 Wallet Connection**
    - Connect MetaMask/WalletConnect
-   - Switch to Lisk Sepolia network
-   - Verify account balance
+   - Switch to U2U Network (Primary) or Lisk Sepolia (Backup)
+   - Verify account balance and network
 
 2. **👤 Role Registration**
    - Register as Farmer/Transporter/Buyer
    - Verify role assignment on-chain
-   - Test permission boundaries
+   - Test permission boundaries across networks
 
 3. **🎫 Token Minting (Farmer)**
-   - Upload crop images to IPFS
+   - Upload crop images to IPFS via Pinata
    - Fill crop batch metadata
-   - Mint ERC1155 NFT
-   - Verify token creation
+   - Mint ERC1155 NFT on active network
+   - Verify token creation and metadata
 
 4. **🚚 Supply Chain Transfer**
    - Transfer from Farmer → Transporter
@@ -283,14 +344,15 @@ npm run clean        # 🧹 Clean build artifacts
    - Generate QR code for token
    - Scan QR code on mobile device
    - Verify instant authentication
-   - Check provenance display
+   - Check provenance display across networks
 
 #### **🔧 Technical Testing**
-- **🌐 Network Connectivity**: Test offline/online scenarios
+- **🌐 Network Connectivity**: Test U2U/Lisk network switching
 - **📱 Mobile Compatibility**: iOS/Android wallet browsers
-- **⚡ Performance**: Load times, transaction speeds
+- **⚡ Performance**: Load times, transaction speeds on both networks
 - **🔒 Security**: Role permissions, input validation
 - **🎨 UI/UX**: Responsive design, accessibility
+- **🔄 Cross-Chain**: Contract interaction consistency
 
 </details>
 
@@ -337,6 +399,20 @@ vercel --prod
 - ✅ **CDN Configuration** (global delivery)
 
 </details>
+
+### 🌐 **Network Information**
+
+**U2U Network Mainnet (Primary)**
+- 🌐 **RPC**: `https://rpc-mainnet.u2u.xyz`
+- 🔗 **Chain ID**: `39`
+- 🔍 **Explorer**: https://u2uscan.xyz
+- 🌊 **WebSocket**: `wss://ws-mainnet.u2u.xyz`
+
+**Lisk Sepolia Testnet (Backup)**
+- 🌐 **RPC**: `https://rpc.sepolia-api.lisk.com`
+- 🔗 **Chain ID**: `4202`
+- 🔍 **Explorer**: https://sepolia-blockscout.lisk.com
+- 💧 **Faucet**: https://sepolia-faucet.lisk.com
 
 ### 🌐 **Hosting Platforms**
 - **🟢 Vercel** (Recommended) - Automatic deployments

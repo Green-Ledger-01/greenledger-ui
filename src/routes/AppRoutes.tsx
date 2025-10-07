@@ -48,7 +48,10 @@ const AppContent = () => {
     if (!hasSkipped) {
       return (
         <SelfServiceRoleRegistrationSimple
-          onRegistrationComplete={() => {}}
+          onRegistrationComplete={() => {
+            // Force refresh of user data to update needsRoleRegistration
+            window.location.reload();
+          }}
           onSkip={() => {
             localStorage.setItem('greenledger_role_registration_skipped', 'true');
             window.location.reload();

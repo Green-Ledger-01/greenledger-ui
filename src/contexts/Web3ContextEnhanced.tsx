@@ -4,6 +4,7 @@ import { DEFAULT_ADMIN_ROLE } from "../config/constants";
 import { useContractAddresses } from "../hooks/useContractAddresses";
 import { useCurrentChain } from "../hooks/useCurrentChain";
 import { useToast } from "./ToastContext";
+import UserManagementABI from '../contracts/UserManagement.json';
 
 // Types
 export interface UserRole {
@@ -53,19 +54,7 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
       retry: 3,
       retryDelay: 1000,
     },
-    abi: [
-      {
-        inputs: [{ name: "_user", type: "address" }],
-        name: "getUserRolesStatus",
-        outputs: [
-          { name: "isFarmer", type: "bool" },
-          { name: "isTransporter", type: "bool" },
-          { name: "isBuyer", type: "bool" },
-        ],
-        stateMutability: "view",
-        type: "function",
-      },
-    ],
+    abi: UserManagementABI,
     functionName: "getUserRolesStatus",
     args: address ? [address as `0x${string}`] : undefined,
   });
@@ -75,24 +64,20 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
     query: {
       enabled: !!address && isConnected && isSupported && !!CONTRACT_ADDRESSES.UserManagement,
     },
-    abi: [
-      {
-        inputs: [
-          { name: "role", type: "bytes32" },
-          { name: "account", type: "address" },
-        ],
-        name: "hasRole",
-        outputs: [{ name: "", type: "bool" }],
-        stateMutability: "view",
-        type: "function",
-      },
-    ],
+    abi: UserManagementABI,
     functionName: "hasRole",
     args: address ? [DEFAULT_ADMIN_ROLE as `0x${string}`, address as `0x${string}`] : undefined,
   });
 
   useEffect(() => {
     if (address && isConnected) {
+      console.log('🔍 Web3 Debug:', {
+        address,
+        isConnected,
+        isSupported,
+        userManagementAddress: CONTRACT_ADDRESSES.UserManagement,
+        networkName: CONTRACT_ADDRESSES
+      });
       loadUserRoles();
     } else {
       setUserRoles([]);
@@ -102,7 +87,7 @@ export const Web3ContextEnhancedProvider: React.FC<{ children: React.ReactNode }
         clearLocalData();
       }
     }
-  }, [address, isConnected]);
+  }, [address, isConnected, isSupported, CONTRACT_ADDRESSES]);
 
   useEffect(() => {
     if (contractRoles && Array.isArray(contractRoles) && contractRoles.length === 3) {
