@@ -53,7 +53,7 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
     cropType: '',
     quantity: '',
     pricePerKg: '',
-    priceCurrency: 'KES' as 'ETH' | 'USD' | 'KES' | 'NGN',
+    priceCurrency: 'KES' as 'ETH' | 'USD' | 'KES' | 'NGN' | 'ZAR', 
     originFarm: '',
     harvestDate: '',
     notes: '',
@@ -542,6 +542,7 @@ const TokenizationPage: React.FC<TokenizationPageProps> = ({ onSuccess }) => {
                   <option value="NGN">₦ (NGN)</option>
                   <option value="USD">$ (USD)</option>
                   <option value="ETH">Ξ (ETH)</option>
+                  <option value="ZAR">R (ZAR)</option>
                 </select>
               </div>
               {formErrors.pricePerKg && <p className="mt-1 text-xs text-red-600">{formErrors.pricePerKg}</p>}
