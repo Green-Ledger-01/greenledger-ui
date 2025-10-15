@@ -3,7 +3,7 @@ import { DollarSign } from 'lucide-react';
 
 interface CurrencyDisplayProps {
   amount: number;
-  currency: 'ETH' | 'USD' | 'KES' | 'NGN';
+  currency: 'ETH' | 'USD' | 'KES' | 'NGN' | 'ZAR';
   className?: string;
   showAllCurrencies?: boolean;
   compact?: boolean;
@@ -15,7 +15,9 @@ const EXCHANGE_RATES = {
   USD_KES: 129,   // 129 KES per USD (current rate)
   USD_NGN: 1550,  // 1550 NGN per USD (current rate)
   ETH_KES: 309600, // Direct ETH to KES (2400 * 129)
-  ETH_NGN: 3720000, // Direct ETH to NGN (2400 * 1550)
+  ETH_NGN: 3720000, 
+  ETH_ZAR: 44400,  // Direct ETH to ZAR (2400 * 18.5)
+  USD_ZAR: 18.5,   // 18.5 ZAR per USD (current rate)
 };
 
 // Currency symbols and formatting
@@ -24,6 +26,7 @@ const CURRENCY_CONFIG = {
   USD: { symbol: '$', name: 'US Dollar', decimals: 2 },
   KES: { symbol: 'KSh', name: 'Kenyan Shilling', decimals: 0 },
   NGN: { symbol: '₦', name: 'Nigerian Naira', decimals: 0 },
+  ZAR: { symbol: 'R', name: 'South African Rand', decimals: 2},
 };
 
 // Convert between currencies
@@ -38,6 +41,8 @@ const convertCurrency = (amount: number, fromCurrency: string, toCurrency: strin
     usdAmount = amount / EXCHANGE_RATES.USD_KES;
   } else if (fromCurrency === 'NGN') {
     usdAmount = amount / EXCHANGE_RATES.USD_NGN;
+  } else if (fromCurrency === 'ZAR') {
+    usdAmount = amount / (EXCHANGE_RATES.USD_ZAR);
   }
 
   // Convert from USD to target currency
@@ -46,6 +51,7 @@ const convertCurrency = (amount: number, fromCurrency: string, toCurrency: strin
     case 'USD': return usdAmount;
     case 'KES': return usdAmount * EXCHANGE_RATES.USD_KES;
     case 'NGN': return usdAmount * EXCHANGE_RATES.USD_NGN;
+    case 'ZAR': return usdAmount * (EXCHANGE_RATES.USD_ZAR);
     default: return usdAmount;
   }
 };
